@@ -1,0 +1,33 @@
+---
+title: "Telegram"
+description: "Connect Telegram notifications to a Mermail mailbox."
+icon: "send"
+---
+
+Mermail can link a mailbox to Telegram for notifications and onboarding prompts.
+
+## What you can do
+
+- Check Telegram link status for a mailbox.
+- Create a mailbox link request.
+- Disconnect Telegram from a mailbox.
+- Receive Telegram webhook updates when the bot is configured.
+
+## Setup checklist
+
+<Steps>
+  <Step title="Configure the bot">
+    Connect the Telegram bot to the deployed app.
+  </Step>
+  <Step title="Link a mailbox">
+    In mailbox settings, create a Telegram link and complete the pairing flow.
+  </Step>
+  <Step title="Test a notification">
+    Trigger a mailbox event and confirm Telegram receives the notification.
+  </Step>
+</Steps>
+
+<Info>
+  Telegram is mailbox-scoped. Disconnecting Telegram removes that mailbox's link
+  without changing other workspace settings.
+</Info>

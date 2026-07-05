@@ -1,0 +1,17 @@
+---
+title: "Composio"
+description: "Connect external app tools to the Mermail mailbox agent."
+icon: "plug"
+---
+
+Composio lets the mailbox agent use connected app tools for the authenticated user. Mermail filters toolkits and tool actions before exposing tools to the agent.
+
+## Toolkit rules
+
+Mermail disables Gmail and Outlook toolkits for the mailbox agent path. Email should stay inside Mermail's own mailbox model.
+
+The Google Calendar toolkit is supported for calendar account context and triggers.
+
+## Connection lifecycle
+
+The app API supports listing toolkits, starting a connection, disconnecting a toolkit, listing connections, and syncing connection state.

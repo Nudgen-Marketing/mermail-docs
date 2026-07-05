@@ -1,0 +1,56 @@
+---
+title: "Create a mailbox"
+description: "Create a hosted or custom-domain mailbox for an AI agent."
+icon: "plus"
+---
+
+Create a mailbox when an agent needs its own email identity.
+
+## Create a hosted mailbox
+
+<Steps>
+  <Step title="Open the workspace">
+    In the console, select the workspace that should own the mailbox.
+  </Step>
+  <Step title="Start mailbox creation">
+    Click **New mailbox**.
+  </Step>
+  <Step title="Choose a hosted address">
+    Enter a valid username for the `mermail.app` domain.
+  </Step>
+  <Step title="Create the mailbox">
+    Confirm the address and create the mailbox.
+  </Step>
+</Steps>
+
+## Create a custom-domain mailbox
+
+Before creating a custom-domain mailbox, add and verify the subdomain in workspace settings.
+
+<Steps>
+  <Step title="Add the domain">
+    Go to workspace settings and add a subdomain such as `support.mail.example.com`.
+  </Step>
+  <Step title="Add DNS records">
+    Add the DNS records returned by the provider.
+  </Step>
+  <Step title="Verify the domain">
+    Click **Verify** after DNS has propagated.
+  </Step>
+  <Step title="Create the mailbox">
+    Create a mailbox using an address on the verified domain.
+  </Step>
+</Steps>
+
+<Info>
+  Custom domains require a paid plan. The Developer plan includes up to 5 custom domains.
+</Info>
+
+## Troubleshooting
+
+| Problem | What to check |
+| --- | --- |
+| Username is rejected | Check length, separators, characters, and reserved terms |
+| Custom domain is rejected | Use a subdomain with at least three labels |
+| Domain cannot be verified | Check DNS records and wait for propagation |
+| Mailbox limit reached | Check the workspace plan limits |

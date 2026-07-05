@@ -1,34 +1,71 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "Mermail",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#1E40AF",
+    "light": "#70EEEE",
+    "dark": "#3C91FF"
   },
   "favicon": "/favicon.svg",
   "navigation": {
     "pages": [
       {
-        "group": "Getting Started",
+        "group": "Get started",
         "pages": [
           "index",
           "quickstart"
+        ]
+      },
+      {
+        "group": "Core concepts",
+        "pages": [
+          "concepts/mailboxes",
+          "concepts/workspaces",
+          "concepts/ai-agent"
+        ]
+      },
+      {
+        "group": "Guides",
+        "pages": [
+          "guides/create-mailbox",
+          "guides/custom-domains"
+        ]
+      },
+      {
+        "group": "Integrations",
+        "pages": [
+          "integrations/composio",
+          "integrations/telegram"
+        ]
+      },
+      {
+        "group": "API and discovery",
+        "pages": [
+          "api-reference/overview",
+          "api-reference/discovery",
+          "api-reference/authentication"
+        ]
+      },
+      {
+        "group": "Resources",
+        "pages": [
+          "resources/security",
+          "resources/plans"
         ]
       }
     ],
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "anchor": "Console",
+          "href": "https://console.mermail.app",
+          "icon": "inbox"
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "Website",
+          "href": "https://mermail.app",
+          "icon": "globe"
         }
       ]
     }
@@ -41,13 +78,13 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:support@mermail.app"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://app.mintlify.com"
+      "label": "Open console",
+      "href": "https://console.mermail.app"
     }
   },
   "contextual": {
@@ -61,12 +98,5 @@
       "cursor",
       "vscode"
     ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
   }
 }

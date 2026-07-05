@@ -1,0 +1,48 @@
+---
+title: "Custom domains"
+description: "Configure a custom email subdomain for Mermail mailboxes."
+icon: "globe"
+---
+
+Custom domains let your workspace create Mermail mailboxes on a domain you control. Mermail supports the custom-domain path through Resend domain verification.
+
+## Use a subdomain first
+
+Use a subdomain such as:
+
+```text
+support.mail.example.com
+```
+
+Avoid changing MX records for the root domain unless you intend Mermail to own that whole mail lane. Root domains often already receive company email through Google Workspace, Microsoft 365, or another provider.
+
+## Setup flow
+
+<Steps>
+  <Step title="Choose the subdomain">
+    Pick a subdomain dedicated to Mermail mailbox traffic.
+  </Step>
+  <Step title="Add it in workspace settings">
+    Mermail creates a provider domain and returns DNS records.
+  </Step>
+  <Step title="Publish DNS records">
+    Add the required records with your DNS provider.
+  </Step>
+  <Step title="Verify in Mermail">
+    Mermail asks the provider to verify the domain and records the verified status.
+  </Step>
+  <Step title="Create mailboxes">
+    Create mailboxes on the verified domain.
+  </Step>
+</Steps>
+
+## Domain requirements
+
+- The value must be a subdomain, not a bare root domain.
+- Each DNS label must use letters, numbers, and hyphens.
+- A workspace must be on a plan that includes custom domains.
+- You must remove mailboxes from a domain before deleting the domain.
+
+<Warning>
+  DNS changes can affect existing email delivery. Confirm the subdomain is dedicated to Mermail before you publish records.
+</Warning>

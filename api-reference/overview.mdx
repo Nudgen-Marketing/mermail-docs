@@ -1,0 +1,37 @@
+---
+title: "API overview"
+description: "Understand the Mermail API resource areas and where to find the OpenAPI spec."
+icon: "code"
+---
+
+Mermail's app API is served under `/api/v1`. It uses first-party app sessions for console users. Cookie-authenticated mutating requests require CSRF protection.
+
+The deployed app also exposes an OpenAPI document at:
+
+```text
+/openapi.json
+```
+
+and:
+
+```text
+/docs/openapi.json
+```
+
+<Info>
+  The current OpenAPI document is intentionally small. Use it as the
+  machine-readable starting point, and treat this page as the human index of
+  implemented resource areas.
+</Info>
+
+## Health check
+
+Use the status endpoint for a basic service check:
+
+```bash
+curl https://console.mermail.app/api/status
+```
+
+## Payment-aware routes
+
+Mermail includes agentic commerce discovery and payment metadata for some protected actions. See [Discovery](/api-reference/discovery).

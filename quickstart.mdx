@@ -1,47 +1,51 @@
 ---
 title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+description: "Create your first Mermail mailbox and receive an email."
+icon: "rocket"
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
-
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
+This guide gets you from a Mermail account to a working hosted mailbox.
 
 ## Prerequisites
 
-Before you begin, you must have:
+- Access to the Mermail console.
+- A workspace where you can create mailboxes.
+- Harbor storage configured for the workspace if you want to keep full message bodies and attachments.
 
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
+<Info>
+  Hosted mailbox names use the `mermail.app` domain. Usernames must be 5 to 30 characters and can contain letters, numbers, dots, underscores, and hyphens.
+</Info>
 
-## Get started
+## Create your first mailbox
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
-
-    ```bash
-    npm install your-package
-    ```
+  <Step title="Open the console">
+    Go to [console.mermail.app](https://console.mermail.app) and sign in.
   </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
-
-    ```bash
-    your-cli init
-    ```
+  <Step title="Choose a workspace">
+    Select the workspace that should own the mailbox. Mailboxes, members, billing, storage settings, and custom domains are scoped to the workspace.
   </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
+  <Step title="Create a hosted mailbox">
+    Click **New mailbox**, choose a hosted address, and create the mailbox.
+  </Step>
+  <Step title="Send a test email">
+    Send an email from another account to the new address. The message should appear in the mailbox after Cloudflare Email Routing forwards it to Mermail.
+  </Step>
+  <Step title="Ask the mailbox agent">
+    Open the agent panel and ask a question such as:
 
-    ```bash
-    your-cli start
+    ```text
+    Summarize the latest unread email and draft a short reply.
     ```
   </Step>
 </Steps>
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+<Check>
+  You have a mailbox when the inbox shows the address, folders, and received messages.
+</Check>
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
-</Tip>
+## Next steps
+
+<Card title="Add a custom domain" icon="globe" href="/guides/custom-domains">
+  Use a verified subdomain when you want mailboxes on your own domain.
+</Card>

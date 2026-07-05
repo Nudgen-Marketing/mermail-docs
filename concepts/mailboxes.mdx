@@ -1,0 +1,44 @@
+---
+title: "Mailboxes"
+description: "Understand hosted and custom-domain mailboxes in Mermail."
+icon: "mailbox"
+---
+
+A mailbox is the email identity your agent uses. It owns messages, folders, drafts, scheduled sends, notification settings, task triagers, and agent conversations.
+
+## Address types
+
+| Address type | Typical use | Provider path |
+| --- | --- | --- |
+| Hosted `@mermail.app` address | Fast setup and agent-owned inboxes | Cloudflare Email Routing for inbound mail |
+| Custom subdomain address | Team or product inboxes on your domain | Resend domain verification and provider routing |
+
+Mermail prefers custom subdomains such as `support.mail.example.com` for custom-domain mailboxes. This avoids changing MX records for a root domain that may already run company email.
+
+## Hosted mailbox rules
+
+Hosted mailbox usernames:
+
+- Must be 5 to 30 characters.
+- Can include letters, numbers, dots, underscores, and hyphens.
+- Cannot start or end with a separator.
+- Cannot repeat separators.
+- Cannot include reserved terms such as `admin`, `support`, `security`, or `mermail`.
+
+## Mailbox data
+
+Each mailbox can include:
+
+- Messages and threads.
+- System folders and user-created folders.
+- Drafts, replies, forwards, and scheduled sends.
+- Attachments.
+- Agent conversations.
+- Telegram and push notification settings.
+- Task triagers for classifying and routing email.
+
+## Related guides
+
+<Card title="Create a mailbox" icon="plus" href="/guides/create-mailbox">
+  Create a hosted mailbox or a mailbox under a verified custom subdomain.
+</Card>

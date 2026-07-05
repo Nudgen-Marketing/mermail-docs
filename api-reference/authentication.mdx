@@ -1,0 +1,32 @@
+---
+title: "Authentication"
+description: "Understand Mermail app sessions and request protection."
+icon: "key"
+---
+
+Mermail uses first-party app sessions for console users. The API creates an app session after the identity flow succeeds, then uses session cookies for later app requests.
+
+## App session flow
+
+<Steps>
+  <Step title="Complete identity sign-in">
+    Sign in through the console identity flow.
+  </Step>
+  <Step title="Create a Mermail session">
+    The app exchanges the identity proof for a Mermail app session.
+  </Step>
+  <Step title="Use session cookies">
+    Later API requests use the app session cookies.
+  </Step>
+  <Step title="Refresh or logout">
+    The client can refresh the session or revoke it during logout.
+  </Step>
+</Steps>
+
+## Request protection
+
+Cookie-authenticated mutating requests use CSRF protection. This protects app-session routes when the browser automatically sends cookies.
+
+## Internal mail forwarding
+
+Inbound mail forwarding between the worker and the app uses private server-to-server authentication.

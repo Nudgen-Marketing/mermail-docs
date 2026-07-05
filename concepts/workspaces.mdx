@@ -1,0 +1,37 @@
+---
+title: "Workspaces"
+description: "Learn how Mermail scopes mailboxes, members, billing, and storage."
+icon: "briefcase"
+---
+
+A workspace is the ownership boundary for Mermail resources. It groups mailboxes, members, custom domains, billing, storage settings, and usage.
+
+## What belongs to a workspace
+
+- Mailboxes and their email data.
+- Workspace members and roles.
+- Pending invites.
+- Workspace storage access.
+- Custom email domains.
+- Billing subscription state.
+- Email and storage usage.
+
+## Roles
+
+Workspace actions require an authenticated app session. Some actions, such as custom-domain setup, storage configuration, member management, and billing changes, require an admin role in the workspace.
+
+<Tip>
+  Keep one workspace per team or customer deployment. This makes storage, billing, and mailbox access easier to reason about.
+</Tip>
+
+## Plan limits
+
+Plan limits apply at the workspace level.
+
+| Plan | Mailboxes | Members | Email quota | Storage | Custom domains |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Free | 2 | 2 | 1,000 | 3 GB | 0 |
+| Developer | 10 | 5 | 10,000 | 10 GB | 5 |
+| Enterprise | Custom | Custom | Custom | Custom | Custom |
+
+See [Plans](/resources/plans) for details.

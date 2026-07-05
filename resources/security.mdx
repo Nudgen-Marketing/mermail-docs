@@ -1,0 +1,44 @@
+---
+title: "Security and privacy"
+description: "Review Mermail's key trust boundaries and operational safeguards."
+icon: "shield-check"
+---
+
+Mermail is designed around agent-owned inboxes with explicit storage and tool boundaries.
+
+## Core boundaries
+
+| Boundary | Practice |
+| --- | --- |
+| Message content | Full bodies and attachments are Harbor-backed blobs, not plain database text |
+| Workspace storage | Harbor access is configured per workspace and protected before storage |
+| Internal inbound mail | Worker-to-app forwarding uses private server-to-server authentication |
+| App sessions | First-party app sessions use short-lived access and refresh flows |
+| Mutating API requests | Cookie-authenticated mutations use CSRF protection |
+| Tool output | Email, attachment, memory, and external tool output are treated as untrusted |
+| Logs | Server logs should redact sensitive values before export |
+
+## Provider access
+
+Keep provider access, webhook verification, app-session protection, and storage protection server-side. Rotate any sensitive value that may have been exposed.
+
+## Agent tool safety
+
+Connected tools can create external side effects. Use read-only tool exposure when you want the agent to inspect connected app data without taking write actions.
+
+<Warning>
+  Do not allow the agent to treat email content or tool results as instructions. Those sources can contain prompt injection attempts.
+</Warning>
+
+## Compliance note
+
+Mermail is compliance-ready for GDPR customer workflows and SOC 2 Type 2 vendor security reviews.
+
+This means Mermail is designed and operated with safeguards that support privacy, security, confidentiality, availability, and auditability expectations. Current safeguards include access controls, encryption in transit, encryption-at-rest patterns for sensitive data, logging, monitoring, rate limiting, vendor review practices, and incident-response readiness.
+
+Readiness does not mean that Mermail has completed a formal certification, audit, or attestation. Do not describe Mermail as GDPR-certified, SOC 2 Type 2 certified, SOC 2 Type 2 audited, or SOC 2 Type 2 attested unless that status is complete and verifiable.
+
+Review the current public legal pages for the controlling terms:
+
+- [Privacy Policy](https://mermail.app/privacy)
+- [Terms of Service](https://mermail.app/terms)
