@@ -1,0 +1,76 @@
+---
+title: "Task triage"
+description: "Understand how mailbox task triagers respond to email and calendar events."
+icon: "list-check"
+---
+
+A task triager is a mailbox-owned automation. It watches for an event, gives the mailbox agent a set of instructions, and records the result in a dedicated agent conversation.
+
+Task triagers belong to one mailbox. Workspace admins and members with access to that mailbox can view and manage them.
+
+## How task triagers work
+
+| Part | Purpose |
+| --- | --- |
+| Trigger | Defines the event that can start a run, such as a received email or a calendar update. |
+| Instructions | Tell the agent what to do when the trigger fires. |
+| Task | Defines the supported action the runtime performs. The built-in email-response triager uses an enabled draft-response task. |
+| Run | Records an execution, including whether it completed or failed. |
+| Agent conversation | Keeps progress and outcome messages for one triager. |
+
+To create a custom triager, add at least one trigger and a non-empty set of instructions. You can enable or disable individual triggers without deleting the triager.
+
+## Built-in email-response triager
+
+Each mailbox has a **Default email response triager**. It listens for new email received by that mailbox and runs only for messages in the Inbox.
+
+When a message qualifies, the triager uses the email thread, mailbox context, and its built-in customer-care instructions to prepare a reply. The default behavior saves the reply as a draft for human review. It also avoids replying to messages that look automated, including bulk mail, list mail, and messages with auto-response suppression headers.
+
+<Info>
+  The built-in triager is protected. You cannot change its name, triggers, or instructions, and you cannot delete it.
+</Info>
+
+## Trigger categories
+
+Task triagers expose calendar and mail trigger choices.
+
+| Category | Trigger choices | Current behavior |
+| --- | --- | --- |
+| Google Calendar | Event created, event updated, or event canceled | Runs the custom instructions when the selected connected calendar receives that event type. |
+| Mail | Email received, email sent, or email received or sent | Mail execution currently runs enabled email-response tasks for qualifying received email. |
+
+Google Calendar triggers require a connected Google Calendar account. The connection belongs to the member who creates the calendar triager. If that member no longer belongs to the workspace, Mermail cannot create or replace the calendar trigger connection.
+
+<Warning>
+  Creating an instruction-only custom mail triager does not currently run those instructions when mail arrives or is sent. Use the built-in email-response triager for inbound draft responses. Use custom triagers for supported Google Calendar events.
+</Warning>
+
+## Matching and filters
+
+For received-email execution, Mermail currently matches the selected mailbox address, any configured sender-domain scope, and the **Only run on emails in Inbox** setting.
+
+The editor also displays content filters such as subject, body, sender, recipient, and calendar event fields. These filters are saved with the trigger, but the current runtime does not use them to decide whether a run starts.
+
+<Note>
+  Treat the trigger type, connected calendar, mailbox address, sender-domain scope, and Inbox-only setting as the active matching conditions.
+</Note>
+
+## Managing custom triagers
+
+You can change a custom triager's name, instructions, and triggers. You can enable or disable its individual triggers, or delete the triager when you no longer need it.
+
+Deleting a custom triager removes its triggers and its dedicated agent conversations. The protected email-response triager remains available for the mailbox.
+
+## Run activity and conversations
+
+Each triager has a dedicated conversation in the mailbox agent panel. Select **Agent** beside a triager to open it.
+
+Calendar runs post a message when processing starts. Completed and failed runs post their outcome to the conversation. Workspace members receive the triager activity in their own agent conversation for the mailbox.
+
+When the built-in email-response triager creates a draft, Mermail links that draft to the originating triager and run. This keeps the draft and its automation context connected for review.
+
+## Related concepts
+
+<Card title="Mailbox agent" icon="sparkles" href="/concepts/ai-agent">
+  Learn how the agent uses mailbox context, conversations, and connected tools.
+</Card>

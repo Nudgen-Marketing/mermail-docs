@@ -22,7 +22,8 @@
         "pages": [
           "concepts/mailboxes",
           "concepts/workspaces",
-          "concepts/ai-agent"
+          "concepts/ai-agent",
+          "concepts/task-triage"
         ]
       },
       {
