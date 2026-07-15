@@ -53,7 +53,7 @@ Enterprise shares the same endpoint list as Developer — higher quotas, not ext
     Use the sidebar in this API Reference. Prefer core catalog endpoints on Free; Developer-gated paths need Developer or Enterprise.
   </Step>
   <Step title="Authorize and send">
-    Open the page → **Try it** → paste Bearer → fill params → send. Or copy a **cURL / Python / JavaScript / PHP / Go / Java / Ruby** snippet from the language dropdown.
+    Open the page → **Try it** → paste your API key → fill params → send. Or copy a **cURL / Python / JavaScript / PHP / Go / Java / Ruby** snippet from the language dropdown.
   </Step>
 </Steps>
 
@@ -65,11 +65,11 @@ Enterprise shares the same endpoint list as Developer — higher quotas, not ext
 
 ## Core API catalog (all plans)
 
-Auth: Bearer. Metered with credits + RPM. Open each group in the sidebar for full schemas and Try it.
+Auth: `x-api-key`. Metered with credits + RPM. Open each group in the sidebar for full schemas and Try it.
 
 ### Key management (admin, no credit debit)
 
-After you have at least one key from Settings, you can list/create/revoke keys with Bearer too.
+After you have at least one key from Settings, you can list/create/revoke keys with `x-api-key` too.
 
 | Method | Path | Notes |
 | --- | --- | --- |
