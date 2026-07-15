@@ -142,6 +142,112 @@ function creditLabel(n) {
 	return map[n] ?? "custom";
 }
 
+/** Plan access for Mintlify API pages (sidebar tag + description badges). */
+const PLAN_ACCESS = {
+	public: {
+		tag: "Public",
+		plans: ["Public"],
+		xBadges: [{ name: "Public", color: "grey" }],
+	},
+	all: {
+		tag: "All plans",
+		plans: ["Free", "Developer", "Enterprise"],
+		xBadges: [
+			{ name: "Free", color: "green" },
+			{ name: "Developer", color: "blue" },
+			{ name: "Enterprise", color: "purple" },
+		],
+	},
+	developer: {
+		tag: "Developer+",
+		plans: ["Developer", "Enterprise"],
+		xBadges: [
+			{ name: "Developer", color: "blue" },
+			{ name: "Enterprise", color: "purple" },
+		],
+	},
+};
+
+function isDeveloperGatedApiPath(pathname, method = "GET") {
+	const m = method.toUpperCase();
+	if (pathname.includes("/email-domains")) return true;
+	if (pathname.includes("/integrations/composio")) return true;
+	if (
+		pathname.includes("/harbor-session") ||
+		pathname.includes("/harbor-api-key")
+	) {
+		return true;
+	}
+	if (/\/workspaces\/[^/]+\/storage$/.test(pathname) && m !== "GET") {
+		return true;
+	}
+	if (pathname.includes("/task-triager")) return true;
+	if (pathname.includes("/rag/credentials/")) return true;
+	if (/\/rag\/documents$/.test(pathname) && m === "POST") return true;
+	if (/\/rag\/documents\/[^/]+$/.test(pathname) && m === "DELETE") return true;
+	if (pathname.includes("/rag/documents/") && pathname.endsWith("/verify")) {
+		return true;
+	}
+	return false;
+}
+
+function classifyPlanAccess(pathname, method, operation) {
+	const security = operation.security;
+	const isPublic =
+		Array.isArray(security) &&
+		(security.length === 0 ||
+			security.some((entry) => Object.keys(entry).length === 0));
+	if (isPublic) return "public";
+	if (isDeveloperGatedApiPath(pathname, method)) return "developer";
+	return "all";
+}
+
+function applyPlanBadges(operation, accessKey) {
+	const access = PLAN_ACCESS[accessKey] ?? PLAN_ACCESS.all;
+	const planLine =
+		accessKey === "public"
+			? "**Plans:** `Public` (no auth)"
+			: `**Plans:** ${access.plans.map((p) => `\`${p}\``).join(" · ")}`;
+
+	const body = (operation.description ?? "").trim();
+	if (!body.startsWith("**Plans:**")) {
+		operation.description = body ? `${planLine}\n\n${body}` : planLine;
+	}
+
+	operation["x-badges"] = access.xBadges;
+	operation["x-plan-access"] = access.plans.map((p) => p.toLowerCase());
+	operation["x-mint"] = {
+		...(operation["x-mint"] ?? {}),
+		metadata: {
+			...(operation["x-mint"]?.metadata ?? {}),
+			tag: access.tag,
+		},
+	};
+}
+
+function applyPlanBadgesToPaths(pathMap) {
+	const httpMethods = new Set([
+		"get",
+		"put",
+		"post",
+		"delete",
+		"options",
+		"head",
+		"patch",
+		"trace",
+	]);
+	for (const [pathname, item] of Object.entries(pathMap)) {
+		for (const [method, operation] of Object.entries(item)) {
+			if (!httpMethods.has(method)) continue;
+			if (!operation || typeof operation !== "object") continue;
+			applyPlanBadges(
+				operation,
+				classifyPlanAccess(pathname, method, operation),
+			);
+		}
+	}
+}
+
 function slimOp({
 	summary,
 	description,
@@ -415,7 +521,7 @@ add(
 	op({
 		summary: "Create API key",
 		description:
-			"Creates an API key for the workspace. Returns `apiKey` (`mm_key_…`) and `clientSecret` (**once**). Requires **Developer** or **Enterprise** and workspace **admin**. Does **not** consume API credits.\n\nCopy the key immediately — Mermail does not show the full secret again.",
+			"Creates an API key for the workspace. Returns `apiKey` (`mm_key_…`) and `clientSecret` (**once**). Requires workspace **admin**. Free allows 1 key; Developer up to 5; Enterprise unlimited. Does **not** consume API credits.\n\nCopy the key immediately — Mermail does not show the full secret again.",
 		tags: ["API keys"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
@@ -2671,7 +2777,7 @@ const spec = {
 	info: {
 		title: "Mermail API",
 		version: "1.0.0",
-		description: `Programmatic Mermail API for Developer and Enterprise workspaces.
+		description: `Programmatic Mermail API for scripts, agents, and integrations.
 
 ## Authentication
 
@@ -2682,6 +2788,10 @@ Authorization: Bearer mm_key_…
 \`\`\`
 
 Or exchange \`client_id\` / \`client_secret\` at \`POST /api/oauth/token\` for \`mm_at_…\`.
+
+## Plans
+
+Each endpoint page shows plan badges (**Public**, **All plans**, or **Developer+**). Free can call the core catalog; Developer-gated paths need Developer or Enterprise.
 
 ## Try it
 
@@ -2914,6 +3024,8 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 
 // Fix: slimOp/op merge — ops that set xCredits already append credit line via op();
 // but slimOp passes xCredits to op which duplicates description append. OK.
+
+applyPlanBadgesToPaths(paths);
 
 const outPath = path.join(root, "openapi", "openapi.json");
 fs.writeFileSync(outPath, `${JSON.stringify(spec, null, 2)}\n`);

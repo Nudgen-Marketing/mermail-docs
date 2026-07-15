@@ -3,7 +3,7 @@
   "info": {
     "title": "Mermail API",
     "version": "1.0.0",
-    "description": "Programmatic Mermail API for Developer and Enterprise workspaces.\n\n## Authentication\n\nAuthorize with a Bearer API key from **Settings → API Keys**:\n\n```\nAuthorization: Bearer mm_key_…\n```\n\nOr exchange `client_id` / `client_secret` at `POST /api/oauth/token` for `mm_at_…`.\n\n## Try it\n\nEvery endpoint page includes an interactive playground. Click **Try it**, paste your Bearer token, fill path/query/body fields (prefilled from examples), and send a live request to `https://console.mermail.app`. You can also copy the generated cURL / JavaScript / Python snippet.\n\n## Credits\n\n| Class | Cost |\n| --- | ---: |\n| read | 1 |\n| write | 2 |\n| email_send | 5 |\n| provision | 10 |\n| ai_light | 15 |\n| ai_heavy | 25 |\n",
+    "description": "Programmatic Mermail API for scripts, agents, and integrations.\n\n## Authentication\n\nAuthorize with a Bearer API key from **Settings → API Keys**:\n\n```\nAuthorization: Bearer mm_key_…\n```\n\nOr exchange `client_id` / `client_secret` at `POST /api/oauth/token` for `mm_at_…`.\n\n## Plans\n\nEach endpoint page shows plan badges (**Public**, **All plans**, or **Developer+**). Free can call the core catalog; Developer-gated paths need Developer or Enterprise.\n\n## Try it\n\nEvery endpoint page includes an interactive playground. Click **Try it**, paste your Bearer token, fill path/query/body fields (prefilled from examples), and send a live request to `https://console.mermail.app`. You can also copy the generated cURL / JavaScript / Python snippet.\n\n## Credits\n\n| Class | Cost |\n| --- | ---: |\n| read | 1 |\n| write | 2 |\n| email_send | 5 |\n| provision | 10 |\n| ai_light | 15 |\n| ai_heavy | 25 |\n",
     "contact": {
       "name": "Mermail",
       "email": "contact@mermail.app",
@@ -79,7 +79,7 @@
     "/api/status": {
       "get": {
         "summary": "Get API health status",
-        "description": "Public health check for load balancers and uptime monitors. No authentication or credits required.",
+        "description": "**Plans:** `Public` (no auth)\n\nPublic health check for load balancers and uptime monitors. No authentication or credits required.",
         "tags": [
           "Public"
         ],
@@ -160,13 +160,27 @@
               }
             }
           }
+        },
+        "x-badges": [
+          {
+            "name": "Public",
+            "color": "grey"
+          }
+        ],
+        "x-plan-access": [
+          "public"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Public"
+          }
         }
       }
     },
     "/api/v1/config": {
       "get": {
         "summary": "Get public app config",
-        "description": "Returns public client configuration such as hosted domains, VAPID public key, and MemWal network settings. No authentication required.",
+        "description": "**Plans:** `Public` (no auth)\n\nReturns public client configuration such as hosted domains, VAPID public key, and MemWal network settings. No authentication required.",
         "tags": [
           "Public"
         ],
@@ -251,13 +265,27 @@
               }
             }
           }
+        },
+        "x-badges": [
+          {
+            "name": "Public",
+            "color": "grey"
+          }
+        ],
+        "x-plan-access": [
+          "public"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Public"
+          }
         }
       }
     },
     "/api/oauth/token": {
       "post": {
         "summary": "Issue OAuth access token",
-        "description": "Exchange `client_id` and `client_secret` (from API key creation) for a short-lived Bearer access token (`mm_at_…`). Supports JSON or `application/x-www-form-urlencoded`, and HTTP Basic auth for the client credentials.",
+        "description": "**Plans:** `Public` (no auth)\n\nExchange `client_id` and `client_secret` (from API key creation) for a short-lived Bearer access token (`mm_at_…`). Supports JSON or `application/x-www-form-urlencoded`, and HTTP Basic auth for the client credentials.",
         "tags": [
           "Authentication"
         ],
@@ -381,13 +409,27 @@
               }
             }
           }
+        },
+        "x-badges": [
+          {
+            "name": "Public",
+            "color": "grey"
+          }
+        ],
+        "x-plan-access": [
+          "public"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Public"
+          }
         }
       }
     },
     "/api/v1/workspaces/{workspaceId}/oauth-clients": {
       "get": {
         "summary": "List API keys",
-        "description": "Lists OAuth clients / API keys for the workspace. Requires workspace **admin**. Does **not** consume API credits. Secrets are never returned — only `tokenPreview`.",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists OAuth clients / API keys for the workspace. Requires workspace **admin**. Does **not** consume API credits. Secrets are never returned — only `tokenPreview`.",
         "tags": [
           "API keys"
         ],
@@ -495,11 +537,35 @@
               }
             }
           }
+        },
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
         }
       },
       "post": {
         "summary": "Create API key",
-        "description": "Creates an API key for the workspace. Returns `apiKey` (`mm_key_…`) and `clientSecret` (**once**). Requires **Developer** or **Enterprise** and workspace **admin**. Does **not** consume API credits.\n\nCopy the key immediately — Mermail does not show the full secret again.",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nCreates an API key for the workspace. Returns `apiKey` (`mm_key_…`) and `clientSecret` (**once**). Requires workspace **admin**. Free allows 1 key; Developer up to 5; Enterprise unlimited. Does **not** consume API credits.\n\nCopy the key immediately — Mermail does not show the full secret again.",
         "tags": [
           "API keys"
         ],
@@ -640,13 +706,37 @@
               }
             }
           }
+        },
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
         }
       }
     },
     "/api/v1/workspaces/{workspaceId}/oauth-clients/{clientId}": {
       "delete": {
         "summary": "Revoke API key",
-        "description": "Revokes an API key and all of its access tokens. Requires workspace **admin**. Does **not** consume API credits.",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nRevokes an API key and all of its access tokens. Requires workspace **admin**. Does **not** consume API credits.",
         "tags": [
           "API keys"
         ],
@@ -769,13 +859,37 @@
               }
             }
           }
+        },
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
         }
       }
     },
     "/api/v1/workspaces/{workspaceId}/usage/credits": {
       "get": {
         "summary": "Get API credit usage",
-        "description": "Returns the workspace plan, billing period, credit limit, used credits, and remaining balance. Use this before running batch jobs against the sold API.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns the workspace plan, billing period, credit limit, used credits, and remaining balance. Use this before running batch jobs against the sold API.\n\n**API credits:** 1 (read).",
         "tags": [
           "Usage"
         ],
@@ -876,13 +990,37 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/workspaces/{workspaceId}/usage/email": {
       "get": {
         "summary": "Get email usage",
-        "description": "Returns email send usage for the workspace subscription period (distinct from API credits).\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns email send usage for the workspace subscription period (distinct from API credits).\n\n**API credits:** 1 (read).",
         "tags": [
           "Usage"
         ],
@@ -982,13 +1120,37 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/workspaces": {
       "get": {
         "summary": "List workspaces",
-        "description": "Lists workspaces the authenticated user can access, plus a small user admin flag.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists workspaces the authenticated user can access, plus a small user admin flag.\n\n**API credits:** 1 (read).",
         "tags": [
           "Workspaces"
         ],
@@ -1105,11 +1267,35 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "post": {
         "summary": "Create workspace",
-        "description": "Creates a personal workspace for the authenticated user. A user may own only one workspace (conflict if one already exists).\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nCreates a personal workspace for the authenticated user. A user may own only one workspace (conflict if one already exists).\n\n**API credits:** 2 (write).",
         "tags": [
           "Workspaces"
         ],
@@ -1254,13 +1440,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/workspaces/{workspaceId}": {
       "get": {
         "summary": "Get workspace",
-        "description": "Returns a single workspace the user can access.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns a single workspace the user can access.\n\n**API credits:** 1 (read).",
         "tags": [
           "Workspaces"
         ],
@@ -1394,11 +1604,35 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "put": {
         "summary": "Update workspace",
-        "description": "Updates workspace settings. Requires workspace **admin**. At least one of `name` or `timezone` is required.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUpdates workspace settings. Requires workspace **admin**. At least one of `name` or `timezone` is required.\n\n**API credits:** 2 (write).",
         "tags": [
           "Workspaces"
         ],
@@ -1544,11 +1778,35 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "delete": {
         "summary": "Delete workspace",
-        "description": "Deletes a workspace. Requires workspace **admin**.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes a workspace. Requires workspace **admin**.\n\n**API credits:** 2 (write).",
         "tags": [
           "Workspaces"
         ],
@@ -1641,13 +1899,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/workspaces/{workspaceId}/storage": {
       "get": {
         "summary": "Get workspace storage",
-        "description": "Returns Harbor / R2 storage provisioning status for the workspace.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns Harbor / R2 storage provisioning status for the workspace.\n\n**API credits:** 1 (read).",
         "tags": [
           "Workspaces"
         ],
@@ -1759,11 +2041,35 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "put": {
         "summary": "Update workspace storage",
-        "description": "Updates storage settings. **Developer or Enterprise** plan required.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nUpdates storage settings. **Developer or Enterprise** plan required.\n\n**API credits:** 2 (write).",
         "tags": [
           "Workspaces"
         ],
@@ -1887,13 +2193,32 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/workspaces/{workspaceId}/storage/harbor-session": {
       "post": {
         "summary": "Create Harbor session",
-        "description": "Starts a Harbor storage session for the workspace. **Developer or Enterprise** required.\n\n**API credits:** 10 (provision).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nStarts a Harbor storage session for the workspace. **Developer or Enterprise** required.\n\n**API credits:** 10 (provision).",
         "tags": [
           "Workspaces"
         ],
@@ -1999,13 +2324,32 @@
             }
           }
         },
-        "x-credits": 10
+        "x-credits": 10,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/workspaces/{workspaceId}/storage/harbor-api-key": {
       "post": {
         "summary": "Create Harbor API key",
-        "description": "Provisions a Harbor API key for the workspace. **Developer or Enterprise** required.\n\n**API credits:** 10 (provision).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nProvisions a Harbor API key for the workspace. **Developer or Enterprise** required.\n\n**API credits:** 10 (provision).",
         "tags": [
           "Workspaces"
         ],
@@ -2111,13 +2455,32 @@
             }
           }
         },
-        "x-credits": 10
+        "x-credits": 10,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/workspaces/{workspaceId}/members": {
       "get": {
         "summary": "List workspace members",
-        "description": "Lists members and roles for the workspace.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists members and roles for the workspace.\n\n**API credits:** 1 (read).",
         "tags": [
           "Workspaces"
         ],
@@ -2219,13 +2582,37 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/workspaces/{workspaceId}/members/{memberId}": {
       "put": {
         "summary": "Update member role",
-        "description": "Updates a member role. `memberId` is the member's Sui wallet address. Requires workspace **admin**.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUpdates a member role. `memberId` is the member's Sui wallet address. Requires workspace **admin**.\n\n**API credits:** 2 (write).",
         "tags": [
           "Workspaces"
         ],
@@ -2375,11 +2762,35 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "delete": {
         "summary": "Remove member",
-        "description": "Removes a member from the workspace. Requires **admin**.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nRemoves a member from the workspace. Requires **admin**.\n\n**API credits:** 2 (write).",
         "tags": [
           "Workspaces"
         ],
@@ -2483,13 +2894,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/workspaces/{workspaceId}/invites": {
       "post": {
         "summary": "Invite member",
-        "description": "Sends a workspace invite email. Requires **admin**.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nSends a workspace invite email. Requires **admin**.\n\n**API credits:** 2 (write).",
         "tags": [
           "Workspaces"
         ],
@@ -2612,13 +3047,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/workspaces/{workspaceId}/invites/{inviteId}/resend": {
       "post": {
         "summary": "Resend invite",
-        "description": "Resends a pending invite. Requires **admin**.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nResends a pending invite. Requires **admin**.\n\n**API credits:** 2 (write).",
         "tags": [
           "Workspaces"
         ],
@@ -2722,13 +3181,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/workspaces/{workspaceId}/email-domains": {
       "get": {
         "summary": "List email domains",
-        "description": "Lists custom email domains. **Developer or Enterprise** required.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nLists custom email domains. **Developer or Enterprise** required.\n\n**API credits:** 1 (read).",
         "tags": [
           "Domains"
         ],
@@ -2834,11 +3317,30 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       },
       "post": {
         "summary": "Add email domain",
-        "description": "Starts custom domain provisioning. Domain must be a subdomain (for example `mail.acme.com`). **Developer or Enterprise** required.\n\n**API credits:** 10 (provision).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nStarts custom domain provisioning. Domain must be a subdomain (for example `mail.acme.com`). **Developer or Enterprise** required.\n\n**API credits:** 10 (provision).",
         "tags": [
           "Domains"
         ],
@@ -2987,13 +3489,32 @@
             }
           }
         },
-        "x-credits": 10
+        "x-credits": 10,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/workspaces/{workspaceId}/email-domains/{domainId}": {
       "delete": {
         "summary": "Delete email domain",
-        "description": "Removes a custom domain. **Developer or Enterprise** required.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nRemoves a custom domain. **Developer or Enterprise** required.\n\n**API credits:** 2 (write).",
         "tags": [
           "Domains"
         ],
@@ -3097,13 +3618,32 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/workspaces/{workspaceId}/email-domains/{domainId}/verify": {
       "post": {
         "summary": "Verify email domain",
-        "description": "Checks DNS records and marks the domain verified when ready. **Developer or Enterprise** required.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nChecks DNS records and marks the domain verified when ready. **Developer or Enterprise** required.\n\n**API credits:** 2 (write).",
         "tags": [
           "Domains"
         ],
@@ -3212,13 +3752,32 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/workspaces/{workspaceId}/mailboxes": {
       "get": {
         "summary": "List workspace mailboxes",
-        "description": "Lists mailboxes in a workspace.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists mailboxes in a workspace.\n\n**API credits:** 1 (read).",
         "tags": [
           "Mailboxes"
         ],
@@ -3348,11 +3907,35 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "post": {
         "summary": "Create mailbox in workspace",
-        "description": "Provisions an agent mailbox in the path workspace. Requires workspace **admin**.\n\n**API credits:** 10 (provision).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nProvisions an agent mailbox in the path workspace. Requires workspace **admin**.\n\n**API credits:** 10 (provision).",
         "tags": [
           "Mailboxes"
         ],
@@ -3520,13 +4103,37 @@
             }
           }
         },
-        "x-credits": 10
+        "x-credits": 10,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes": {
       "get": {
         "summary": "List mailboxes",
-        "description": "Lists mailboxes visible to the user. Optionally filter by workspace. Includes unread category counts when listing.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists mailboxes visible to the user. Optionally filter by workspace. Includes unread category counts when listing.\n\n**API credits:** 1 (read).",
         "tags": [
           "Mailboxes"
         ],
@@ -3664,11 +4271,35 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "post": {
         "summary": "Create mailbox",
-        "description": "Provisions a mailbox. `workspaceId` is required in the body for this route.\n\n**API credits:** 10 (provision).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nProvisions a mailbox. `workspaceId` is required in the body for this route.\n\n**API credits:** 10 (provision).",
         "tags": [
           "Mailboxes"
         ],
@@ -3826,13 +4457,37 @@
             }
           }
         },
-        "x-credits": 10
+        "x-credits": 10,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}": {
       "get": {
         "summary": "Get mailbox",
-        "description": "Returns a single mailbox by id (usually the email address).\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns a single mailbox by id (usually the email address).\n\n**API credits:** 1 (read).",
         "tags": [
           "Mailboxes"
         ],
@@ -3959,11 +4614,35 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "put": {
         "summary": "Update mailbox",
-        "description": "Updates mailbox name or settings.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUpdates mailbox name or settings.\n\n**API credits:** 2 (write).",
         "tags": [
           "Mailboxes"
         ],
@@ -4114,11 +4793,35 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "delete": {
         "summary": "Delete mailbox",
-        "description": "Deletes a mailbox and related resources.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes a mailbox and related resources.\n\n**API credits:** 2 (write).",
         "tags": [
           "Mailboxes"
         ],
@@ -4212,13 +4915,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/storage": {
       "get": {
         "summary": "Get mailbox storage",
-        "description": "Returns storage usage for a mailbox.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns storage usage for a mailbox.\n\n**API credits:** 1 (read).",
         "tags": [
           "Mailboxes"
         ],
@@ -4316,13 +5043,37 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/onboarding/welcome": {
       "post": {
         "summary": "Send onboarding welcome",
-        "description": "Triggers the mailbox welcome / onboarding email flow.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nTriggers the mailbox welcome / onboarding email flow.\n\n**API credits:** 2 (write).",
         "tags": [
           "Mailboxes"
         ],
@@ -4416,13 +5167,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/emails": {
       "get": {
         "summary": "List emails",
-        "description": "Lists emails in a mailbox. When `folder` or `is_starred` is set, the response is `{ emails, totalCount }`; otherwise a bare array may be returned.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists emails in a mailbox. When `folder` or `is_starred` is set, the response is `{ emails, totalCount }`; otherwise a bare array may be returned.\n\n**API credits:** 1 (read).",
         "tags": [
           "Emails"
         ],
@@ -4662,11 +5437,35 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "post": {
         "summary": "Send email",
-        "description": "Sends a new outbound email from the mailbox. Provide `html` and/or `text`. Subject to send rate limits and API credits.\n\n**API credits:** 5 (email_send).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nSends a new outbound email from the mailbox. Provide `html` and/or `text`. Subject to send rate limits and API credits.\n\n**API credits:** 5 (email_send).",
         "tags": [
           "Emails"
         ],
@@ -4921,13 +5720,37 @@
             }
           }
         },
-        "x-credits": 5
+        "x-credits": 5,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/emails/{emailId}": {
       "get": {
         "summary": "Get email",
-        "description": "Fetches a single email with body and metadata.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nFetches a single email with body and metadata.\n\n**API credits:** 1 (read).",
         "tags": [
           "Emails"
         ],
@@ -5051,11 +5874,35 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "put": {
         "summary": "Update email",
-        "description": "Updates flags such as read/starred or moves metadata.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUpdates flags such as read/starred or moves metadata.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -5200,11 +6047,35 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "delete": {
         "summary": "Delete email",
-        "description": "Deletes or trashes an email.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes or trashes an email.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -5308,13 +6179,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/emails/bulk-delete": {
       "post": {
         "summary": "Bulk delete emails",
-        "description": "Deletes multiple emails by id.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes multiple emails by id.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -5441,13 +6336,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/emails/bulk-read": {
       "post": {
         "summary": "Bulk mark emails read",
-        "description": "Marks multiple emails read/unread.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nMarks multiple emails read/unread.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -5574,13 +6493,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/emails/bulk-move": {
       "post": {
         "summary": "Bulk move emails",
-        "description": "Moves multiple emails to a folder.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nMoves multiple emails to a folder.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -5707,13 +6650,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/emails/{emailId}/move": {
       "post": {
         "summary": "Move email",
-        "description": "Moves one email into a folder.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nMoves one email into a folder.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -5836,13 +6803,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/emails/{emailId}/reply": {
       "post": {
         "summary": "Reply to email",
-        "description": "Sends a reply. Server injects `in_reply_to`, `references`, and `thread_id` from the original message.\n\n**API credits:** 5 (email_send).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nSends a reply. Server injects `in_reply_to`, `references`, and `thread_id` from the original message.\n\n**API credits:** 5 (email_send).",
         "tags": [
           "Emails"
         ],
@@ -6107,13 +7098,37 @@
             }
           }
         },
-        "x-credits": 5
+        "x-credits": 5,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/emails/{emailId}/forward": {
       "post": {
         "summary": "Forward email",
-        "description": "Forwards an existing email to new recipients.\n\n**API credits:** 5 (email_send).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nForwards an existing email to new recipients.\n\n**API credits:** 5 (email_send).",
         "tags": [
           "Emails"
         ],
@@ -6365,13 +7380,37 @@
             }
           }
         },
-        "x-credits": 5
+        "x-credits": 5,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/emails/{emailId}/attachments/{attachmentId}": {
       "get": {
         "summary": "Download attachment",
-        "description": "Downloads an email attachment.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDownloads an email attachment.\n\n**API credits:** 1 (read).",
         "tags": [
           "Emails"
         ],
@@ -6485,13 +7524,37 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/drafts": {
       "post": {
         "summary": "Save draft",
-        "description": "Creates or updates a draft message.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nCreates or updates a draft message.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -6603,13 +7666,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/drafts/regenerate": {
       "post": {
         "summary": "Regenerate draft with AI",
-        "description": "Uses AI to regenerate a draft body for review.\n\n**API credits:** 15 (ai_light).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUses AI to regenerate a draft body for review.\n\n**API credits:** 15 (ai_light).",
         "tags": [
           "Emails"
         ],
@@ -6717,13 +7804,37 @@
             }
           }
         },
-        "x-credits": 15
+        "x-credits": 15,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/scheduled-sends": {
       "post": {
         "summary": "Schedule send",
-        "description": "Schedules an outbound email for a future time.\n\n**API credits:** 5 (email_send).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nSchedules an outbound email for a future time.\n\n**API credits:** 5 (email_send).",
         "tags": [
           "Emails"
         ],
@@ -6837,13 +7948,37 @@
             }
           }
         },
-        "x-credits": 5
+        "x-credits": 5,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/scheduled-sends/{id}/retry": {
       "post": {
         "summary": "Retry scheduled send",
-        "description": "Retries a failed scheduled send.\n\n**API credits:** 5 (email_send).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nRetries a failed scheduled send.\n\n**API credits:** 5 (email_send).",
         "tags": [
           "Emails"
         ],
@@ -6947,13 +8082,37 @@
             }
           }
         },
-        "x-credits": 5
+        "x-credits": 5,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/trash/empty": {
       "post": {
         "summary": "Empty trash",
-        "description": "Permanently deletes messages in trash.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nPermanently deletes messages in trash.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -7047,13 +8206,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/threads/{threadId}": {
       "get": {
         "summary": "Get thread",
-        "description": "Returns a conversation thread and its messages.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns a conversation thread and its messages.\n\n**API credits:** 1 (read).",
         "tags": [
           "Emails"
         ],
@@ -7182,13 +8365,37 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/threads/{threadId}/read": {
       "post": {
         "summary": "Mark thread read",
-        "description": "Marks all messages in a thread as read.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nMarks all messages in a thread as read.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -7292,13 +8499,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/folders": {
       "get": {
         "summary": "List folders",
-        "description": "Lists mailbox folders with unread counts.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists mailbox folders with unread counts.\n\n**API credits:** 1 (read).",
         "tags": [
           "Emails"
         ],
@@ -7404,11 +8635,35 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "post": {
         "summary": "Create folder",
-        "description": "Creates a custom folder. Name is slugified into the folder id.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nCreates a custom folder. Name is slugified into the folder id.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -7525,13 +8780,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/folders/{folderId}": {
       "put": {
         "summary": "Update folder",
-        "description": "Renames a custom folder.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nRenames a custom folder.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -7659,11 +8938,35 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "delete": {
         "summary": "Delete folder",
-        "description": "Deletes a custom folder.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes a custom folder.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -7767,13 +9070,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/search": {
       "get": {
         "summary": "Search emails",
-        "description": "Full-text / field search across mailbox messages. Returns `{ emails, totalCount }`.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nFull-text / field search across mailbox messages. Returns `{ emails, totalCount }`.\n\n**API credits:** 1 (read).",
         "tags": [
           "Emails"
         ],
@@ -8012,13 +9339,37 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/custom-labels": {
       "get": {
         "summary": "List custom labels",
-        "description": "Lists custom labels for a mailbox.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists custom labels for a mailbox.\n\n**API credits:** 1 (read).",
         "tags": [
           "Emails"
         ],
@@ -8120,11 +9471,35 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "post": {
         "summary": "Create custom label",
-        "description": "Creates a custom label.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nCreates a custom label.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -8242,13 +9617,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/custom-labels/reorder": {
       "put": {
         "summary": "Reorder custom labels",
-        "description": "Updates custom label sort order.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUpdates custom label sort order.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -8366,13 +9765,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/custom-labels/{labelId}": {
       "put": {
         "summary": "Update custom label",
-        "description": "Updates a custom label.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUpdates a custom label.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -8490,11 +9913,35 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "delete": {
         "summary": "Delete custom label",
-        "description": "Deletes a custom label.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes a custom label.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -8598,13 +10045,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/agent-conversations": {
       "get": {
         "summary": "List agent conversations",
-        "description": "Lists AI agent chat conversations for a mailbox.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists AI agent chat conversations for a mailbox.\n\n**API credits:** 1 (read).",
         "tags": [
           "AI agent"
         ],
@@ -8705,11 +10176,35 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "post": {
         "summary": "Create agent conversation",
-        "description": "Creates a new agent conversation thread.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nCreates a new agent conversation thread.\n\n**API credits:** 2 (write).",
         "tags": [
           "AI agent"
         ],
@@ -8825,13 +10320,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/agent-conversations/{conversationId}": {
       "patch": {
         "summary": "Update agent conversation",
-        "description": "Updates conversation metadata (for example title).\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUpdates conversation metadata (for example title).\n\n**API credits:** 2 (write).",
         "tags": [
           "AI agent"
         ],
@@ -8953,11 +10472,35 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "delete": {
         "summary": "Delete agent conversation",
-        "description": "Deletes an agent conversation.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes an agent conversation.\n\n**API credits:** 2 (write).",
         "tags": [
           "AI agent"
         ],
@@ -9061,13 +10604,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/agent-conversations/{conversationId}/messages": {
       "get": {
         "summary": "List agent messages",
-        "description": "Lists messages in an agent conversation.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists messages in an agent conversation.\n\n**API credits:** 1 (read).",
         "tags": [
           "AI agent"
         ],
@@ -9183,13 +10750,37 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/agent/mailbox": {
       "post": {
         "summary": "Chat with mailbox agent",
-        "description": "Streams an AI agent chat turn for a mailbox conversation. Response is an AI SDK UI message stream (not a plain JSON object). The latest message must be from the user.\n\n**API credits:** 25 (ai_heavy).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nStreams an AI agent chat turn for a mailbox conversation. Response is an AI SDK UI message stream (not a plain JSON object). The latest message must be from the user.\n\n**API credits:** 25 (ai_heavy).",
         "tags": [
           "AI agent"
         ],
@@ -9346,13 +10937,37 @@
             }
           }
         },
-        "x-credits": 25
+        "x-credits": 25,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/task-triagers": {
       "get": {
         "summary": "List task triagers",
-        "description": "Lists task triagers. **Developer or Enterprise** required.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nLists task triagers. **Developer or Enterprise** required.\n\n**API credits:** 1 (read).",
         "tags": [
           "Task triage"
         ],
@@ -9453,11 +11068,30 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       },
       "post": {
         "summary": "Create task triager",
-        "description": "Creates a task triager. **Developer or Enterprise** required.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nCreates a task triager. **Developer or Enterprise** required.\n\n**API credits:** 2 (write).",
         "tags": [
           "Task triage"
         ],
@@ -9565,13 +11199,32 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/task-triager-runs/recent": {
       "get": {
         "summary": "List recent triager runs",
-        "description": "Recent triager execution history. **Developer+** required.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nRecent triager execution history. **Developer+** required.\n\n**API credits:** 1 (read).",
         "tags": [
           "Task triage"
         ],
@@ -9666,13 +11319,32 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}": {
       "put": {
         "summary": "Update task triager",
-        "description": "Updates a task triager. **Developer+** required.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nUpdates a task triager. **Developer+** required.\n\n**API credits:** 2 (write).",
         "tags": [
           "Task triage"
         ],
@@ -9790,11 +11462,30 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       },
       "delete": {
         "summary": "Delete task triager",
-        "description": "Deletes a task triager. **Developer+** required.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nDeletes a task triager. **Developer+** required.\n\n**API credits:** 2 (write).",
         "tags": [
           "Task triage"
         ],
@@ -9898,13 +11589,32 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}/default": {
       "post": {
         "summary": "Set default task triager",
-        "description": "Marks a triager as the mailbox default. **Developer+**.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nMarks a triager as the mailbox default. **Developer+**.\n\n**API credits:** 2 (write).",
         "tags": [
           "Task triage"
         ],
@@ -10008,13 +11718,32 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}/agent-conversation": {
       "post": {
         "summary": "Attach agent conversation to triager",
-        "description": "Links an agent conversation to a triager. **Developer+**.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nLinks an agent conversation to a triager. **Developer+**.\n\n**API credits:** 2 (write).",
         "tags": [
           "Task triage"
         ],
@@ -10136,13 +11865,32 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/rag/documents": {
       "get": {
         "summary": "List RAG documents",
-        "description": "Lists knowledge documents for RAG.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists knowledge documents for RAG.\n\n**API credits:** 1 (read).",
         "tags": [
           "RAG"
         ],
@@ -10232,11 +11980,35 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "post": {
         "summary": "Upload RAG document",
-        "description": "Uploads / registers a document. **Developer or Enterprise** required.\n\n**API credits:** 25 (ai_heavy).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nUploads / registers a document. **Developer or Enterprise** required.\n\n**API credits:** 25 (ai_heavy).",
         "tags": [
           "RAG"
         ],
@@ -10333,13 +12105,32 @@
             }
           }
         },
-        "x-credits": 25
+        "x-credits": 25,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/rag/documents/{id}": {
       "get": {
         "summary": "Get RAG document",
-        "description": "Returns a single RAG document.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns a single RAG document.\n\n**API credits:** 1 (read).",
         "tags": [
           "RAG"
         ],
@@ -10438,11 +12229,35 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "delete": {
         "summary": "Delete RAG document",
-        "description": "Deletes a document. **Developer+** required.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nDeletes a document. **Developer+** required.\n\n**API credits:** 2 (write).",
         "tags": [
           "RAG"
         ],
@@ -10536,13 +12351,32 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/rag/documents/{id}/download": {
       "get": {
         "summary": "Download RAG document",
-        "description": "Downloads document content.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDownloads document content.\n\n**API credits:** 1 (read).",
         "tags": [
           "RAG"
         ],
@@ -10636,13 +12470,37 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/rag/documents/{id}/verify": {
       "post": {
         "summary": "Verify RAG document",
-        "description": "Verifies document integrity / indexing. **Developer+**.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nVerifies document integrity / indexing. **Developer+**.\n\n**API credits:** 2 (write).",
         "tags": [
           "RAG"
         ],
@@ -10736,13 +12594,32 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/rag/credentials": {
       "get": {
         "summary": "Get RAG credentials status",
-        "description": "Returns Walrus Memory / RAG credential status.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns Walrus Memory / RAG credential status.\n\n**API credits:** 1 (read).",
         "tags": [
           "RAG"
         ],
@@ -10828,13 +12705,37 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/rag/credentials/prepare": {
       "post": {
         "summary": "Prepare RAG credentials",
-        "description": "Starts credential provisioning. **Developer+**.\n\n**API credits:** 10 (provision).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nStarts credential provisioning. **Developer+**.\n\n**API credits:** 10 (provision).",
         "tags": [
           "RAG"
         ],
@@ -10929,13 +12830,32 @@
             }
           }
         },
-        "x-credits": 10
+        "x-credits": 10,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/rag/credentials/complete": {
       "post": {
         "summary": "Complete RAG credentials",
-        "description": "Completes credential provisioning. **Developer+**.\n\n**API credits:** 10 (provision).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nCompletes credential provisioning. **Developer+**.\n\n**API credits:** 10 (provision).",
         "tags": [
           "RAG"
         ],
@@ -11030,13 +12950,32 @@
             }
           }
         },
-        "x-credits": 10
+        "x-credits": 10,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/rag/credentials/verify": {
       "post": {
         "summary": "Verify RAG credentials",
-        "description": "Verifies RAG credentials. **Developer+**.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nVerifies RAG credentials. **Developer+**.\n\n**API credits:** 2 (write).",
         "tags": [
           "RAG"
         ],
@@ -11119,13 +13058,32 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/rag/recall": {
       "post": {
         "summary": "Recall from RAG",
-        "description": "Retrieves relevant memory snippets for a query against Walrus Memory / RAG.\n\n**API credits:** 15 (ai_light).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nRetrieves relevant memory snippets for a query against Walrus Memory / RAG.\n\n**API credits:** 15 (ai_light).",
         "tags": [
           "RAG"
         ],
@@ -11256,13 +13214,37 @@
             }
           }
         },
-        "x-credits": 15
+        "x-credits": 15,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/telegram": {
       "get": {
         "summary": "Get Telegram link",
-        "description": "Returns Telegram linking status for a mailbox.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns Telegram linking status for a mailbox.\n\n**API credits:** 1 (read).",
         "tags": [
           "Integrations"
         ],
@@ -11359,11 +13341,35 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "delete": {
         "summary": "Unlink Telegram",
-        "description": "Removes Telegram linking for a mailbox.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nRemoves Telegram linking for a mailbox.\n\n**API credits:** 2 (write).",
         "tags": [
           "Integrations"
         ],
@@ -11457,13 +13463,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/telegram/link": {
       "post": {
         "summary": "Link Telegram",
-        "description": "Starts or completes Telegram linking for a mailbox.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nStarts or completes Telegram linking for a mailbox.\n\n**API credits:** 2 (write).",
         "tags": [
           "Integrations"
         ],
@@ -11569,13 +13599,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/push": {
       "get": {
         "summary": "Get push subscription",
-        "description": "Returns web push subscription state.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns web push subscription state.\n\n**API credits:** 1 (read).",
         "tags": [
           "Integrations"
         ],
@@ -11672,13 +13726,37 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/mailboxes/{mailboxId}/push/subscribe": {
       "post": {
         "summary": "Subscribe push",
-        "description": "Registers a web push subscription.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nRegisters a web push subscription.\n\n**API credits:** 2 (write).",
         "tags": [
           "Integrations"
         ],
@@ -11786,11 +13864,35 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "delete": {
         "summary": "Unsubscribe push",
-        "description": "Removes a web push subscription.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nRemoves a web push subscription.\n\n**API credits:** 2 (write).",
         "tags": [
           "Integrations"
         ],
@@ -11884,13 +13986,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/integrations/composio/toolkits": {
       "get": {
         "summary": "List Composio toolkits",
-        "description": "Lists available Composio toolkits. **Developer+** required.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nLists available Composio toolkits. **Developer+** required.\n\n**API credits:** 1 (read).",
         "tags": [
           "Integrations"
         ],
@@ -11979,13 +14105,32 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/integrations/composio/toolkits/{slug}/connect": {
       "post": {
         "summary": "Connect Composio toolkit",
-        "description": "Starts OAuth connect for a toolkit. **Developer+**.\n\n**API credits:** 10 (provision).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nStarts OAuth connect for a toolkit. **Developer+**.\n\n**API credits:** 10 (provision).",
         "tags": [
           "Integrations"
         ],
@@ -12079,13 +14224,32 @@
             }
           }
         },
-        "x-credits": 10
+        "x-credits": 10,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/integrations/composio/toolkits/{slug}/connection": {
       "delete": {
         "summary": "Disconnect Composio toolkit",
-        "description": "Removes a toolkit connection. **Developer+**.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nRemoves a toolkit connection. **Developer+**.\n\n**API credits:** 2 (write).",
         "tags": [
           "Integrations"
         ],
@@ -12179,13 +14343,32 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/integrations/composio/connections": {
       "get": {
         "summary": "List Composio connections",
-        "description": "Lists active Composio connections. **Developer+**.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nLists active Composio connections. **Developer+**.\n\n**API credits:** 1 (read).",
         "tags": [
           "Integrations"
         ],
@@ -12269,13 +14452,32 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/integrations/composio/connections/sync": {
       "post": {
         "summary": "Sync Composio connections",
-        "description": "Refreshes connection state from Composio. **Developer+**.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nRefreshes connection state from Composio. **Developer+**.\n\n**API credits:** 2 (write).",
         "tags": [
           "Integrations"
         ],
@@ -12358,13 +14560,32 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/integrations/composio/calendar/account": {
       "get": {
         "summary": "Get Composio calendar account",
-        "description": "Returns calendar account binding. **Developer+**.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nReturns calendar account binding. **Developer+**.\n\n**API credits:** 1 (read).",
         "tags": [
           "Integrations"
         ],
@@ -12450,13 +14671,32 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Developer+"
+          }
+        }
       }
     },
     "/api/v1/affiliate/me": {
       "get": {
         "summary": "Get affiliate profile",
-        "description": "Returns the current user's affiliate profile.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns the current user's affiliate profile.\n\n**API credits:** 1 (read).",
         "tags": [
           "Affiliate"
         ],
@@ -12543,11 +14783,35 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       },
       "patch": {
         "summary": "Update affiliate profile",
-        "description": "Updates affiliate profile fields.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUpdates affiliate profile fields.\n\n**API credits:** 2 (write).",
         "tags": [
           "Affiliate"
         ],
@@ -12644,13 +14908,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/affiliate/signup": {
       "post": {
         "summary": "Sign up as affiliate",
-        "description": "Registers the current user in the affiliate program.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nRegisters the current user in the affiliate program.\n\n**API credits:** 2 (write).",
         "tags": [
           "Affiliate"
         ],
@@ -12745,13 +15033,37 @@
             }
           }
         },
-        "x-credits": 2
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/affiliate/analytics": {
       "get": {
         "summary": "Get affiliate analytics",
-        "description": "Returns affiliate click / conversion analytics.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns affiliate click / conversion analytics.\n\n**API credits:** 1 (read).",
         "tags": [
           "Affiliate"
         ],
@@ -12838,13 +15150,37 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/affiliate/payouts": {
       "get": {
         "summary": "List affiliate payouts",
-        "description": "Lists payout history.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists payout history.\n\n**API credits:** 1 (read).",
         "tags": [
           "Affiliate"
         ],
@@ -12928,13 +15264,37 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/v1/affiliate/commissions": {
       "get": {
         "summary": "List affiliate commissions",
-        "description": "Lists commission ledger entries.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists commission ledger entries.\n\n**API credits:** 1 (read).",
         "tags": [
           "Affiliate"
         ],
@@ -13018,13 +15378,37 @@
             }
           }
         },
-        "x-credits": 1
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans"
+          }
+        }
       }
     },
     "/api/affiliate/track": {
       "get": {
         "summary": "Track affiliate click",
-        "description": "Public affiliate tracking redirect / pixel. No Bearer authentication required.",
+        "description": "**Plans:** `Public` (no auth)\n\nPublic affiliate tracking redirect / pixel. No Bearer authentication required.",
         "tags": [
           "Affiliate"
         ],
@@ -13117,6 +15501,20 @@
                 "description": "Seconds until the rate limit window resets"
               }
             }
+          }
+        },
+        "x-badges": [
+          {
+            "name": "Public",
+            "color": "grey"
+          }
+        ],
+        "x-plan-access": [
+          "public"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "Public"
           }
         }
       }

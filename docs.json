@@ -16,10 +16,7 @@
         "groups": [
           {
             "group": "Get started",
-            "pages": [
-              "index",
-              "quickstart"
-            ]
+            "pages": ["index", "quickstart"]
           },
           {
             "group": "Core concepts",
@@ -32,17 +29,11 @@
           },
           {
             "group": "Guides",
-            "pages": [
-              "guides/create-mailbox",
-              "guides/custom-domains"
-            ]
+            "pages": ["guides/create-mailbox", "guides/custom-domains"]
           },
           {
             "group": "Integrations",
-            "pages": [
-              "integrations/composio",
-              "integrations/telegram"
-            ]
+            "pages": ["integrations/composio", "integrations/telegram"]
           },
           {
             "group": "Resources",
@@ -70,17 +61,12 @@
           {
             "group": "Public",
             "openapi": "openapi/openapi.json",
-            "pages": [
-              "GET /api/status",
-              "GET /api/v1/config"
-            ]
+            "pages": ["GET /api/status", "GET /api/v1/config"]
           },
           {
             "group": "Authentication",
             "openapi": "openapi/openapi.json",
-            "pages": [
-              "POST /api/oauth/token"
-            ]
+            "pages": ["POST /api/oauth/token"]
           },
           {
             "group": "API keys",
@@ -288,16 +274,7 @@
     }
   },
   "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
-    ]
+    "options": []
   },
   "api": {
     "playground": {
