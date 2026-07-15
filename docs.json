@@ -34,9 +34,7 @@
             "group": "Guides",
             "pages": [
               "guides/create-mailbox",
-              "guides/custom-domains",
-              "api-reference/authentication",
-              "api-reference/discovery"
+              "guides/custom-domains"
             ]
           },
           {
@@ -60,8 +58,200 @@
       {
         "tab": "API Reference",
         "icon": "square-terminal",
-        "pages": [
-          "api-reference/overview"
+        "groups": [
+          {
+            "group": "Getting started",
+            "pages": [
+              "api-reference/overview",
+              "api-reference/authentication",
+              "api-reference/discovery"
+            ]
+          },
+          {
+            "group": "Public",
+            "openapi": "openapi/openapi.json",
+            "pages": [
+              "GET /api/status",
+              "GET /api/v1/config"
+            ]
+          },
+          {
+            "group": "Authentication",
+            "openapi": "openapi/openapi.json",
+            "pages": [
+              "POST /api/oauth/token"
+            ]
+          },
+          {
+            "group": "API keys",
+            "openapi": "openapi/openapi.json",
+            "pages": [
+              "GET /api/v1/workspaces/{workspaceId}/oauth-clients",
+              "POST /api/v1/workspaces/{workspaceId}/oauth-clients",
+              "DELETE /api/v1/workspaces/{workspaceId}/oauth-clients/{clientId}"
+            ]
+          },
+          {
+            "group": "Usage",
+            "openapi": "openapi/openapi.json",
+            "pages": [
+              "GET /api/v1/workspaces/{workspaceId}/usage/credits",
+              "GET /api/v1/workspaces/{workspaceId}/usage/email"
+            ]
+          },
+          {
+            "group": "Workspaces",
+            "openapi": "openapi/openapi.json",
+            "pages": [
+              "GET /api/v1/workspaces",
+              "POST /api/v1/workspaces",
+              "GET /api/v1/workspaces/{workspaceId}",
+              "PUT /api/v1/workspaces/{workspaceId}",
+              "DELETE /api/v1/workspaces/{workspaceId}",
+              "GET /api/v1/workspaces/{workspaceId}/storage",
+              "PUT /api/v1/workspaces/{workspaceId}/storage",
+              "POST /api/v1/workspaces/{workspaceId}/storage/harbor-session",
+              "POST /api/v1/workspaces/{workspaceId}/storage/harbor-api-key",
+              "GET /api/v1/workspaces/{workspaceId}/members",
+              "PUT /api/v1/workspaces/{workspaceId}/members/{memberId}",
+              "DELETE /api/v1/workspaces/{workspaceId}/members/{memberId}",
+              "POST /api/v1/workspaces/{workspaceId}/invites",
+              "POST /api/v1/workspaces/{workspaceId}/invites/{inviteId}/resend"
+            ]
+          },
+          {
+            "group": "Domains",
+            "openapi": "openapi/openapi.json",
+            "pages": [
+              "GET /api/v1/workspaces/{workspaceId}/email-domains",
+              "POST /api/v1/workspaces/{workspaceId}/email-domains",
+              "DELETE /api/v1/workspaces/{workspaceId}/email-domains/{domainId}",
+              "POST /api/v1/workspaces/{workspaceId}/email-domains/{domainId}/verify"
+            ]
+          },
+          {
+            "group": "Mailboxes",
+            "openapi": "openapi/openapi.json",
+            "pages": [
+              "GET /api/v1/workspaces/{workspaceId}/mailboxes",
+              "POST /api/v1/workspaces/{workspaceId}/mailboxes",
+              "GET /api/v1/mailboxes",
+              "POST /api/v1/mailboxes",
+              "GET /api/v1/mailboxes/{mailboxId}",
+              "PUT /api/v1/mailboxes/{mailboxId}",
+              "DELETE /api/v1/mailboxes/{mailboxId}",
+              "GET /api/v1/mailboxes/{mailboxId}/storage",
+              "POST /api/v1/mailboxes/{mailboxId}/onboarding/welcome"
+            ]
+          },
+          {
+            "group": "Emails",
+            "openapi": "openapi/openapi.json",
+            "pages": [
+              "GET /api/v1/mailboxes/{mailboxId}/emails",
+              "POST /api/v1/mailboxes/{mailboxId}/emails",
+              "GET /api/v1/mailboxes/{mailboxId}/emails/{emailId}",
+              "PUT /api/v1/mailboxes/{mailboxId}/emails/{emailId}",
+              "DELETE /api/v1/mailboxes/{mailboxId}/emails/{emailId}",
+              "POST /api/v1/mailboxes/{mailboxId}/emails/bulk-delete",
+              "POST /api/v1/mailboxes/{mailboxId}/emails/bulk-read",
+              "POST /api/v1/mailboxes/{mailboxId}/emails/bulk-move",
+              "POST /api/v1/mailboxes/{mailboxId}/emails/{emailId}/move",
+              "POST /api/v1/mailboxes/{mailboxId}/emails/{emailId}/reply",
+              "POST /api/v1/mailboxes/{mailboxId}/emails/{emailId}/forward",
+              "GET /api/v1/mailboxes/{mailboxId}/emails/{emailId}/attachments/{attachmentId}",
+              "POST /api/v1/mailboxes/{mailboxId}/drafts",
+              "POST /api/v1/mailboxes/{mailboxId}/drafts/regenerate",
+              "POST /api/v1/mailboxes/{mailboxId}/scheduled-sends",
+              "POST /api/v1/mailboxes/{mailboxId}/scheduled-sends/{id}/retry",
+              "POST /api/v1/mailboxes/{mailboxId}/trash/empty",
+              "GET /api/v1/mailboxes/{mailboxId}/threads/{threadId}",
+              "POST /api/v1/mailboxes/{mailboxId}/threads/{threadId}/read",
+              "GET /api/v1/mailboxes/{mailboxId}/folders",
+              "POST /api/v1/mailboxes/{mailboxId}/folders",
+              "PUT /api/v1/mailboxes/{mailboxId}/folders/{folderId}",
+              "DELETE /api/v1/mailboxes/{mailboxId}/folders/{folderId}",
+              "GET /api/v1/mailboxes/{mailboxId}/search",
+              "GET /api/v1/mailboxes/{mailboxId}/custom-labels",
+              "POST /api/v1/mailboxes/{mailboxId}/custom-labels",
+              "PUT /api/v1/mailboxes/{mailboxId}/custom-labels/reorder",
+              "PUT /api/v1/mailboxes/{mailboxId}/custom-labels/{labelId}",
+              "DELETE /api/v1/mailboxes/{mailboxId}/custom-labels/{labelId}"
+            ]
+          },
+          {
+            "group": "AI agent",
+            "openapi": "openapi/openapi.json",
+            "pages": [
+              "GET /api/v1/mailboxes/{mailboxId}/agent-conversations",
+              "POST /api/v1/mailboxes/{mailboxId}/agent-conversations",
+              "PATCH /api/v1/mailboxes/{mailboxId}/agent-conversations/{conversationId}",
+              "DELETE /api/v1/mailboxes/{mailboxId}/agent-conversations/{conversationId}",
+              "GET /api/v1/mailboxes/{mailboxId}/agent-conversations/{conversationId}/messages",
+              "POST /api/agent/mailbox"
+            ]
+          },
+          {
+            "group": "Task triage",
+            "openapi": "openapi/openapi.json",
+            "pages": [
+              "GET /api/v1/mailboxes/{mailboxId}/task-triagers",
+              "POST /api/v1/mailboxes/{mailboxId}/task-triagers",
+              "GET /api/v1/mailboxes/{mailboxId}/task-triager-runs/recent",
+              "PUT /api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}",
+              "DELETE /api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}",
+              "POST /api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}/default",
+              "POST /api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}/agent-conversation"
+            ]
+          },
+          {
+            "group": "RAG",
+            "openapi": "openapi/openapi.json",
+            "pages": [
+              "GET /api/v1/rag/documents",
+              "POST /api/v1/rag/documents",
+              "GET /api/v1/rag/documents/{id}",
+              "DELETE /api/v1/rag/documents/{id}",
+              "GET /api/v1/rag/documents/{id}/download",
+              "POST /api/v1/rag/documents/{id}/verify",
+              "GET /api/v1/rag/credentials",
+              "POST /api/v1/rag/credentials/prepare",
+              "POST /api/v1/rag/credentials/complete",
+              "POST /api/v1/rag/credentials/verify",
+              "POST /api/v1/rag/recall"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "openapi": "openapi/openapi.json",
+            "pages": [
+              "GET /api/v1/mailboxes/{mailboxId}/telegram",
+              "DELETE /api/v1/mailboxes/{mailboxId}/telegram",
+              "POST /api/v1/mailboxes/{mailboxId}/telegram/link",
+              "GET /api/v1/mailboxes/{mailboxId}/push",
+              "POST /api/v1/mailboxes/{mailboxId}/push/subscribe",
+              "DELETE /api/v1/mailboxes/{mailboxId}/push/subscribe",
+              "GET /api/v1/integrations/composio/toolkits",
+              "POST /api/v1/integrations/composio/toolkits/{slug}/connect",
+              "DELETE /api/v1/integrations/composio/toolkits/{slug}/connection",
+              "GET /api/v1/integrations/composio/connections",
+              "POST /api/v1/integrations/composio/connections/sync",
+              "GET /api/v1/integrations/composio/calendar/account"
+            ]
+          },
+          {
+            "group": "Affiliate",
+            "openapi": "openapi/openapi.json",
+            "pages": [
+              "GET /api/v1/affiliate/me",
+              "PATCH /api/v1/affiliate/me",
+              "POST /api/v1/affiliate/signup",
+              "GET /api/v1/affiliate/analytics",
+              "GET /api/v1/affiliate/payouts",
+              "GET /api/v1/affiliate/commissions",
+              "GET /api/affiliate/track"
+            ]
+          }
         ]
       }
     ],
@@ -108,5 +298,28 @@
       "cursor",
       "vscode"
     ]
+  },
+  "api": {
+    "playground": {
+      "display": "interactive"
+    },
+    "params": {
+      "expanded": "all"
+    },
+    "url": "full",
+    "examples": {
+      "languages": [
+        "curl",
+        "python",
+        "javascript",
+        "php",
+        "go",
+        "java",
+        "ruby"
+      ],
+      "defaults": "required",
+      "prefill": true,
+      "autogenerate": true
+    }
   }
 }

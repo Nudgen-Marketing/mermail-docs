@@ -1,37 +1,80 @@
 ---
 title: "API overview"
-description: "Understand the Mermail API resource areas and where to find the OpenAPI spec."
+description: "Call Mermail's sold API with a Bearer key, meter credits, and try endpoints in the docs playground."
 icon: "code"
 ---
 
-Mermail's app API is served under `/api/v1`. It uses first-party app sessions for console users. Cookie-authenticated mutating requests require CSRF protection.
+Mermail's programmatic API is served under `/api/v1` (plus `/api/agent/mailbox` and `/api/oauth/token`).
 
-The deployed app also exposes an OpenAPI document at:
+Sold API traffic uses a **Bearer API key** from the console. Each sold call debits workspace **API credits** and counts toward plan **RPM**.
 
-```text
-/openapi.json
-```
+## Try it or copy
 
-and:
+Every endpoint page in this tab looks like a standard API reference card:
 
-```text
-/docs/openapi.json
-```
+- Method + path (full production URL)
+- **Authorizations** (Bearer API key)
+- **Path / query / body** fields with types and `required`
+- **Response** examples for success and common errors (`200` / `401` / `402` / `403` / `429`)
+- Right panel: generated **cURL / Python / JavaScript / PHP / Go / Java / Ruby** you can copy (dropdown like the language picker)
+- **Try it** — send a live request to `https://console.mermail.app`
 
-<Info>
-  The current OpenAPI document is intentionally small. Use it as the
-  machine-readable starting point, and treat this page as the human index of
-  implemented resource areas.
-</Info>
+<Steps>
+  <Step title="Upgrade to Developer or Enterprise">
+    Free workspaces cannot create API keys. Open [Pricing](https://mermail.app/pricing) or workspace billing in the console.
+  </Step>
+  <Step title="Create an API key">
+    In the console go to **Settings → API Keys**, create a key, and copy `mm_key_…` once.
+  </Step>
+  <Step title="Open an endpoint">
+    Use the sidebar groups (Public, API keys, Usage, Workspaces, Emails, …).
+  </Step>
+  <Step title="Authorize and send — or copy">
+    Click **Try it**, paste your Bearer token, fill parameters (examples are prefilled), then send.
+    Or copy the snippet from the right panel into your terminal / script.
+  </Step>
+</Steps>
 
-## Health check
+<Tip>
+  Start with **Public → Get API health status** (no auth), then **Usage → Get API credit usage** after you have a key.
+</Tip>
 
-Use the status endpoint for a basic service check:
+## Authentication
+
+| Credential | Header | How you get it |
+| --- | --- | --- |
+| API key | `Authorization: Bearer mm_key_…` | Settings → API Keys |
+| Access token | `Authorization: Bearer mm_at_…` | `POST /api/oauth/token` with client credentials |
+
+See [Authentication](/api-reference/authentication).
+
+## Credits
+
+| Class | Cost |
+| --- | ---: |
+| read | 1 |
+| write | 2 |
+| email_send | 5 |
+| provision | 10 |
+| ai_light | 15 |
+| ai_heavy | 25 |
+
+Developer hard-fails with `402` when the pool is empty. Enterprise soft-unlimited still records usage.
+
+## Rate limits
+
+Default workspace RPM: Free `60`, Developer `300`, Enterprise unlimited. Exceeding the limit returns `429`.
+
+## Base URL
 
 ```bash
-curl https://console.mermail.app/api/status
+https://console.mermail.app
 ```
 
-## Payment-aware routes
+## Spec source
 
-Mermail includes agentic commerce discovery and payment metadata for some protected actions. See [Discovery](/api-reference/discovery).
+This tab is generated from `openapi/openapi.json`. Regenerate after API changes with:
+
+```bash
+node scripts/generate-openapi.mjs
+```

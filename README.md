@@ -14,6 +14,12 @@ npx mint dev
 
 The local preview runs at `http://localhost:3000`.
 
+To regenerate the API Reference OpenAPI document:
+
+```bash
+node scripts/generate-openapi.mjs
+```
+
 ## Validation
 
 Run these checks before publishing:
@@ -27,10 +33,12 @@ If your system Node version is too new for the Mintlify CLI, run the commands wi
 
 ## Structure
 
-- `docs.json` controls site navigation, branding, links, and global settings.
+- `docs.json` controls site navigation, branding, links, API playground, and global settings.
+- `openapi/openapi.json` powers interactive API Reference pages (Try it + copyable examples).
+- `scripts/generate-openapi.mjs` regenerates the OpenAPI document with schemas and examples.
 - `index.mdx` and `quickstart.mdx` introduce the product and first setup flow.
 - `concepts/` explains product concepts.
 - `guides/` contains task-based setup docs.
 - `integrations/` covers provider integrations.
-- `api-reference/` covers app API and discovery surfaces.
+- `api-reference/` covers app API intro, auth, and discovery.
 - `resources/` covers plans.

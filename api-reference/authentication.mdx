@@ -1,32 +1,65 @@
 ---
 title: "Authentication"
-description: "Understand Mermail app sessions and request protection."
+description: "Authenticate sold API calls with a Mermail API key or OAuth access token."
 icon: "key"
 ---
 
-Mermail uses first-party app sessions for console users. The API creates an app session after the identity flow succeeds, then uses session cookies for later app requests.
+Sold API endpoints require a Bearer credential scoped to a workspace. Console cookie sessions are for the Mermail app UI and do not replace an API key in Postman or the docs playground.
 
-## App session flow
+## Create an API key
 
 <Steps>
-  <Step title="Complete identity sign-in">
-    Sign in through the console identity flow.
+  <Step title="Use a paid API plan">
+    Developer (up to 5 keys) or Enterprise (unlimited). Free workspaces cannot create keys.
   </Step>
-  <Step title="Create a Mermail session">
-    The app exchanges the identity proof for a Mermail app session.
+  <Step title="Open Settings → API Keys">
+    Workspace admins can create, list, and revoke keys in the console.
   </Step>
-  <Step title="Use session cookies">
-    Later API requests use the app session cookies.
-  </Step>
-  <Step title="Refresh or logout">
-    The client can refresh the session or revoke it during logout.
+  <Step title="Copy the secret once">
+    The response includes `apiKey` (`mm_key_…`) and optional `clientSecret` (`mm_secret_…`). Mermail does not show the full key again.
   </Step>
 </Steps>
 
-## Request protection
+## Call with Bearer
 
-Cookie-authenticated mutating requests use CSRF protection. This protects app-session routes when the browser automatically sends cookies.
+```bash
+curl https://console.mermail.app/api/v1/workspaces \
+  -H "Authorization: Bearer mm_key_YOUR_KEY"
+```
 
-## Internal mail forwarding
+In the docs playground, open any protected endpoint, click **Try it**, and paste the same value into the Bearer field. Prefill examples populate path and body fields so you can send immediately. Use the language dropdown to switch and copy snippets for **cURL, Python, JavaScript, PHP, Go, Java, or Ruby**.
 
-Inbound mail forwarding between the worker and the app uses private server-to-server authentication.
+## OAuth client credentials (optional)
+
+If you stored `client_id` / `client_secret` from key creation:
+
+```bash
+curl -X POST https://console.mermail.app/api/oauth/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials&client_id=mm_client_…&client_secret=mm_secret_…"
+```
+
+Use the returned `access_token` (`mm_at_…`) as Bearer. Tokens expire (default one hour).
+
+## Manage keys via API
+
+| Method | Path |
+| --- | --- |
+| `GET` | `/api/v1/workspaces/{workspaceId}/oauth-clients` |
+| `POST` | `/api/v1/workspaces/{workspaceId}/oauth-clients` |
+| `DELETE` | `/api/v1/workspaces/{workspaceId}/oauth-clients/{clientId}` |
+
+These routes require a workspace **admin** and do not debit API credits.
+
+## Console sessions (app only)
+
+The Mermail console still uses first-party app cookies after identity sign-in. Cookie-authenticated browser mutations use CSRF protection. Prefer API keys for scripts, agents, and the docs **Try it** playground.
+
+## Common errors
+
+| Status | Meaning |
+| --- | --- |
+| `401` | Missing/invalid/expired/revoked key or token |
+| `403` | Wrong workspace, Free plan (no keys), or missing role |
+| `402` | API credits exhausted (`credits_exhausted`) |
+| `429` | Workspace or user RPM exceeded |
