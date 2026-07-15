@@ -30,7 +30,9 @@
         "group": "Guides",
         "pages": [
           "guides/create-mailbox",
-          "guides/custom-domains"
+          "guides/custom-domains",
+          "api-reference/authentication",
+          "api-reference/discovery"
         ]
       },
       {
@@ -41,11 +43,9 @@
         ]
       },
       {
-        "group": "API and discovery",
+        "group": "API",
         "pages": [
-          "api-reference/overview",
-          "api-reference/discovery",
-          "api-reference/authentication"
+          "api-reference/overview"
         ]
       },
       {
