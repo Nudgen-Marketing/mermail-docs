@@ -3,58 +3,65 @@
   "theme": "mint",
   "name": "Mermail",
   "colors": {
-    "primary": "#1E40AF",
-    "light": "#70EEEE",
-    "dark": "#3C91FF"
+    "primary": "#43c9cb",
+    "light": "#43c9cb",
+    "dark": "#43c9cb"
   },
-  "favicon": "/favicon.ico",
+  "favicon": "/mermail-favicon.png",
   "navigation": {
-    "pages": [
+    "tabs": [
       {
-        "group": "Get started",
-        "pages": [
-          "index",
-          "quickstart"
+        "tab": "Documentation",
+        "icon": "book-open",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "index",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core concepts",
+            "pages": [
+              "concepts/mailboxes",
+              "concepts/workspaces",
+              "concepts/ai-agent",
+              "concepts/task-triage"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/create-mailbox",
+              "guides/custom-domains",
+              "api-reference/authentication",
+              "api-reference/discovery"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "integrations/composio",
+              "integrations/telegram"
+            ]
+          },
+          {
+            "group": "Resources",
+            "pages": [
+              "resources/faq",
+              "resources/support",
+              "resources/security",
+              "resources/plans"
+            ]
+          }
         ]
       },
       {
-        "group": "Core concepts",
-        "pages": [
-          "concepts/mailboxes",
-          "concepts/workspaces",
-          "concepts/ai-agent",
-          "concepts/task-triage"
-        ]
-      },
-      {
-        "group": "Guides",
-        "pages": [
-          "guides/create-mailbox",
-          "guides/custom-domains",
-          "api-reference/authentication",
-          "api-reference/discovery"
-        ]
-      },
-      {
-        "group": "Integrations",
-        "pages": [
-          "integrations/composio",
-          "integrations/telegram"
-        ]
-      },
-      {
-        "group": "API",
+        "tab": "API Reference",
+        "icon": "square-terminal",
         "pages": [
           "api-reference/overview"
-        ]
-      },
-      {
-        "group": "Resources",
-        "pages": [
-          "resources/faq",
-          "resources/support",
-          "resources/security",
-          "resources/plans"
         ]
       }
     ],
