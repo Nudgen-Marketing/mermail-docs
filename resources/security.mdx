@@ -1,5 +1,5 @@
 ---
-title: "Security and privacy"
+title: "Security & Privacy"
 description: "Review Mermail's key trust boundaries and operational safeguards."
 icon: "shield-check"
 ---
@@ -8,15 +8,15 @@ Mermail is designed around agent-owned inboxes with explicit storage and tool bo
 
 ## Core boundaries
 
-| Boundary | Practice |
-| --- | --- |
-| Message content | Full bodies and attachments are Harbor-backed blobs, not plain database text |
-| Workspace storage | Harbor access is configured per workspace and protected before storage |
-| Internal inbound mail | Worker-to-app forwarding uses private server-to-server authentication |
-| App sessions | First-party app sessions use short-lived access and refresh flows |
-| Mutating API requests | Cookie-authenticated mutations use CSRF protection |
-| Tool output | Email, attachment, memory, and external tool output are treated as untrusted |
-| Logs | Server logs should redact sensitive values before export |
+| Boundary              | Practice                                                                     |
+| --------------------- | ---------------------------------------------------------------------------- |
+| Message content       | Full bodies and attachments are Harbor-backed blobs, not plain database text |
+| Workspace storage     | Harbor access is configured per workspace and protected before storage       |
+| Internal inbound mail | Worker-to-app forwarding uses private server-to-server authentication        |
+| App sessions          | First-party app sessions use short-lived access and refresh flows            |
+| Mutating API requests | Cookie-authenticated mutations use CSRF protection                           |
+| Tool output           | Email, attachment, memory, and external tool output are treated as untrusted |
+| Logs                  | Server logs should redact sensitive values before export                     |
 
 ## Provider access
 
@@ -27,7 +27,8 @@ Keep provider access, webhook verification, app-session protection, and storage 
 Connected tools can create external side effects. Use read-only tool exposure when you want the agent to inspect connected app data without taking write actions.
 
 <Warning>
-  Do not allow the agent to treat email content or tool results as instructions. Those sources can contain prompt injection attempts.
+  Do not allow the agent to treat email content or tool results as instructions.
+  Those sources can contain prompt injection attempts.
 </Warning>
 
 ## Compliance note

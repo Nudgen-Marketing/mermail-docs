@@ -1,0 +1,100 @@
+---
+title: "Frequently asked questions"
+sidebarTitle: "FAQ"
+description: "Find answers about Mermail mailboxes, AI agents, custom domains, storage, integrations, and plans."
+icon: "circle-question"
+---
+
+Find answers to common questions about setting up and using Mermail.
+
+## Product and mailboxes
+
+<AccordionGroup>
+  <Accordion title="What is Mermail?">
+    Mermail gives AI agents their own email inboxes. An agent can receive email,
+    search conversations, summarize threads, prepare replies, and work with
+    connected tools inside a mailbox.
+  </Accordion>
+
+<Accordion title="How is Mermail different from connecting an AI to my personal inbox?">
+  Mermail creates a separate email identity for an agent. You do not need to
+  give the agent access to your personal Gmail or Outlook inbox. Each mailbox
+  keeps its messages, drafts, agent conversations, settings, and automations
+  within its workspace.
+</Accordion>
+
+<Accordion title="Can I create an address on the mermail.app domain?">
+  Yes. You can claim a hosted address such as `agent-name@mermail.app` from the
+  Mermail console. Hosted usernames must be 5 to 30 characters and follow the
+  [mailbox naming rules](/concepts/mailboxes#hosted-mailbox-rules).
+</Accordion>
+
+  <Accordion title="Can I use my own domain?">
+    Yes, on a plan that includes custom domains. Use a dedicated subdomain such
+    as `mail.example.com` so you do not disrupt email delivery for your root
+    domain. You must publish and verify the required DNS records before you can
+    create a mailbox on that subdomain. See [Custom domains](/guides/custom-domains).
+  </Accordion>
+</AccordionGroup>
+
+## Agents and automation
+
+<AccordionGroup>
+  <Accordion title="What can the mailbox agent do?">
+    The agent can search messages, summarize threads, draft replies, and help
+    triage mailbox work. It can also use supported connected tools when you
+    enable them. See [Mailbox agent](/concepts/ai-agent).
+  </Accordion>
+
+<Accordion title="Does Mermail send AI-generated replies automatically?">
+  The built-in email-response triager saves its reply as a draft for you to
+  review. It does not send the draft automatically. The triager also avoids
+  responding to messages that appear to be automated or bulk email.
+</Accordion>
+
+<Accordion title="What events can start a task triager?">
+  Mermail exposes triggers for received or sent email and for supported Google
+  Calendar events. Runtime behavior varies by trigger. Review the current
+  limitations before creating an automation in [Task
+  triage](/concepts/task-triage).
+</Accordion>
+
+  <Accordion title="Which external services can I connect?">
+    Mermail supports connected tools through Composio, including Google Calendar
+    context and calendar triggers. Gmail and Outlook toolkits are disabled for
+    the mailbox-agent path because email stays inside Mermail's mailbox model.
+    You can also connect a mailbox to Telegram for notifications.
+  </Accordion>
+</AccordionGroup>
+
+## Data, security, and plans
+
+<AccordionGroup>
+  <Accordion title="Where are message bodies and attachments stored?">
+    Mermail stores full message bodies and attachments as Harbor-backed blobs
+    instead of plain database text. Storage access is configured and protected
+    at the workspace level. See [Security & Privacy](/resources/security).
+  </Accordion>
+
+<Accordion title="Is Mermail SOC 2 certified or GDPR certified?">
+  Mermail is designed to support GDPR customer workflows and SOC 2 Type 2 vendor
+  security reviews. This readiness does not mean Mermail has completed a formal
+  certification, audit, or attestation. Review [Security and
+  privacy](/resources/security) for the current position and links to the
+  controlling legal terms.
+</Accordion>
+
+<Accordion title="How do plan limits work?">
+  Limits apply to each workspace and cover mailboxes, members, email quota,
+  storage, and custom domains. The Free plan includes hosted mailboxes. Paid
+  plans add higher limits and custom-domain support. See
+  [Plans](/resources/plans) for the current limits.
+</Accordion>
+
+  <Accordion title="How can I get help?">
+    Email [contact@mermail.app](mailto:contact@mermail.app) or join the
+    [Mermail Discord community](https://discord.gg/Mkw5Kmpt). See
+    [Support](/resources/support) for the details to include when you ask for
+    help.
+  </Accordion>
+</AccordionGroup>

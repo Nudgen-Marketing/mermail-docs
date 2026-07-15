@@ -51,6 +51,8 @@
       {
         "group": "Resources",
         "pages": [
+          "resources/faq",
+          "resources/support",
           "resources/security",
           "resources/plans"
         ]
@@ -79,7 +81,7 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:support@mermail.app"
+        "href": "mailto:contact@mermail.app"
       }
     ],
     "primary": {
