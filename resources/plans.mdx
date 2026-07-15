@@ -27,14 +27,15 @@ Review the current offer or start checkout on the [Mermail pricing page](https:/
 | Inbox pods        |             2 |            10 |     Custom |
 | Webhook endpoints |             2 |             5 |     Custom |
 | Custom domains    |  Not included |             5 |     Custom |
-| API keys          |             0 |             5 | Unlimited |
+| API keys          |             1 |             5 | Unlimited |
 | API RPM           |            60 |           300 | Unlimited |
-| API credits / period | N/A (no sold API) | 50,000 | Unlimited |
+| API credits / period |         1,000 |        50,000 | Unlimited |
 
 <Info>
   Mermail notifies you when you approach your monthly email limit. Enterprise
-  customers can arrange custom volume and overage terms. Free has no API keys —
-  sold Bearer API is Developer and Enterprise only. See the
+  customers can arrange custom volume and overage terms. Sold Bearer API calls
+  debit API credits on every plan (Free included). Developer-gated endpoints
+  still require Developer or Enterprise. See the
   [API overview](/api-reference/overview) for which endpoints each plan can call.
 </Info>
 
@@ -52,7 +53,7 @@ All plans include:
 
 | Feature              | Free                          | Developer              | Enterprise       |
 | -------------------- | ----------------------------- | ---------------------- | ---------------- |
-| Sold API (Bearer)    | Not included                  | Included               | Included         |
+| Sold API (Bearer)    | Core catalog (credit-metered) | Included               | Included         |
 | AI automation        | Basic                         | Advanced               | Custom           |
 | Metrics              | Basic                         | Developer metrics      | Custom reporting |
 | Email domain         | Mermail-hosted domain         | Up to 5 custom domains | Custom domains   |
