@@ -149,11 +149,6 @@ const PLAN_ACCESS = {
 		plans: ["Public"],
 		xBadges: [{ name: "Public", color: "grey" }],
 	},
-	optional: {
-		tag: "Optional",
-		plans: ["Optional"],
-		xBadges: [{ name: "Optional", color: "orange" }],
-	},
 	all: {
 		tag: "All plans",
 		plans: ["Free", "Developer", "Enterprise"],
@@ -177,12 +172,6 @@ function isDeveloperGatedApiPath(pathname, method = "GET") {
 	const m = method.toUpperCase();
 	if (pathname.includes("/email-domains")) return true;
 	if (pathname.includes("/integrations/composio")) return true;
-	if (
-		pathname.includes("/harbor-session") ||
-		pathname.includes("/harbor-api-key")
-	) {
-		return true;
-	}
 	if (/\/workspaces\/[^/]+\/storage$/.test(pathname) && m !== "GET") {
 		return true;
 	}
@@ -197,7 +186,6 @@ function isDeveloperGatedApiPath(pathname, method = "GET") {
 }
 
 function classifyPlanAccess(pathname, method, operation) {
-	if (pathname === "/api/oauth/token") return "optional";
 	const security = operation.security;
 	const isPublic =
 		Array.isArray(security) &&
@@ -210,15 +198,13 @@ function classifyPlanAccess(pathname, method, operation) {
 
 function applyPlanBadges(operation, accessKey) {
 	const access = PLAN_ACCESS[accessKey] ?? PLAN_ACCESS.all;
-	let planLine =
+	const planLine =
 		accessKey === "public"
 			? "**Plans:** `Public` (no auth)"
-			: accessKey === "optional"
-				? "**Optional** — prefer API keys (`mm_key_…`). Use short-lived `mm_at_…` tokens for CI, secret rotation, or to avoid putting a long-lived key in every service."
-				: `**Plans:** ${access.plans.map((p) => `\`${p}\``).join(" · ")}`;
+			: `**Plans:** ${access.plans.map((p) => `\`${p}\``).join(" · ")}`;
 
 	const body = (operation.description ?? "").trim();
-	if (!body.startsWith("**Plans:**") && !body.startsWith("**Optional**")) {
+	if (!body.startsWith("**Plans:**")) {
 		operation.description = body ? `${planLine}\n\n${body}` : planLine;
 	}
 
@@ -415,86 +401,6 @@ add(
 		},
 	}),
 );
-
-// —— Auth ——
-add("/api/oauth/token", "post", {
-	summary: "Get short-lived access token (optional)",
-	description:
-		"Most integrations should send `Authorization: Bearer mm_key_…` from Settings → API Keys instead.\n\nUse this endpoint for **short-lived** OAuth client-credentials tokens (`mm_at_…`) — for example CI/CD, secret rotation from a vault, or minting per-service tokens so you do not embed a long-lived API key everywhere. The access token works the same as an API key on sold endpoints (`Authorization: Bearer mm_at_…`) and expires (default one hour).\n\nExchange `client_id` and `client_secret` (returned once when creating a key) via JSON or `application/x-www-form-urlencoded`, or HTTP Basic auth for the client credentials.",
-	tags: ["Authentication"],
-	security: [],
-	requestBody: {
-		required: true,
-		content: {
-			"application/x-www-form-urlencoded": {
-				schema: {
-					type: "object",
-					required: ["grant_type", "client_id", "client_secret"],
-					properties: {
-						grant_type: {
-							type: "string",
-							enum: ["client_credentials"],
-							example: "client_credentials",
-						},
-						client_id: {
-							type: "string",
-							description: "OAuth client id (`mm_client_…`)",
-							example: "mm_client_a1b2c3",
-						},
-						client_secret: {
-							type: "string",
-							description: "OAuth client secret (`mm_secret_…`)",
-							example: "mm_secret_d4e5f6",
-						},
-					},
-				},
-				example: {
-					grant_type: "client_credentials",
-					client_id: "mm_client_a1b2c3",
-					client_secret: "mm_secret_d4e5f6",
-				},
-			},
-			"application/json": {
-				schema: {
-					type: "object",
-					required: ["grant_type", "client_id", "client_secret"],
-					properties: {
-						grant_type: {
-							type: "string",
-							enum: ["client_credentials"],
-						},
-						client_id: { type: "string" },
-						client_secret: { type: "string" },
-					},
-				},
-			},
-		},
-	},
-	responses: {
-		"200": jsonResponse(
-			"Access token issued",
-			{ $ref: "#/components/schemas/OAuthTokenResponse" },
-			{
-				access_token: "mm_at_9f8e7d6c5b4a",
-				token_type: "Bearer",
-				expires_in: 3600,
-				scope: "mailbox",
-			},
-		),
-		"400": {
-			description: "Unsupported grant type",
-			...errorContent({ error: "unsupported_grant_type" }),
-		},
-		"401": {
-			description: "Invalid client credentials",
-			...errorContent({ error: "invalid_client" }),
-		},
-		"403": {
-			description: "Workspace plan does not allow API keys",
-			...errorContent({ error: "plan_required" }),
-		},
-	},
-});
 
 // —— API keys ——
 add(
@@ -838,50 +744,6 @@ add(
 );
 
 add(
-	"/api/v1/workspaces/{workspaceId}/storage/harbor-session",
-	"post",
-	slimOp({
-		summary: "Create Harbor session",
-		description:
-			"Starts a Harbor storage session for the workspace. **Developer or Enterprise** required.",
-		tags: ["Workspaces"],
-		parameters: [
-			pathParam("workspaceId", "Workspace id", "ws_01abc"),
-		],
-		xCredits: 10,
-		requestBody: jsonBody(
-			{ type: "object", additionalProperties: true },
-			{},
-			false,
-		),
-		successStatus: "201",
-		successDescription: "Harbor session created",
-	}),
-);
-
-add(
-	"/api/v1/workspaces/{workspaceId}/storage/harbor-api-key",
-	"post",
-	slimOp({
-		summary: "Create Harbor API key",
-		description:
-			"Provisions a Harbor API key for the workspace. **Developer or Enterprise** required.",
-		tags: ["Workspaces"],
-		parameters: [
-			pathParam("workspaceId", "Workspace id", "ws_01abc"),
-		],
-		xCredits: 10,
-		requestBody: jsonBody(
-			{ type: "object", additionalProperties: true },
-			{},
-			false,
-		),
-		successStatus: "201",
-		successDescription: "Harbor API key created",
-	}),
-);
-
-add(
 	"/api/v1/workspaces/{workspaceId}/members",
 	"get",
 	slimOp({
@@ -1175,32 +1037,6 @@ add(
 );
 
 add(
-	"/api/v1/workspaces/{workspaceId}/mailboxes",
-	"post",
-	op({
-		summary: "Create mailbox in workspace",
-		description:
-			"Provisions an agent mailbox in the path workspace. Requires workspace **admin**.",
-		tags: ["Mailboxes"],
-		parameters: [
-			pathParam("workspaceId", "Workspace id", "ws_01abc"),
-		],
-		xCredits: 10,
-		requestBody: jsonBody(createMailboxBody, {
-			email: "support@mail.acme.com",
-			name: "Acme Support",
-		}),
-		responses: {
-			"201": jsonResponse(
-				"Mailbox created",
-				{ $ref: "#/components/schemas/Mailbox" },
-				mailboxExample,
-			),
-		},
-	}),
-);
-
-add(
 	"/api/v1/mailboxes",
 	"get",
 	op({
@@ -1309,21 +1145,6 @@ add(
 );
 
 add(
-	"/api/v1/mailboxes/{mailboxId}",
-	"delete",
-	slimOp({
-		summary: "Delete mailbox",
-		description: "Deletes a mailbox and related resources.",
-		tags: ["Mailboxes"],
-		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
-		],
-		xCredits: 2,
-		successDescription: "Deleted",
-	}),
-);
-
-add(
 	"/api/v1/mailboxes/{mailboxId}/storage",
 	"get",
 	slimOp({
@@ -1335,21 +1156,6 @@ add(
 		],
 		xCredits: 1,
 		successExample: { usedBytes: 1048576, limitBytes: 10737418240 },
-	}),
-);
-
-add(
-	"/api/v1/mailboxes/{mailboxId}/onboarding/welcome",
-	"post",
-	slimOp({
-		summary: "Send onboarding welcome",
-		description: "Triggers the mailbox welcome / onboarding email flow.",
-		tags: ["Mailboxes"],
-		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
-		],
-		xCredits: 2,
-		successDescription: "Welcome flow started",
 	}),
 );
 
@@ -1775,22 +1581,6 @@ add(
 );
 
 add(
-	"/api/v1/mailboxes/{mailboxId}/scheduled-sends/{id}/retry",
-	"post",
-	slimOp({
-		summary: "Retry scheduled send",
-		description: "Retries a failed scheduled send.",
-		tags: ["Emails"],
-		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
-			pathParam("id", "Scheduled send id", "sch_01"),
-		],
-		xCredits: 5,
-		successDescription: "Retry queued",
-	}),
-);
-
-add(
 	"/api/v1/mailboxes/{mailboxId}/trash/empty",
 	"post",
 	slimOp({
@@ -2011,29 +1801,6 @@ add(
 		),
 		successStatus: "201",
 		successDescription: "Label created",
-	}),
-);
-add(
-	"/api/v1/mailboxes/{mailboxId}/custom-labels/reorder",
-	"put",
-	slimOp({
-		summary: "Reorder custom labels",
-		description: "Updates custom label sort order.",
-		tags: ["Emails"],
-		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
-		],
-		xCredits: 2,
-		requestBody: jsonBody(
-			{
-				type: "object",
-				properties: {
-					ids: { type: "array", items: { type: "string" } },
-				},
-			},
-			{ ids: ["lbl_1", "lbl_2"] },
-		),
-		successDescription: "Reordered",
 	}),
 );
 add(
@@ -2805,11 +2572,9 @@ Authorize with a Bearer API key from **Settings → API Keys**:
 Authorization: Bearer mm_key_…
 \`\`\`
 
-Optionally exchange \`client_id\` / \`client_secret\` at \`POST /api/oauth/token\` for a short-lived \`mm_at_…\` token (CI, secret rotation, or avoid shipping long-lived keys to every service).
-
 ## Plans
 
-Each endpoint page shows plan badges (**Public**, **All plans**, **Developer+**, or **Optional**). Free can call the core catalog; Developer-gated paths need Developer or Enterprise.
+Each endpoint page shows plan badges (**Public**, **All plans**, or **Developer+**). Free can call the core catalog; Developer-gated paths need Developer or Enterprise.
 
 ## Try it
 
@@ -2837,7 +2602,6 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 	],
 	tags: [
 		{ name: "Public", description: "No authentication" },
-		{ name: "Authentication", description: "Optional short-lived access tokens (client credentials)" },
 		{ name: "API keys", description: "Create and revoke workspace API keys" },
 		{ name: "Usage", description: "Credits and email quotas" },
 		{ name: "Workspaces", description: "Workspaces, members, storage" },
@@ -2859,7 +2623,7 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 				scheme: "bearer",
 				bearerFormat: "API key",
 				description:
-					"Preferred: API key (`mm_key_…`) from Settings → API Keys. Optional: short-lived access token (`mm_at_…`) from `POST /api/oauth/token`. Paste the raw token value (Mintlify / clients add the `Bearer` prefix).",
+					"API key (`mm_key_…`) from Settings → API Keys. Paste the raw token value (Mintlify / clients add the `Bearer` prefix).",
 			},
 		},
 		schemas: {
@@ -2869,15 +2633,6 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 				properties: {
 					error: { type: "string", example: "Unauthorized" },
 					code: { type: "string" },
-				},
-			},
-			OAuthTokenResponse: {
-				type: "object",
-				properties: {
-					access_token: { type: "string" },
-					token_type: { type: "string", example: "Bearer" },
-					expires_in: { type: "integer", example: 3600 },
-					scope: { type: "string", example: "mailbox" },
 				},
 			},
 			OAuthClientSummary: {

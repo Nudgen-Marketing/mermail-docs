@@ -22,7 +22,6 @@ Each endpoint page in this reference shows **plan badges** (sidebar tag + Plans 
 
 | Badge | Meaning |
 | --- | --- |
-| `Public` | No auth required |
 | `All plans` | Free, Developer, and Enterprise |
 | `Developer+` | Developer and Enterprise only (`403` on Free) |
 | `Optional` | Not required for typical integrations (prefer API keys) |
@@ -60,17 +59,8 @@ Enterprise shares the same endpoint list as Developer — higher quotas, not ext
 </Steps>
 
 <Tip>
-  Start with **Public → Get API health status** (no auth), then **Usage → Get API credit usage** with your key.
+  Start with **Usage → Get API credit usage** after you have a key.
 </Tip>
-
----
-
-## Public endpoints (no auth)
-
-| Method | Path | Notes |
-| --- | --- | --- |
-| `GET` | `/api/status` | Health check |
-| `GET` | `/api/v1/config` | Public client config |
 
 ---
 
@@ -87,7 +77,6 @@ After you have at least one key from Settings, you can list/create/revoke keys w
 | `GET` | `/api/v1/workspaces/{workspaceId}/oauth-clients` | |
 | `POST` | `/api/v1/workspaces/{workspaceId}/oauth-clients` | |
 | `DELETE` | `/api/v1/workspaces/{workspaceId}/oauth-clients/{clientId}` | |
-| `POST` | `/api/oauth/token` | Optional — prefer `mm_key_…` |
 
 ### Catalog by area
 
@@ -99,7 +88,6 @@ After you have at least one key from Settings, you can list/create/revoke keys w
     | `POST` | `/api/v1/workspaces` | 2 |
     | `GET` | `/api/v1/workspaces/{workspaceId}` | 1 |
     | `PUT` | `/api/v1/workspaces/{workspaceId}` | 2 |
-    | `DELETE` | `/api/v1/workspaces/{workspaceId}` | 2 |
     | `GET` | `/api/v1/workspaces/{workspaceId}/storage` | 1 |
     | `GET` | `/api/v1/workspaces/{workspaceId}/usage/email` | 1 |
     | `GET` | `/api/v1/workspaces/{workspaceId}/usage/credits` | 1 |
@@ -114,14 +102,11 @@ After you have at least one key from Settings, you can list/create/revoke keys w
     | Method | Path | Credits |
     | --- | --- | ---: |
     | `GET` | `/api/v1/workspaces/{workspaceId}/mailboxes` | 1 |
-    | `POST` | `/api/v1/workspaces/{workspaceId}/mailboxes` | 10 |
     | `GET` | `/api/v1/mailboxes` | 1 |
     | `POST` | `/api/v1/mailboxes` | 10 |
     | `GET` | `/api/v1/mailboxes/{mailboxId}` | 1 |
     | `PUT` | `/api/v1/mailboxes/{mailboxId}` | 2 |
-    | `DELETE` | `/api/v1/mailboxes/{mailboxId}` | 2 |
     | `GET` | `/api/v1/mailboxes/{mailboxId}/storage` | 1 |
-    | `POST` | `/api/v1/mailboxes/{mailboxId}/onboarding/welcome` | 2 |
   </Accordion>
 
   <Accordion title="Emails, folders, search, labels">
@@ -140,20 +125,6 @@ After you have at least one key from Settings, you can list/create/revoke keys w
     | `GET` | `/api/v1/mailboxes/{mailboxId}/agent-conversations/{conversationId}/messages` | 1 |
     | `POST` | `/api/agent/mailbox` | 25 |
   </Accordion>
-
-  <Accordion title="RAG read / recall">
-    | Method | Path | Credits |
-    | --- | --- | ---: |
-    | `GET` | `/api/v1/rag/documents` | 1 |
-    | `GET` | `/api/v1/rag/documents/{id}` | 1 |
-    | `GET` | `/api/v1/rag/documents/{id}/download` | 1 |
-    | `GET` | `/api/v1/rag/credentials` | 1 |
-    | `POST` | `/api/v1/rag/recall` | 15 |
-  </Accordion>
-
-  <Accordion title="Integrations + affiliate">
-    Telegram link/unlink, web push, and affiliate profile/analytics under `/api/v1/...`. See sidebar **Integrations** and **Affiliate**.
-  </Accordion>
 </AccordionGroup>
 
 ---
@@ -165,9 +136,7 @@ Free workspaces receive `403` on these paths. Upgrade to unlock them.
 | Area | Paths |
 | --- | --- |
 | Custom domains | `GET/POST /workspaces/{id}/email-domains`, `DELETE …/{domainId}`, `POST …/verify` |
-| Harbor storage write | `PUT …/storage`, `POST …/harbor-session`, `POST …/harbor-api-key` |
-| Composio | `…/integrations/composio/toolkits`, `connections`, `calendar/account` |
-| RAG write / credentials | `POST/DELETE /rag/documents…`, `POST /rag/credentials/*` |
+| Harbor storage write | `PUT …/storage` |
 | Task triage | `…/task-triagers`, `…/task-triager-runs/recent` |
 
 ---
@@ -199,8 +168,7 @@ Over limit → `429`.
 
 | Credential | Header | When to use |
 | --- | --- | --- |
-| API key (preferred) | `Authorization: Bearer mm_key_…` | Default for scripts, Postman, and most apps |
-| Access token (optional) | `Authorization: Bearer mm_at_…` | Short-lived client-credentials for CI, secret rotation, or avoiding long-lived keys in every service — from `POST /api/oauth/token` |
+| API key | `Authorization: Bearer mm_key_…` | Scripts, Postman, and apps |
 
 Details: [Authentication](/api-reference/authentication).
 
