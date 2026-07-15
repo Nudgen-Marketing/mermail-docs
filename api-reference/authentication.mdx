@@ -6,6 +6,8 @@ icon: "key"
 
 Sold API endpoints require a workspace-scoped API key. Create a key in **Settings → API Keys**, then send it as `x-api-key` from Postman, scripts, or this docs playground. Console cookie sessions do not need this header.
 
+Each key is bound to **one workspace**. Use that workspace’s id in path/query/body fields. A mismatched `workspaceId` returns `403` `workspace_scope_denied`. Your default workspace is created when you sign in to the Mermail console — not via the sold API.
+
 ## Create an API key
 
 <Steps>
@@ -26,21 +28,13 @@ curl https://console.mermail.app/api/v1/workspaces \
 
 In the docs playground, open any protected endpoint, click **Try it**, and paste the key into the API key field. Prefill examples populate path and body fields so you can send immediately. Use the language dropdown to switch and copy snippets for **cURL, Python, JavaScript, PHP, Go, Java, or Ruby**.
 
-## Manage keys via API
-
-| Method | Path |
-| --- | --- |
-| `GET` | `/api/v1/workspaces/{workspaceId}/api-keys` |
-| `POST` | `/api/v1/workspaces/{workspaceId}/api-keys` |
-| `DELETE` | `/api/v1/workspaces/{workspaceId}/api-keys/{apiKeyId}` |
-
-These routes require a workspace **admin** and do not debit API credits. The `{apiKeyId}` path segment is the key row id returned on create/list.
+Manage keys in the Mermail app under **Settings → API Keys** (workspace admin). Free allows 1 key; Developer up to 5; Enterprise unlimited.
 
 ## Common errors
 
 | Status | Meaning |
 | --- | --- |
 | `401` | Missing, invalid, expired, or revoked key — or calling without `x-api-key` outside the console |
-| `403` | Wrong workspace, missing role, or Developer-gated path on Free |
+| `403` | Wrong workspace for this key (`workspace_scope_denied`), missing role, or Developer-gated path on Free |
 | `402` | API credits exhausted (`credits_exhausted`) |
 | `429` | Workspace RPM exceeded |

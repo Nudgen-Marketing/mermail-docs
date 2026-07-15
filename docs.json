@@ -59,15 +59,6 @@
             ]
           },
           {
-            "group": "API keys",
-            "openapi": "openapi/openapi.json",
-            "pages": [
-              "GET /api/v1/workspaces/{workspaceId}/api-keys",
-              "POST /api/v1/workspaces/{workspaceId}/api-keys",
-              "DELETE /api/v1/workspaces/{workspaceId}/api-keys/{apiKeyId}"
-            ]
-          },
-          {
             "group": "Usage",
             "openapi": "openapi/openapi.json",
             "pages": [
@@ -80,7 +71,6 @@
             "openapi": "openapi/openapi.json",
             "pages": [
               "GET /api/v1/workspaces",
-              "POST /api/v1/workspaces",
               "GET /api/v1/workspaces/{workspaceId}",
               "PUT /api/v1/workspaces/{workspaceId}",
               "GET /api/v1/workspaces/{workspaceId}/storage",

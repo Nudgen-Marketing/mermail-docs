@@ -18,6 +18,10 @@ Create a key in the Mermail app under **Settings → API Keys**, then paste it i
 
 Every sold-API credential call debits **API credits** and counts toward workspace **RPM**. When credits run out you get `402`; when you exceed RPM you get `429`.
 
+<Note>
+  Each API key is bound to **one workspace**. Path and body `workspaceId` values must match that workspace (`403` `workspace_scope_denied` otherwise). `GET /workspaces` returns only the key’s workspace. Workspaces are created automatically for new accounts in the Mermail console — there is no sold-API “create workspace” endpoint.
+</Note>
+
 Each endpoint page in this reference shows **plan badges** (sidebar tag + Plans line):
 
 | Badge | Meaning |
@@ -67,16 +71,6 @@ Enterprise shares the same endpoint list as Developer — higher quotas, not ext
 
 Auth: `x-api-key`. Metered with credits + RPM. Open each group in the sidebar for full schemas and Try it.
 
-### Key management (admin, no credit debit)
-
-After you have at least one key from Settings, you can list/create/revoke keys with `x-api-key` too.
-
-| Method | Path | Notes |
-| --- | --- | --- |
-| `GET` | `/api/v1/workspaces/{workspaceId}/api-keys` | |
-| `POST` | `/api/v1/workspaces/{workspaceId}/api-keys` | |
-| `DELETE` | `/api/v1/workspaces/{workspaceId}/api-keys/{apiKeyId}` | |
-
 ### Catalog by area
 
 <AccordionGroup>
@@ -84,7 +78,6 @@ After you have at least one key from Settings, you can list/create/revoke keys w
     | Method | Path | Credits |
     | --- | --- | ---: |
     | `GET` | `/api/v1/workspaces` | 1 |
-    | `POST` | `/api/v1/workspaces` | 2 |
     | `GET` | `/api/v1/workspaces/{workspaceId}` | 1 |
     | `PUT` | `/api/v1/workspaces/{workspaceId}` | 2 |
     | `GET` | `/api/v1/workspaces/{workspaceId}/storage` | 1 |

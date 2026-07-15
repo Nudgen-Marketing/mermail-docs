@@ -403,121 +403,6 @@ add(
 	}),
 );
 
-// —— API keys ——
-add(
-	"/api/v1/workspaces/{workspaceId}/api-keys",
-	"get",
-	op({
-		summary: "List API keys",
-		description:
-			"Lists API keys for the workspace. Requires workspace **admin**. Does **not** consume API credits. Secrets are never returned — only `tokenPreview`.",
-		tags: ["API keys"],
-		parameters: [
-			pathParam("workspaceId", "Workspace id", "ws_01abc"),
-		],
-		responses: {
-			"200": jsonResponse(
-				"API key summaries",
-				{
-					type: "array",
-					items: { $ref: "#/components/schemas/ApiKeySummary" },
-				},
-				[
-					{
-						id: "ocl_01xyz",
-						name: "Postman",
-						tokenPreview: "mm_key_ab…",
-						expiresAt: "2026-08-14T00:00:00.000Z",
-						revokedAt: null,
-						lastUsedAt: "2026-07-14T18:00:00.000Z",
-						createdAt: "2026-07-01T10:00:00.000Z",
-						status: "active",
-					},
-				],
-			),
-		},
-	}),
-);
-
-add(
-	"/api/v1/workspaces/{workspaceId}/api-keys",
-	"post",
-	op({
-		summary: "Create API key",
-		description:
-			"Creates an API key for the workspace. Returns `apiKey` (`mm_key_…`) **once**. Requires workspace **admin**. Free allows 1 key; Developer up to 5; Enterprise unlimited. Does **not** consume API credits.\n\nCopy the key immediately — Mermail does not show the full secret again. Use it as `x-api-key`.",
-		tags: ["API keys"],
-		parameters: [
-			pathParam("workspaceId", "Workspace id", "ws_01abc"),
-		],
-		requestBody: jsonBody(
-			{
-				type: "object",
-				properties: {
-					name: {
-						type: "string",
-						description: "Human-readable key name",
-						example: "Postman",
-					},
-					expiresInDays: {
-						type: "integer",
-						nullable: true,
-						description: "Days until expiry. Omit or null for never.",
-						example: 30,
-					},
-				},
-			},
-			{ name: "Postman", expiresInDays: 30 },
-		),
-		responses: {
-			"201": jsonResponse(
-				"API key created — store apiKey now",
-				{ $ref: "#/components/schemas/ApiKeyCreated" },
-				{
-					id: "ocl_01xyz",
-					name: "Postman",
-					apiKey: "mm_key_9f8e7d6c5b4a3210",
-					expiresAt: "2026-08-14T00:00:00.000Z",
-					createdAt: "2026-07-15T10:00:00.000Z",
-				},
-			),
-			"400": {
-				description: "Name missing",
-				...errorContent({ error: "Invalid request" }),
-			},
-		},
-	}),
-);
-
-add(
-	"/api/v1/workspaces/{workspaceId}/api-keys/{apiKeyId}",
-	"delete",
-	op({
-		summary: "Revoke API key",
-		description:
-			"Revokes an API key. Requires workspace **admin**. Does **not** consume API credits.",
-		tags: ["API keys"],
-		parameters: [
-			pathParam("workspaceId", "Workspace id", "ws_01abc"),
-			pathParam("apiKeyId", "API key row id", "ocl_01xyz"),
-		],
-		responses: {
-			"200": jsonResponse(
-				"Revoked",
-				{
-					type: "object",
-					properties: { ok: { type: "boolean" } },
-				},
-				{ ok: true },
-			),
-			"404": {
-				description: "API key not found",
-				...errorContent({ error: "Not found" }),
-			},
-		},
-	}),
-);
-
 // —— Usage ——
 add(
 	"/api/v1/workspaces/{workspaceId}/usage/credits",
@@ -576,7 +461,7 @@ add(
 	op({
 		summary: "List workspaces",
 		description:
-			"Lists workspaces the authenticated user can access, plus a small user admin flag.",
+			"Lists workspaces the caller can access. With an API key (`x-api-key`), the list is limited to the **single workspace** the key is bound to.",
 		tags: ["Workspaces"],
 		xCredits: 1,
 		responses: {
@@ -590,49 +475,12 @@ add(
 );
 
 add(
-	"/api/v1/workspaces",
-	"post",
-	op({
-		summary: "Create workspace",
-		description:
-			"Creates a personal workspace for the authenticated user. A user may own only one workspace (conflict if one already exists).",
-		tags: ["Workspaces"],
-		xCredits: 2,
-		requestBody: jsonBody(
-			{
-				type: "object",
-				properties: {
-					name: {
-						type: "string",
-						minLength: 1,
-						maxLength: 120,
-						description: "Display name hint (server may normalize)",
-						example: "Acme Agents",
-					},
-				},
-			},
-			{ name: "Acme Agents" },
-		),
-		responses: {
-			"201": jsonResponse(
-				"Workspace created",
-				{ $ref: "#/components/schemas/Workspace" },
-				workspaceExample,
-			),
-			"409": {
-				description: "User already owns a workspace",
-				...errorContent({ error: "Conflict" }),
-			},
-		},
-	}),
-);
-
-add(
 	"/api/v1/workspaces/{workspaceId}",
 	"get",
 	op({
 		summary: "Get workspace",
-		description: "Returns a single workspace the user can access.",
+		description:
+			"Returns a single workspace the caller can access. With an API key, `workspaceId` must match the key’s workspace (`403` otherwise).",
 		tags: ["Workspaces"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
@@ -658,7 +506,7 @@ add(
 	op({
 		summary: "Update workspace",
 		description:
-			"Updates workspace settings. Requires workspace **admin**. At least one of `name` or `timezone` is required.",
+			"Updates workspace settings. Requires workspace **admin**. At least one of `name` or `timezone` is required. With an API key, `workspaceId` must match the key’s workspace.",
 		tags: ["Workspaces"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
@@ -2600,7 +2448,6 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 	],
 	tags: [
 		{ name: "Public", description: "No authentication" },
-		{ name: "API keys", description: "Create and revoke workspace API keys" },
 		{ name: "Usage", description: "Credits and email quotas" },
 		{ name: "Workspaces", description: "Workspaces, members, storage" },
 		{ name: "Domains", description: "Custom email domains (Developer+)" },
@@ -2631,35 +2478,6 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 				properties: {
 					error: { type: "string", example: "Unauthorized" },
 					code: { type: "string" },
-				},
-			},
-			ApiKeySummary: {
-				type: "object",
-				properties: {
-					id: { type: "string" },
-					name: { type: "string" },
-					tokenPreview: { type: "string" },
-					expiresAt: { type: "string", format: "date-time", nullable: true },
-					revokedAt: { type: "string", format: "date-time", nullable: true },
-					lastUsedAt: { type: "string", format: "date-time", nullable: true },
-					createdAt: { type: "string", format: "date-time" },
-					status: {
-						type: "string",
-						enum: ["active", "revoked", "expired"],
-					},
-				},
-			},
-			ApiKeyCreated: {
-				type: "object",
-				properties: {
-					id: { type: "string" },
-					name: { type: "string" },
-					apiKey: {
-						type: "string",
-						description: "API key (`mm_key_…`) shown once",
-					},
-					expiresAt: { type: "string", format: "date-time", nullable: true },
-					createdAt: { type: "string", format: "date-time" },
 				},
 			},
 			ApiCreditUsage: {
