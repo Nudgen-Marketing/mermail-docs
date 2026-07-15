@@ -62,9 +62,9 @@
             "group": "API keys",
             "openapi": "openapi/openapi.json",
             "pages": [
-              "GET /api/v1/workspaces/{workspaceId}/oauth-clients",
-              "POST /api/v1/workspaces/{workspaceId}/oauth-clients",
-              "DELETE /api/v1/workspaces/{workspaceId}/oauth-clients/{clientId}"
+              "GET /api/v1/workspaces/{workspaceId}/api-keys",
+              "POST /api/v1/workspaces/{workspaceId}/api-keys",
+              "DELETE /api/v1/workspaces/{workspaceId}/api-keys/{apiKeyId}"
             ]
           },
           {

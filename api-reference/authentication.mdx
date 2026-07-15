@@ -1,10 +1,10 @@
 ---
 title: "Authentication"
-description: "Authenticate sold API calls with a Mermail API key or OAuth access token."
+description: "Authenticate sold API calls with a Mermail API key via x-api-key."
 icon: "key"
 ---
 
-Sold API endpoints require a Bearer credential scoped to a workspace. Create a key in **Settings → API Keys**, then use it in Postman, scripts, or this docs playground.
+Sold API endpoints require a workspace-scoped API key. Create a key in **Settings → API Keys**, then send it as `x-api-key` from Postman, scripts, or this docs playground. Console cookie sessions do not need this header.
 
 ## Create an API key
 
@@ -12,66 +12,35 @@ Sold API endpoints require a Bearer credential scoped to a workspace. Create a k
   <Step title="Open Settings → API Keys">
     Workspace admins can create, list, and revoke keys. Free allows 1 key; Developer up to 5; Enterprise unlimited.
   </Step>
-  <Step title="Copy the secrets once">
-    The dialog shows `apiKey` (`mm_key_…`), `clientId` (`mm_client_…`), and
-    `clientSecret` (`mm_secret_…`). Mermail does not show the API key or client
-    secret again. `client_id` remains visible on the key list afterward.
+  <Step title="Copy the key once">
+    The dialog shows `apiKey` (`mm_key_…`). Mermail does not show the full key again.
   </Step>
 </Steps>
 
-## Call with Bearer
+## Call with an API key
 
 ```bash
 curl https://console.mermail.app/api/v1/workspaces \
-  -H "Authorization: Bearer mm_key_YOUR_KEY"
+  -H "x-api-key: mm_key_YOUR_KEY"
 ```
 
-In the docs playground, open any protected endpoint, click **Try it**, and paste the same value into the Bearer field. Prefill examples populate path and body fields so you can send immediately. Use the language dropdown to switch and copy snippets for **cURL, Python, JavaScript, PHP, Go, Java, or Ruby**.
-
-## OAuth client credentials (optional)
-
-Most integrations should use a long-lived API key (`mm_key_…`) as Bearer.
-
-Use `POST /api/oauth/token` when you want **short-lived** access tokens (`mm_at_…`) via OAuth **client credentials** — for example:
-
-- **CI / CD** jobs that should not embed a long-lived key in every runner
-- **Secret rotation** — keep `client_id` / `client_secret` in a vault, mint short-lived tokens at runtime
-- **Many services** — avoid shipping the same long-lived `mm_key_…` into every microservice; exchange credentials for a token that expires (default **one hour**)
-
-<Info>
-  The returned `access_token` is used exactly like an API key: send
-  `Authorization: Bearer mm_at_…` on sold API calls (same credits and RPM). When
-  it expires, call `/api/oauth/token` again.
-</Info>
-
-You need `client_id` and `client_secret` from key creation (Settings → API Keys dialog, or `POST …/oauth-clients`).
-
-```bash
-# Mint a short-lived token
-curl -s -X POST https://console.mermail.app/api/oauth/token \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=client_credentials&client_id=mm_client_…&client_secret=mm_secret_…"
-
-# Use it like an API key
-curl https://console.mermail.app/api/v1/workspaces \
-  -H "Authorization: Bearer mm_at_…"
-```
+In the docs playground, open any protected endpoint, click **Try it**, and paste the key into the API key field. Prefill examples populate path and body fields so you can send immediately. Use the language dropdown to switch and copy snippets for **cURL, Python, JavaScript, PHP, Go, Java, or Ruby**.
 
 ## Manage keys via API
 
 | Method | Path |
 | --- | --- |
-| `GET` | `/api/v1/workspaces/{workspaceId}/oauth-clients` |
-| `POST` | `/api/v1/workspaces/{workspaceId}/oauth-clients` |
-| `DELETE` | `/api/v1/workspaces/{workspaceId}/oauth-clients/{clientId}` |
+| `GET` | `/api/v1/workspaces/{workspaceId}/api-keys` |
+| `POST` | `/api/v1/workspaces/{workspaceId}/api-keys` |
+| `DELETE` | `/api/v1/workspaces/{workspaceId}/api-keys/{apiKeyId}` |
 
-These routes require a workspace **admin** and do not debit API credits.
+These routes require a workspace **admin** and do not debit API credits. The `{apiKeyId}` path segment is the key row id returned on create/list.
 
 ## Common errors
 
 | Status | Meaning |
 | --- | --- |
-| `401` | Missing, invalid, expired, or revoked key/token — or calling without a Bearer key |
+| `401` | Missing, invalid, expired, or revoked key — or calling without `x-api-key` outside the console |
 | `403` | Wrong workspace, missing role, or Developer-gated path on Free |
 | `402` | API credits exhausted (`credits_exhausted`) |
 | `429` | Workspace RPM exceeded |

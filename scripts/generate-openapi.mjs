@@ -10,7 +10,8 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 
-const bearer = [{ bearerAuth: [] }];
+/** Sold API auth: x-api-key only (OpenAPI apiKey in header). */
+const apiKeySecurity = [{ apiKeyAuth: [] }];
 
 const errorSchema = { $ref: "#/components/schemas/Error" };
 const errorContent = (example) => ({
@@ -104,7 +105,7 @@ function op({
 	summary,
 	description,
 	tags,
-	security = bearer,
+	security = apiKeySecurity,
 	parameters = [],
 	requestBody,
 	responses,
@@ -263,7 +264,7 @@ function slimOp({
 	successDescription = "Success",
 	successSchema = { type: "object", additionalProperties: true },
 	successExample,
-	security = bearer,
+	security = apiKeySecurity,
 }) {
 	return op({
 		summary,
@@ -404,12 +405,12 @@ add(
 
 // —— API keys ——
 add(
-	"/api/v1/workspaces/{workspaceId}/oauth-clients",
+	"/api/v1/workspaces/{workspaceId}/api-keys",
 	"get",
 	op({
 		summary: "List API keys",
 		description:
-			"Lists OAuth clients / API keys for the workspace. Requires workspace **admin**. Does **not** consume API credits. Secrets are never returned — only `tokenPreview`.",
+			"Lists API keys for the workspace. Requires workspace **admin**. Does **not** consume API credits. Secrets are never returned — only `tokenPreview`.",
 		tags: ["API keys"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
@@ -419,13 +420,12 @@ add(
 				"API key summaries",
 				{
 					type: "array",
-					items: { $ref: "#/components/schemas/OAuthClientSummary" },
+					items: { $ref: "#/components/schemas/ApiKeySummary" },
 				},
 				[
 					{
 						id: "ocl_01xyz",
 						name: "Postman",
-						clientId: "mm_client_a1b2c3",
 						tokenPreview: "mm_key_ab…",
 						expiresAt: "2026-08-14T00:00:00.000Z",
 						revokedAt: null,
@@ -440,12 +440,12 @@ add(
 );
 
 add(
-	"/api/v1/workspaces/{workspaceId}/oauth-clients",
+	"/api/v1/workspaces/{workspaceId}/api-keys",
 	"post",
 	op({
 		summary: "Create API key",
 		description:
-			"Creates an API key for the workspace. Returns `apiKey` (`mm_key_…`) and `clientSecret` (**once**). Requires workspace **admin**. Free allows 1 key; Developer up to 5; Enterprise unlimited. Does **not** consume API credits.\n\nCopy the key immediately — Mermail does not show the full secret again.",
+			"Creates an API key for the workspace. Returns `apiKey` (`mm_key_…`) **once**. Requires workspace **admin**. Free allows 1 key; Developer up to 5; Enterprise unlimited. Does **not** consume API credits.\n\nCopy the key immediately — Mermail does not show the full secret again. Use it as `x-api-key`.",
 		tags: ["API keys"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
@@ -471,13 +471,11 @@ add(
 		),
 		responses: {
 			"201": jsonResponse(
-				"API key created — store apiKey and clientSecret now",
-				{ $ref: "#/components/schemas/OAuthClientCreated" },
+				"API key created — store apiKey now",
+				{ $ref: "#/components/schemas/ApiKeyCreated" },
 				{
 					id: "ocl_01xyz",
 					name: "Postman",
-					clientId: "mm_client_a1b2c3",
-					clientSecret: "mm_secret_d4e5f6",
 					apiKey: "mm_key_9f8e7d6c5b4a3210",
 					expiresAt: "2026-08-14T00:00:00.000Z",
 					createdAt: "2026-07-15T10:00:00.000Z",
@@ -492,16 +490,16 @@ add(
 );
 
 add(
-	"/api/v1/workspaces/{workspaceId}/oauth-clients/{clientId}",
+	"/api/v1/workspaces/{workspaceId}/api-keys/{apiKeyId}",
 	"delete",
 	op({
 		summary: "Revoke API key",
 		description:
-			"Revokes an API key and all of its access tokens. Requires workspace **admin**. Does **not** consume API credits.",
+			"Revokes an API key. Requires workspace **admin**. Does **not** consume API credits.",
 		tags: ["API keys"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
-			pathParam("clientId", "OAuth client row id", "ocl_01xyz"),
+			pathParam("apiKeyId", "API key row id", "ocl_01xyz"),
 		],
 		responses: {
 			"200": jsonResponse(
@@ -2566,10 +2564,10 @@ const spec = {
 
 ## Authentication
 
-Authorize with a Bearer API key from **Settings → API Keys**:
+Authorize with an API key from **Settings → API Keys**:
 
 \`\`\`
-Authorization: Bearer mm_key_…
+x-api-key: mm_key_…
 \`\`\`
 
 ## Plans
@@ -2578,7 +2576,7 @@ Each endpoint page shows plan badges (**Public**, **All plans**, or **Developer+
 
 ## Try it
 
-Every endpoint page includes an interactive playground. Click **Try it**, paste your Bearer token, fill path/query/body fields (prefilled from examples), and send a live request to \`https://console.mermail.app\`. You can also copy the generated cURL / JavaScript / Python snippet.
+Every endpoint page includes an interactive playground. Click **Try it**, paste your API key into the \`x-api-key\` field, fill path/query/body fields (prefilled from examples), and send a live request to \`https://console.mermail.app\`. You can also copy the generated cURL / JavaScript / Python snippet.
 
 ## Credits
 
@@ -2614,16 +2612,16 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 		{ name: "Integrations", description: "Composio, Telegram, push" },
 		{ name: "Affiliate", description: "Affiliate program" },
 	],
-	security: bearer,
+	security: apiKeySecurity,
 	paths,
 	components: {
 		securitySchemes: {
-			bearerAuth: {
-				type: "http",
-				scheme: "bearer",
-				bearerFormat: "API key",
+			apiKeyAuth: {
+				type: "apiKey",
+				in: "header",
+				name: "x-api-key",
 				description:
-					"API key (`mm_key_…`) from Settings → API Keys. Paste the raw token value (Mintlify / clients add the `Bearer` prefix).",
+					"API key (`mm_key_…`) from Settings → API Keys. Required for sold API calls outside the Mermail console.",
 			},
 		},
 		schemas: {
@@ -2635,12 +2633,11 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 					code: { type: "string" },
 				},
 			},
-			OAuthClientSummary: {
+			ApiKeySummary: {
 				type: "object",
 				properties: {
 					id: { type: "string" },
 					name: { type: "string" },
-					clientId: { type: "string" },
 					tokenPreview: { type: "string" },
 					expiresAt: { type: "string", format: "date-time", nullable: true },
 					revokedAt: { type: "string", format: "date-time", nullable: true },
@@ -2652,19 +2649,14 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 					},
 				},
 			},
-			OAuthClientCreated: {
+			ApiKeyCreated: {
 				type: "object",
 				properties: {
 					id: { type: "string" },
 					name: { type: "string" },
-					clientId: { type: "string" },
-					clientSecret: {
-						type: "string",
-						description: "Shown once",
-					},
 					apiKey: {
 						type: "string",
-						description: "Bearer mm_key_… shown once",
+						description: "API key (`mm_key_…`) shown once",
 					},
 					expiresAt: { type: "string", format: "date-time", nullable: true },
 					createdAt: { type: "string", format: "date-time" },

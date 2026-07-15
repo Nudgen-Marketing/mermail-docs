@@ -8,15 +8,15 @@ Use Mermail’s HTTP API from scripts, agents, Postman, or this docs **Try it** 
 
 **Base URL:** `https://console.mermail.app`
 
-All protected routes need:
+All protected sold-API routes need:
 
 ```bash
-Authorization: Bearer mm_key_YOUR_KEY
+x-api-key: mm_key_YOUR_KEY
 ```
 
 Create a key in the Mermail app under **Settings → API Keys**, then paste it into Try it or your client. See [Authentication](/api-reference/authentication).
 
-Every Bearer call debits **API credits** and counts toward workspace **RPM**. When credits run out you get `402`; when you exceed RPM you get `429`.
+Every sold-API credential call debits **API credits** and counts toward workspace **RPM**. When credits run out you get `402`; when you exceed RPM you get `429`.
 
 Each endpoint page in this reference shows **plan badges** (sidebar tag + Plans line):
 
@@ -24,7 +24,6 @@ Each endpoint page in this reference shows **plan badges** (sidebar tag + Plans 
 | --- | --- |
 | `All plans` | Free, Developer, and Enterprise |
 | `Developer+` | Developer and Enterprise only (`403` on Free) |
-| `Optional` | Not required for typical integrations (prefer API keys) |
 
 ---
 
@@ -74,9 +73,9 @@ After you have at least one key from Settings, you can list/create/revoke keys w
 
 | Method | Path | Notes |
 | --- | --- | --- |
-| `GET` | `/api/v1/workspaces/{workspaceId}/oauth-clients` | |
-| `POST` | `/api/v1/workspaces/{workspaceId}/oauth-clients` | |
-| `DELETE` | `/api/v1/workspaces/{workspaceId}/oauth-clients/{clientId}` | |
+| `GET` | `/api/v1/workspaces/{workspaceId}/api-keys` | |
+| `POST` | `/api/v1/workspaces/{workspaceId}/api-keys` | |
+| `DELETE` | `/api/v1/workspaces/{workspaceId}/api-keys/{apiKeyId}` | |
 
 ### Catalog by area
 
@@ -168,7 +167,7 @@ Over limit → `429`.
 
 | Credential | Header | When to use |
 | --- | --- | --- |
-| API key | `Authorization: Bearer mm_key_…` | Scripts, Postman, and apps |
+| API key | `x-api-key: mm_key_…` | Scripts, Postman, and apps |
 
 Details: [Authentication](/api-reference/authentication).
 
