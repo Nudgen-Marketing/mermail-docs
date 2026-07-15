@@ -25,6 +25,7 @@ Each endpoint page in this reference shows **plan badges** (sidebar tag + Plans 
 | `Public` | No auth required |
 | `All plans` | Free, Developer, and Enterprise |
 | `Developer+` | Developer and Enterprise only (`403` on Free) |
+| `Optional` | Not required for typical integrations (prefer API keys) |
 
 ---
 
@@ -81,12 +82,12 @@ Auth: Bearer. Metered with credits + RPM. Open each group in the sidebar for ful
 
 After you have at least one key from Settings, you can list/create/revoke keys with Bearer too.
 
-| Method | Path |
-| --- | --- |
-| `GET` | `/api/v1/workspaces/{workspaceId}/oauth-clients` |
-| `POST` | `/api/v1/workspaces/{workspaceId}/oauth-clients` |
-| `DELETE` | `/api/v1/workspaces/{workspaceId}/oauth-clients/{clientId}` |
-| `POST` | `/api/oauth/token` |
+| Method | Path | Notes |
+| --- | --- | --- |
+| `GET` | `/api/v1/workspaces/{workspaceId}/oauth-clients` | |
+| `POST` | `/api/v1/workspaces/{workspaceId}/oauth-clients` | |
+| `DELETE` | `/api/v1/workspaces/{workspaceId}/oauth-clients/{clientId}` | |
+| `POST` | `/api/oauth/token` | Optional — prefer `mm_key_…` |
 
 ### Catalog by area
 
@@ -196,10 +197,10 @@ Over limit → `429`.
 
 ## Auth reminder
 
-| Credential | Header | Source |
+| Credential | Header | When to use |
 | --- | --- | --- |
-| API key | `Authorization: Bearer mm_key_…` | Settings → API Keys |
-| Access token | `Authorization: Bearer mm_at_…` | `POST /api/oauth/token` |
+| API key (preferred) | `Authorization: Bearer mm_key_…` | Default for scripts, Postman, and most apps |
+| Access token (optional) | `Authorization: Bearer mm_at_…` | Short-lived client-credentials for CI, secret rotation, or avoiding long-lived keys in every service — from `POST /api/oauth/token` |
 
 Details: [Authentication](/api-reference/authentication).
 

@@ -1,0 +1,11 @@
+---
+title: "Get short-lived access token (optional)"
+sidebarTitle: "Get short-lived access token (optional)"
+description: "Optional OAuth client-credentials exchange for short-lived mm_at_… Bearer tokens (CI, secret rotation)."
+openapi: "openapi/openapi.json POST /api/oauth/token"
+tag: "Optional"
+---
+
+Most integrations should use a long-lived API key (`mm_key_…`) as Bearer instead.
+
+Use this endpoint for **short-lived** `mm_at_…` tokens via client credentials — CI/CD, secret rotation, or avoiding a long-lived key in every service. See [Authentication](/api-reference/authentication).

@@ -3,7 +3,7 @@
   "info": {
     "title": "Mermail API",
     "version": "1.0.0",
-    "description": "Programmatic Mermail API for scripts, agents, and integrations.\n\n## Authentication\n\nAuthorize with a Bearer API key from **Settings → API Keys**:\n\n```\nAuthorization: Bearer mm_key_…\n```\n\nOr exchange `client_id` / `client_secret` at `POST /api/oauth/token` for `mm_at_…`.\n\n## Plans\n\nEach endpoint page shows plan badges (**Public**, **All plans**, or **Developer+**). Free can call the core catalog; Developer-gated paths need Developer or Enterprise.\n\n## Try it\n\nEvery endpoint page includes an interactive playground. Click **Try it**, paste your Bearer token, fill path/query/body fields (prefilled from examples), and send a live request to `https://console.mermail.app`. You can also copy the generated cURL / JavaScript / Python snippet.\n\n## Credits\n\n| Class | Cost |\n| --- | ---: |\n| read | 1 |\n| write | 2 |\n| email_send | 5 |\n| provision | 10 |\n| ai_light | 15 |\n| ai_heavy | 25 |\n",
+    "description": "Programmatic Mermail API for scripts, agents, and integrations.\n\n## Authentication\n\nAuthorize with a Bearer API key from **Settings → API Keys**:\n\n```\nAuthorization: Bearer mm_key_…\n```\n\nOptionally exchange `client_id` / `client_secret` at `POST /api/oauth/token` for a short-lived `mm_at_…` token (CI, secret rotation, or avoid shipping long-lived keys to every service).\n\n## Plans\n\nEach endpoint page shows plan badges (**Public**, **All plans**, **Developer+**, or **Optional**). Free can call the core catalog; Developer-gated paths need Developer or Enterprise.\n\n## Try it\n\nEvery endpoint page includes an interactive playground. Click **Try it**, paste your Bearer token, fill path/query/body fields (prefilled from examples), and send a live request to `https://console.mermail.app`. You can also copy the generated cURL / JavaScript / Python snippet.\n\n## Credits\n\n| Class | Cost |\n| --- | ---: |\n| read | 1 |\n| write | 2 |\n| email_send | 5 |\n| provision | 10 |\n| ai_light | 15 |\n| ai_heavy | 25 |\n",
     "contact": {
       "name": "Mermail",
       "email": "contact@mermail.app",
@@ -23,7 +23,7 @@
     },
     {
       "name": "Authentication",
-      "description": "OAuth client credentials"
+      "description": "Optional short-lived access tokens (client credentials)"
     },
     {
       "name": "API keys",
@@ -172,7 +172,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Public"
+            "tag": "Public",
+            "title": "Get API health status",
+            "sidebarTitle": "Get API health status"
           }
         }
       }
@@ -277,15 +279,17 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Public"
+            "tag": "Public",
+            "title": "Get public app config",
+            "sidebarTitle": "Get public app config"
           }
         }
       }
     },
     "/api/oauth/token": {
       "post": {
-        "summary": "Issue OAuth access token",
-        "description": "**Plans:** `Public` (no auth)\n\nExchange `client_id` and `client_secret` (from API key creation) for a short-lived Bearer access token (`mm_at_…`). Supports JSON or `application/x-www-form-urlencoded`, and HTTP Basic auth for the client credentials.",
+        "summary": "Get short-lived access token (optional)",
+        "description": "**Optional** — prefer API keys (`mm_key_…`). Use short-lived `mm_at_…` tokens for CI, secret rotation, or to avoid putting a long-lived key in every service.\n\nMost integrations should send `Authorization: Bearer mm_key_…` from Settings → API Keys instead.\n\nUse this endpoint for **short-lived** OAuth client-credentials tokens (`mm_at_…`) — for example CI/CD, secret rotation from a vault, or minting per-service tokens so you do not embed a long-lived API key everywhere. The access token works the same as an API key on sold endpoints (`Authorization: Bearer mm_at_…`) and expires (default one hour).\n\nExchange `client_id` and `client_secret` (returned once when creating a key) via JSON or `application/x-www-form-urlencoded`, or HTTP Basic auth for the client credentials.",
         "tags": [
           "Authentication"
         ],
@@ -412,16 +416,18 @@
         },
         "x-badges": [
           {
-            "name": "Public",
-            "color": "grey"
+            "name": "Optional",
+            "color": "orange"
           }
         ],
         "x-plan-access": [
-          "public"
+          "optional"
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Public"
+            "tag": "Optional",
+            "title": "Get short-lived access token (optional)",
+            "sidebarTitle": "Get short-lived access token (optional)"
           }
         }
       }
@@ -559,7 +565,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "List API keys",
+            "sidebarTitle": "List API keys"
           }
         }
       },
@@ -728,7 +736,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Create API key",
+            "sidebarTitle": "Create API key"
           }
         }
       }
@@ -881,7 +891,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Revoke API key",
+            "sidebarTitle": "Revoke API key"
           }
         }
       }
@@ -1012,7 +1024,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Get API credit usage",
+            "sidebarTitle": "Get API credit usage"
           }
         }
       }
@@ -1142,7 +1156,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Get email usage",
+            "sidebarTitle": "Get email usage"
           }
         }
       }
@@ -1289,7 +1305,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "List workspaces",
+            "sidebarTitle": "List workspaces"
           }
         }
       },
@@ -1462,7 +1480,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Create workspace",
+            "sidebarTitle": "Create workspace"
           }
         }
       }
@@ -1626,7 +1646,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Get workspace",
+            "sidebarTitle": "Get workspace"
           }
         }
       },
@@ -1800,7 +1822,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Update workspace",
+            "sidebarTitle": "Update workspace"
           }
         }
       },
@@ -1921,7 +1945,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Delete workspace",
+            "sidebarTitle": "Delete workspace"
           }
         }
       }
@@ -2063,7 +2089,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Get workspace storage",
+            "sidebarTitle": "Get workspace storage"
           }
         }
       },
@@ -2210,7 +2238,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Update workspace storage",
+            "sidebarTitle": "Update workspace storage"
           }
         }
       }
@@ -2341,7 +2371,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Create Harbor session",
+            "sidebarTitle": "Create Harbor session"
           }
         }
       }
@@ -2472,7 +2504,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Create Harbor API key",
+            "sidebarTitle": "Create Harbor API key"
           }
         }
       }
@@ -2604,7 +2638,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "List workspace members",
+            "sidebarTitle": "List workspace members"
           }
         }
       }
@@ -2784,7 +2820,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Update member role",
+            "sidebarTitle": "Update member role"
           }
         }
       },
@@ -2916,7 +2954,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Remove member",
+            "sidebarTitle": "Remove member"
           }
         }
       }
@@ -3069,7 +3109,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Invite member",
+            "sidebarTitle": "Invite member"
           }
         }
       }
@@ -3203,7 +3245,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Resend invite",
+            "sidebarTitle": "Resend invite"
           }
         }
       }
@@ -3334,7 +3378,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "List email domains",
+            "sidebarTitle": "List email domains"
           }
         }
       },
@@ -3506,7 +3552,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Add email domain",
+            "sidebarTitle": "Add email domain"
           }
         }
       }
@@ -3635,7 +3683,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Delete email domain",
+            "sidebarTitle": "Delete email domain"
           }
         }
       }
@@ -3769,7 +3819,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Verify email domain",
+            "sidebarTitle": "Verify email domain"
           }
         }
       }
@@ -3929,7 +3981,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "List workspace mailboxes",
+            "sidebarTitle": "List workspace mailboxes"
           }
         }
       },
@@ -4125,7 +4179,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Create mailbox in workspace",
+            "sidebarTitle": "Create mailbox in workspace"
           }
         }
       }
@@ -4293,7 +4349,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "List mailboxes",
+            "sidebarTitle": "List mailboxes"
           }
         }
       },
@@ -4479,7 +4537,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Create mailbox",
+            "sidebarTitle": "Create mailbox"
           }
         }
       }
@@ -4636,7 +4696,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Get mailbox",
+            "sidebarTitle": "Get mailbox"
           }
         }
       },
@@ -4815,7 +4877,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Update mailbox",
+            "sidebarTitle": "Update mailbox"
           }
         }
       },
@@ -4937,7 +5001,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Delete mailbox",
+            "sidebarTitle": "Delete mailbox"
           }
         }
       }
@@ -5065,7 +5131,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Get mailbox storage",
+            "sidebarTitle": "Get mailbox storage"
           }
         }
       }
@@ -5189,7 +5257,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Send onboarding welcome",
+            "sidebarTitle": "Send onboarding welcome"
           }
         }
       }
@@ -5459,7 +5529,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "List emails",
+            "sidebarTitle": "List emails"
           }
         }
       },
@@ -5742,7 +5814,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Send email",
+            "sidebarTitle": "Send email"
           }
         }
       }
@@ -5896,7 +5970,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Get email",
+            "sidebarTitle": "Get email"
           }
         }
       },
@@ -6069,7 +6145,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Update email",
+            "sidebarTitle": "Update email"
           }
         }
       },
@@ -6201,7 +6279,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Delete email",
+            "sidebarTitle": "Delete email"
           }
         }
       }
@@ -6358,7 +6438,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Bulk delete emails",
+            "sidebarTitle": "Bulk delete emails"
           }
         }
       }
@@ -6515,7 +6597,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Bulk mark emails read",
+            "sidebarTitle": "Bulk mark emails read"
           }
         }
       }
@@ -6672,7 +6756,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Bulk move emails",
+            "sidebarTitle": "Bulk move emails"
           }
         }
       }
@@ -6825,7 +6911,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Move email",
+            "sidebarTitle": "Move email"
           }
         }
       }
@@ -7120,7 +7208,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Reply to email",
+            "sidebarTitle": "Reply to email"
           }
         }
       }
@@ -7402,7 +7492,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Forward email",
+            "sidebarTitle": "Forward email"
           }
         }
       }
@@ -7546,7 +7638,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Download attachment",
+            "sidebarTitle": "Download attachment"
           }
         }
       }
@@ -7688,7 +7782,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Save draft",
+            "sidebarTitle": "Save draft"
           }
         }
       }
@@ -7826,7 +7922,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Regenerate draft with AI",
+            "sidebarTitle": "Regenerate draft with AI"
           }
         }
       }
@@ -7970,7 +8068,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Schedule send",
+            "sidebarTitle": "Schedule send"
           }
         }
       }
@@ -8104,7 +8204,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Retry scheduled send",
+            "sidebarTitle": "Retry scheduled send"
           }
         }
       }
@@ -8228,7 +8330,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Empty trash",
+            "sidebarTitle": "Empty trash"
           }
         }
       }
@@ -8387,7 +8491,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Get thread",
+            "sidebarTitle": "Get thread"
           }
         }
       }
@@ -8521,7 +8627,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Mark thread read",
+            "sidebarTitle": "Mark thread read"
           }
         }
       }
@@ -8657,7 +8765,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "List folders",
+            "sidebarTitle": "List folders"
           }
         }
       },
@@ -8802,7 +8912,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Create folder",
+            "sidebarTitle": "Create folder"
           }
         }
       }
@@ -8960,7 +9072,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Update folder",
+            "sidebarTitle": "Update folder"
           }
         }
       },
@@ -9092,7 +9206,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Delete folder",
+            "sidebarTitle": "Delete folder"
           }
         }
       }
@@ -9361,7 +9477,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Search emails",
+            "sidebarTitle": "Search emails"
           }
         }
       }
@@ -9493,7 +9611,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "List custom labels",
+            "sidebarTitle": "List custom labels"
           }
         }
       },
@@ -9639,7 +9759,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Create custom label",
+            "sidebarTitle": "Create custom label"
           }
         }
       }
@@ -9787,7 +9909,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Reorder custom labels",
+            "sidebarTitle": "Reorder custom labels"
           }
         }
       }
@@ -9935,7 +10059,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Update custom label",
+            "sidebarTitle": "Update custom label"
           }
         }
       },
@@ -10067,7 +10193,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Delete custom label",
+            "sidebarTitle": "Delete custom label"
           }
         }
       }
@@ -10198,7 +10326,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "List agent conversations",
+            "sidebarTitle": "List agent conversations"
           }
         }
       },
@@ -10342,7 +10472,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Create agent conversation",
+            "sidebarTitle": "Create agent conversation"
           }
         }
       }
@@ -10494,7 +10626,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Update agent conversation",
+            "sidebarTitle": "Update agent conversation"
           }
         }
       },
@@ -10626,7 +10760,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Delete agent conversation",
+            "sidebarTitle": "Delete agent conversation"
           }
         }
       }
@@ -10772,7 +10908,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "List agent messages",
+            "sidebarTitle": "List agent messages"
           }
         }
       }
@@ -10959,7 +11097,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Chat with mailbox agent",
+            "sidebarTitle": "Chat with mailbox agent"
           }
         }
       }
@@ -11085,7 +11225,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "List task triagers",
+            "sidebarTitle": "List task triagers"
           }
         }
       },
@@ -11216,7 +11358,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Create task triager",
+            "sidebarTitle": "Create task triager"
           }
         }
       }
@@ -11336,7 +11480,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "List recent triager runs",
+            "sidebarTitle": "List recent triager runs"
           }
         }
       }
@@ -11479,7 +11625,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Update task triager",
+            "sidebarTitle": "Update task triager"
           }
         }
       },
@@ -11606,7 +11754,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Delete task triager",
+            "sidebarTitle": "Delete task triager"
           }
         }
       }
@@ -11735,7 +11885,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Set default task triager",
+            "sidebarTitle": "Set default task triager"
           }
         }
       }
@@ -11882,7 +12034,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Attach agent conversation to triager",
+            "sidebarTitle": "Attach agent conversation to triager"
           }
         }
       }
@@ -12002,7 +12156,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "List RAG documents",
+            "sidebarTitle": "List RAG documents"
           }
         }
       },
@@ -12122,7 +12278,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Upload RAG document",
+            "sidebarTitle": "Upload RAG document"
           }
         }
       }
@@ -12251,7 +12409,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Get RAG document",
+            "sidebarTitle": "Get RAG document"
           }
         }
       },
@@ -12368,7 +12528,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Delete RAG document",
+            "sidebarTitle": "Delete RAG document"
           }
         }
       }
@@ -12492,7 +12654,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Download RAG document",
+            "sidebarTitle": "Download RAG document"
           }
         }
       }
@@ -12611,7 +12775,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Verify RAG document",
+            "sidebarTitle": "Verify RAG document"
           }
         }
       }
@@ -12727,7 +12893,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Get RAG credentials status",
+            "sidebarTitle": "Get RAG credentials status"
           }
         }
       }
@@ -12847,7 +13015,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Prepare RAG credentials",
+            "sidebarTitle": "Prepare RAG credentials"
           }
         }
       }
@@ -12967,7 +13137,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Complete RAG credentials",
+            "sidebarTitle": "Complete RAG credentials"
           }
         }
       }
@@ -13075,7 +13247,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Verify RAG credentials",
+            "sidebarTitle": "Verify RAG credentials"
           }
         }
       }
@@ -13236,7 +13410,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Recall from RAG",
+            "sidebarTitle": "Recall from RAG"
           }
         }
       }
@@ -13363,7 +13539,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Get Telegram link",
+            "sidebarTitle": "Get Telegram link"
           }
         }
       },
@@ -13485,7 +13663,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Unlink Telegram",
+            "sidebarTitle": "Unlink Telegram"
           }
         }
       }
@@ -13621,7 +13801,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Link Telegram",
+            "sidebarTitle": "Link Telegram"
           }
         }
       }
@@ -13748,7 +13930,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Get push subscription",
+            "sidebarTitle": "Get push subscription"
           }
         }
       }
@@ -13886,7 +14070,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Subscribe push",
+            "sidebarTitle": "Subscribe push"
           }
         }
       },
@@ -14008,7 +14194,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Unsubscribe push",
+            "sidebarTitle": "Unsubscribe push"
           }
         }
       }
@@ -14122,7 +14310,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "List Composio toolkits",
+            "sidebarTitle": "List Composio toolkits"
           }
         }
       }
@@ -14241,7 +14431,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Connect Composio toolkit",
+            "sidebarTitle": "Connect Composio toolkit"
           }
         }
       }
@@ -14360,7 +14552,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Disconnect Composio toolkit",
+            "sidebarTitle": "Disconnect Composio toolkit"
           }
         }
       }
@@ -14469,7 +14663,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "List Composio connections",
+            "sidebarTitle": "List Composio connections"
           }
         }
       }
@@ -14577,7 +14773,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Sync Composio connections",
+            "sidebarTitle": "Sync Composio connections"
           }
         }
       }
@@ -14688,7 +14886,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+"
+            "tag": "Developer+",
+            "title": "Get Composio calendar account",
+            "sidebarTitle": "Get Composio calendar account"
           }
         }
       }
@@ -14805,7 +15005,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Get affiliate profile",
+            "sidebarTitle": "Get affiliate profile"
           }
         }
       },
@@ -14930,7 +15132,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Update affiliate profile",
+            "sidebarTitle": "Update affiliate profile"
           }
         }
       }
@@ -15055,7 +15259,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Sign up as affiliate",
+            "sidebarTitle": "Sign up as affiliate"
           }
         }
       }
@@ -15172,7 +15378,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "Get affiliate analytics",
+            "sidebarTitle": "Get affiliate analytics"
           }
         }
       }
@@ -15286,7 +15494,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "List affiliate payouts",
+            "sidebarTitle": "List affiliate payouts"
           }
         }
       }
@@ -15400,7 +15610,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "All plans"
+            "tag": "All plans",
+            "title": "List affiliate commissions",
+            "sidebarTitle": "List affiliate commissions"
           }
         }
       }
@@ -15514,7 +15726,9 @@
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Public"
+            "tag": "Public",
+            "title": "Track affiliate click",
+            "sidebarTitle": "Track affiliate click"
           }
         }
       }
@@ -15526,7 +15740,7 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "API key",
-        "description": "API key (`mm_key_…`) from Settings → API Keys, or OAuth access token (`mm_at_…`) from `/api/oauth/token`. Paste the raw token value (Mintlify / clients add the `Bearer` prefix)."
+        "description": "Preferred: API key (`mm_key_…`) from Settings → API Keys. Optional: short-lived access token (`mm_at_…`) from `POST /api/oauth/token`. Paste the raw token value (Mintlify / clients add the `Bearer` prefix)."
       }
     },
     "schemas": {

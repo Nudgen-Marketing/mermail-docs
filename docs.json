@@ -64,9 +64,8 @@
             "pages": ["GET /api/status", "GET /api/v1/config"]
           },
           {
-            "group": "Authentication",
-            "openapi": "openapi/openapi.json",
-            "pages": ["POST /api/oauth/token"]
+            "group": "Authentication (optional)",
+            "pages": ["api-reference/get-short-lived-access-token"]
           },
           {
             "group": "API keys",

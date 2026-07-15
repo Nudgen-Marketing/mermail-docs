@@ -149,6 +149,11 @@ const PLAN_ACCESS = {
 		plans: ["Public"],
 		xBadges: [{ name: "Public", color: "grey" }],
 	},
+	optional: {
+		tag: "Optional",
+		plans: ["Optional"],
+		xBadges: [{ name: "Optional", color: "orange" }],
+	},
 	all: {
 		tag: "All plans",
 		plans: ["Free", "Developer", "Enterprise"],
@@ -192,6 +197,7 @@ function isDeveloperGatedApiPath(pathname, method = "GET") {
 }
 
 function classifyPlanAccess(pathname, method, operation) {
+	if (pathname === "/api/oauth/token") return "optional";
 	const security = operation.security;
 	const isPublic =
 		Array.isArray(security) &&
@@ -204,23 +210,35 @@ function classifyPlanAccess(pathname, method, operation) {
 
 function applyPlanBadges(operation, accessKey) {
 	const access = PLAN_ACCESS[accessKey] ?? PLAN_ACCESS.all;
-	const planLine =
+	let planLine =
 		accessKey === "public"
 			? "**Plans:** `Public` (no auth)"
-			: `**Plans:** ${access.plans.map((p) => `\`${p}\``).join(" · ")}`;
+			: accessKey === "optional"
+				? "**Optional** — prefer API keys (`mm_key_…`). Use short-lived `mm_at_…` tokens for CI, secret rotation, or to avoid putting a long-lived key in every service."
+				: `**Plans:** ${access.plans.map((p) => `\`${p}\``).join(" · ")}`;
 
 	const body = (operation.description ?? "").trim();
-	if (!body.startsWith("**Plans:**")) {
+	if (!body.startsWith("**Plans:**") && !body.startsWith("**Optional**")) {
 		operation.description = body ? `${planLine}\n\n${body}` : planLine;
 	}
 
 	operation["x-badges"] = access.xBadges;
 	operation["x-plan-access"] = access.plans.map((p) => p.toLowerCase());
+	const title =
+		typeof operation.summary === "string" && operation.summary.trim()
+			? operation.summary.trim()
+			: undefined;
 	operation["x-mint"] = {
 		...(operation["x-mint"] ?? {}),
 		metadata: {
 			...(operation["x-mint"]?.metadata ?? {}),
 			tag: access.tag,
+			...(title
+				? {
+						title,
+						sidebarTitle: title,
+					}
+				: {}),
 		},
 	};
 }
@@ -400,9 +418,9 @@ add(
 
 // —— Auth ——
 add("/api/oauth/token", "post", {
-	summary: "Issue OAuth access token",
+	summary: "Get short-lived access token (optional)",
 	description:
-		"Exchange `client_id` and `client_secret` (from API key creation) for a short-lived Bearer access token (`mm_at_…`). Supports JSON or `application/x-www-form-urlencoded`, and HTTP Basic auth for the client credentials.",
+		"Most integrations should send `Authorization: Bearer mm_key_…` from Settings → API Keys instead.\n\nUse this endpoint for **short-lived** OAuth client-credentials tokens (`mm_at_…`) — for example CI/CD, secret rotation from a vault, or minting per-service tokens so you do not embed a long-lived API key everywhere. The access token works the same as an API key on sold endpoints (`Authorization: Bearer mm_at_…`) and expires (default one hour).\n\nExchange `client_id` and `client_secret` (returned once when creating a key) via JSON or `application/x-www-form-urlencoded`, or HTTP Basic auth for the client credentials.",
 	tags: ["Authentication"],
 	security: [],
 	requestBody: {
@@ -2787,11 +2805,11 @@ Authorize with a Bearer API key from **Settings → API Keys**:
 Authorization: Bearer mm_key_…
 \`\`\`
 
-Or exchange \`client_id\` / \`client_secret\` at \`POST /api/oauth/token\` for \`mm_at_…\`.
+Optionally exchange \`client_id\` / \`client_secret\` at \`POST /api/oauth/token\` for a short-lived \`mm_at_…\` token (CI, secret rotation, or avoid shipping long-lived keys to every service).
 
 ## Plans
 
-Each endpoint page shows plan badges (**Public**, **All plans**, or **Developer+**). Free can call the core catalog; Developer-gated paths need Developer or Enterprise.
+Each endpoint page shows plan badges (**Public**, **All plans**, **Developer+**, or **Optional**). Free can call the core catalog; Developer-gated paths need Developer or Enterprise.
 
 ## Try it
 
@@ -2819,7 +2837,7 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 	],
 	tags: [
 		{ name: "Public", description: "No authentication" },
-		{ name: "Authentication", description: "OAuth client credentials" },
+		{ name: "Authentication", description: "Optional short-lived access tokens (client credentials)" },
 		{ name: "API keys", description: "Create and revoke workspace API keys" },
 		{ name: "Usage", description: "Credits and email quotas" },
 		{ name: "Workspaces", description: "Workspaces, members, storage" },
@@ -2841,7 +2859,7 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 				scheme: "bearer",
 				bearerFormat: "API key",
 				description:
-					"API key (`mm_key_…`) from Settings → API Keys, or OAuth access token (`mm_at_…`) from `/api/oauth/token`. Paste the raw token value (Mintlify / clients add the `Bearer` prefix).",
+					"Preferred: API key (`mm_key_…`) from Settings → API Keys. Optional: short-lived access token (`mm_at_…`) from `POST /api/oauth/token`. Paste the raw token value (Mintlify / clients add the `Bearer` prefix).",
 			},
 		},
 		schemas: {
