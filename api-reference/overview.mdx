@@ -1,42 +1,200 @@
 ---
 title: "API overview"
-description: "Call Mermail's sold API with a Bearer key, meter credits, and try endpoints in the docs playground."
+description: "Which Mermail APIs each plan can call, how to authenticate, and how to try endpoints in the docs."
 icon: "code"
 ---
 
 Mermail's programmatic API is served under `/api/v1` (plus `/api/agent/mailbox` and `/api/oauth/token`).
 
-Sold API traffic uses a **Bearer API key** from the console. Each sold call debits workspace **API credits** and counts toward plan **RPM**.
+| Access mode | Who | Auth |
+| --- | --- | --- |
+| **Public** | Every plan | None |
+| **Console** | Every plan | Cookie session (Mermail app UI) |
+| **Sold API** | Developer + Enterprise | Bearer `mm_key_…` or `mm_at_…` |
+
+Free workspaces use the **console only**. They cannot create API keys, so they cannot call the sold catalog from Postman or this docs playground.
+
+Developer and Enterprise share the **same sold endpoint list**. Enterprise differs by higher limits (keys, RPM, credits, resource quotas), not by extra customer-facing API paths.
+
+## API access by plan
+
+| Surface | Free | Developer | Enterprise |
+| --- | --- | --- | --- |
+| Public health / config | Yes | Yes | Yes |
+| Console (cookie) | Yes | Yes | Yes |
+| Create API keys | No (0 keys) | Yes (≤5) | Yes (unlimited) |
+| Sold API + Bearer | No | Yes | Yes |
+| Core sold catalog | — | Yes | Yes |
+| Developer-gated sold APIs | — | Yes | Yes |
+| API RPM (default) | 60 (console) | 300 | Unlimited |
+| API credits / period | N/A for sold | 50,000 | Soft unlimited |
+
+Full product limits: [Plans](/resources/plans).
+
+---
+
+## Free
+
+Free includes **public** and **console** APIs only. There is **no** Bearer sold API.
+
+### Public (no auth)
+
+| Method | Path | Notes |
+| --- | --- | --- |
+| `GET` | `/api/status` | Health check |
+| `GET` | `/api/v1/config` | Public client config |
+
+### Console / bootstrap (cookie session)
+
+These power the Mermail app. They do **not** use API credits. You call them from the console, not from an API key.
+
+| Method | Path |
+| --- | --- |
+| `POST` | `/api/v1/auth/session` |
+| `POST` | `/api/v1/auth/refresh` |
+| `POST` | `/api/v1/auth/logout` |
+| `GET` | `/api/v1/auth/me` |
+| `POST` | `/api/v1/enoki/sponsor` |
+| `POST` | `/api/v1/enoki/execute` |
+| `GET` | `/api/v1/invites/{token}` |
+| `POST` | `/api/v1/invites/{token}/accept` |
+| `GET` | `/api/v1/billing/subscription` |
+| `POST` | `/api/v1/billing/checkout` |
+
+Mailbox, email, and workspace **UI** traffic may also hit `/api/v1/...` with a cookie. That is console usage (resource quotas apply). It is **not** the sold API product and Free cannot mint keys for Postman / Try it.
+
+<Warning>
+  Free cannot create API keys (`oauthClientLimit = 0`). Upgrade to Developer to use the sold API catalog below.
+</Warning>
+
+---
+
+## Developer and Enterprise
+
+Same sold paths. Auth: `Authorization: Bearer mm_key_…` (or `mm_at_…` from `POST /api/oauth/token`).
+
+### Key management (admin, no credit debit)
+
+Create the **first** key in **Settings → API Keys** (cookie). After that you can manage keys with Bearer too.
+
+| Method | Path |
+| --- | --- |
+| `GET` | `/api/v1/workspaces/{workspaceId}/oauth-clients` |
+| `POST` | `/api/v1/workspaces/{workspaceId}/oauth-clients` |
+| `DELETE` | `/api/v1/workspaces/{workspaceId}/oauth-clients/{clientId}` |
+| `POST` | `/api/oauth/token` |
+
+### Core sold catalog (Developer + Enterprise)
+
+Metered with API credits + workspace RPM. Open each group in the sidebar for Try it / copy snippets.
+
+<AccordionGroup>
+  <Accordion title="Workspaces, members, invites, usage (~14)">
+    | Method | Path | Credits |
+    | --- | --- | ---: |
+    | `GET` | `/api/v1/workspaces` | 1 |
+    | `POST` | `/api/v1/workspaces` | 2 |
+    | `GET` | `/api/v1/workspaces/{workspaceId}` | 1 |
+    | `PUT` | `/api/v1/workspaces/{workspaceId}` | 2 |
+    | `DELETE` | `/api/v1/workspaces/{workspaceId}` | 2 |
+    | `GET` | `/api/v1/workspaces/{workspaceId}/storage` | 1 |
+    | `GET` | `/api/v1/workspaces/{workspaceId}/usage/email` | 1 |
+    | `GET` | `/api/v1/workspaces/{workspaceId}/usage/credits` | 1 |
+    | `GET` | `/api/v1/workspaces/{workspaceId}/members` | 1 |
+    | `PUT` | `/api/v1/workspaces/{workspaceId}/members/{memberId}` | 2 |
+    | `DELETE` | `/api/v1/workspaces/{workspaceId}/members/{memberId}` | 2 |
+    | `POST` | `/api/v1/workspaces/{workspaceId}/invites` | 2 |
+    | `POST` | `/api/v1/workspaces/{workspaceId}/invites/{inviteId}/resend` | 2 |
+  </Accordion>
+
+  <Accordion title="Mailboxes (~9)">
+    | Method | Path | Credits |
+    | --- | --- | ---: |
+    | `GET` | `/api/v1/workspaces/{workspaceId}/mailboxes` | 1 |
+    | `POST` | `/api/v1/workspaces/{workspaceId}/mailboxes` | 10 |
+    | `GET` | `/api/v1/mailboxes` | 1 |
+    | `POST` | `/api/v1/mailboxes` | 10 |
+    | `GET` | `/api/v1/mailboxes/{mailboxId}` | 1 |
+    | `PUT` | `/api/v1/mailboxes/{mailboxId}` | 2 |
+    | `DELETE` | `/api/v1/mailboxes/{mailboxId}` | 2 |
+    | `GET` | `/api/v1/mailboxes/{mailboxId}/storage` | 1 |
+    | `POST` | `/api/v1/mailboxes/{mailboxId}/onboarding/welcome` | 2 |
+  </Accordion>
+
+  <Accordion title="Emails, folders, search, labels (~29)">
+    Includes list/send/reply/forward, drafts, scheduled sends, threads, folders, search, and custom labels under `/api/v1/mailboxes/{mailboxId}/...`.
+
+    Notable credit costs: send / reply / forward / schedule = **5**; draft regenerate = **15**; most reads = **1**, writes = **2**.
+  </Accordion>
+
+  <Accordion title="AI agent (~6)">
+    | Method | Path | Credits |
+    | --- | --- | ---: |
+    | `GET` | `/api/v1/mailboxes/{mailboxId}/agent-conversations` | 1 |
+    | `POST` | `/api/v1/mailboxes/{mailboxId}/agent-conversations` | 2 |
+    | `PATCH` | `/api/v1/mailboxes/{mailboxId}/agent-conversations/{conversationId}` | 2 |
+    | `DELETE` | `/api/v1/mailboxes/{mailboxId}/agent-conversations/{conversationId}` | 2 |
+    | `GET` | `/api/v1/mailboxes/{mailboxId}/agent-conversations/{conversationId}/messages` | 1 |
+    | `POST` | `/api/agent/mailbox` | 25 |
+  </Accordion>
+
+  <Accordion title="RAG read / recall (~4)">
+    | Method | Path | Credits |
+    | --- | --- | ---: |
+    | `GET` | `/api/v1/rag/documents` | 1 |
+    | `GET` | `/api/v1/rag/documents/{id}` | 1 |
+    | `GET` | `/api/v1/rag/documents/{id}/download` | 1 |
+    | `GET` | `/api/v1/rag/credentials` | 1 |
+    | `POST` | `/api/v1/rag/recall` | 15 |
+  </Accordion>
+
+  <Accordion title="Integrations + affiliate (Telegram, push, affiliate)">
+    Telegram link/unlink, web push, and affiliate profile/analytics endpoints under `/api/v1/...`. See sidebar **Integrations** and **Affiliate**.
+  </Accordion>
+</AccordionGroup>
+
+### Developer-gated sold APIs (Developer + Enterprise)
+
+Same for both paid plans. Free and missing Developer plan receive `403`.
+
+| Area | Methods / paths |
+| --- | --- |
+| Custom domains | `GET/POST /workspaces/{id}/email-domains`, `DELETE …/{domainId}`, `POST …/verify` |
+| Harbor storage write | `PUT …/storage`, `POST …/harbor-session`, `POST …/harbor-api-key` |
+| Composio | `…/integrations/composio/toolkits`, `connections`, `calendar/account` |
+| RAG write / credentials | `POST/DELETE /rag/documents…`, `POST /rag/credentials/*` |
+| Task triage | `…/task-triagers`, `…/task-triager-runs/recent` |
+
+---
 
 ## Try it or copy
 
-Every endpoint page in this tab looks like a standard API reference card:
+Every endpoint page in the **API Reference** tab includes:
 
-- Method + path (full production URL)
-- **Authorizations** (Bearer API key)
-- **Path / query / body** fields with types and `required`
-- **Response** examples for success and common errors (`200` / `401` / `402` / `403` / `429`)
-- Right panel: generated **cURL / Python / JavaScript / PHP / Go / Java / Ruby** you can copy (dropdown like the language picker)
-- **Try it** — send a live request to `https://console.mermail.app`
+- Method + full URL
+- Authorizations (Bearer)
+- Path / query / body fields
+- Response examples
+- Language dropdown: **cURL, Python, JavaScript, PHP, Go, Java, Ruby**
+- **Try it** against `https://console.mermail.app`
 
 <Steps>
   <Step title="Upgrade to Developer or Enterprise">
-    Free workspaces cannot create API keys. Open [Pricing](https://mermail.app/pricing) or workspace billing in the console.
+    Free workspaces cannot create API keys. Open [Pricing](https://mermail.app/pricing).
   </Step>
   <Step title="Create an API key">
-    In the console go to **Settings → API Keys**, create a key, and copy `mm_key_…` once.
+    Console → **Settings → API Keys** → copy `mm_key_…` once.
   </Step>
   <Step title="Open an endpoint">
-    Use the sidebar groups (Public, API keys, Usage, Workspaces, Emails, …).
+    Use the sidebar groups for endpoints available on your plan.
   </Step>
   <Step title="Authorize and send — or copy">
-    Click **Try it**, paste your Bearer token, fill parameters (examples are prefilled), then send.
-    Or copy the snippet from the right panel into your terminal / script.
+    Click **Try it**, paste Bearer, fill params, send — or copy a snippet from the language dropdown.
   </Step>
 </Steps>
 
 <Tip>
-  Start with **Public → Get API health status** (no auth), then **Usage → Get API credit usage** after you have a key.
+  Start with **Public → Get API health status**, then **Usage → Get API credit usage** after you have a key.
 </Tip>
 
 ## Authentication
@@ -44,11 +202,11 @@ Every endpoint page in this tab looks like a standard API reference card:
 | Credential | Header | How you get it |
 | --- | --- | --- |
 | API key | `Authorization: Bearer mm_key_…` | Settings → API Keys |
-| Access token | `Authorization: Bearer mm_at_…` | `POST /api/oauth/token` with client credentials |
+| Access token | `Authorization: Bearer mm_at_…` | `POST /api/oauth/token` |
 
 See [Authentication](/api-reference/authentication).
 
-## Credits
+## Credits (sold API)
 
 | Class | Cost |
 | --- | ---: |
@@ -59,11 +217,11 @@ See [Authentication](/api-reference/authentication).
 | ai_light | 15 |
 | ai_heavy | 25 |
 
-Developer hard-fails with `402` when the pool is empty. Enterprise soft-unlimited still records usage.
+Developer returns `402` when the pool is empty. Enterprise soft-unlimited still records usage.
 
 ## Rate limits
 
-Default workspace RPM: Free `60`, Developer `300`, Enterprise unlimited. Exceeding the limit returns `429`.
+Default workspace RPM: Free `60` (console), Developer `300`, Enterprise unlimited. Exceeding the limit returns `429`.
 
 ## Base URL
 
@@ -73,7 +231,7 @@ https://console.mermail.app
 
 ## Spec source
 
-This tab is generated from `openapi/openapi.json`. Regenerate after API changes with:
+This tab is generated from `openapi/openapi.json`. Regenerate with:
 
 ```bash
 node scripts/generate-openapi.mjs
