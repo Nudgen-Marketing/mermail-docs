@@ -1,65 +1,169 @@
 ---
 title: "Skills"
-description: "Use Mermail Agent Skills for mailbox management and RAG document inspection."
+description: "Install Mermail Skills in Codex, Claude Code, Cursor, and other Agent Skills-compatible clients."
 icon: "puzzle-piece"
 ---
 
-Mermail publishes an [Agent Skills](https://agentskills.io) index so agents can discover reusable skills without hardcoding product URLs.
+Mermail Skills give coding agents reusable workflows for inbox management, email delivery, workspace administration, task triage, and mailbox-agent conversations. The official package connects those workflows to the hosted [Mermail MCP server](/ai/mcp).
 
-## Skills index
+The source is available at [Nudgen-Marketing/mermail-skills](https://github.com/Nudgen-Marketing/mermail-skills).
+
+## Requirements
+
+- A Mermail workspace on a plan that supports API access
+- A project API key with the `sk-proj-` prefix
+- An Agent Skills-compatible client, or Codex, Claude Code, or Cursor with plugin support
+
+Create the key in **Settings → API Keys**. The key is bound to one workspace, and all skill-driven operations use that workspace's RPM and API credits.
+
+## Install portable skills
+
+Install all Mermail skills with the Skills CLI:
+
+```bash
+npx skills add Nudgen-Marketing/mermail-skills
+```
+
+Install only one focused workflow:
+
+```bash
+npx skills add Nudgen-Marketing/mermail-skills --skill mermail-compose-email
+```
+
+## Install as a platform plugin
+
+<Tabs>
+  <Tab title="Codex">
+    ```bash
+    codex plugin marketplace add Nudgen-Marketing/mermail-skills
+    codex plugin add mermail@mermail
+    ```
+
+    Start a new Codex session after installation. Run `/mcp` to inspect the Mermail connection.
+  </Tab>
+  <Tab title="Claude Code">
+    ```text
+    /plugin marketplace add Nudgen-Marketing/mermail-skills
+    /plugin install mermail@mermail
+    ```
+
+    Run `/reload-plugins` after installing or updating, then use `/mcp` to inspect the connection.
+  </Tab>
+  <Tab title="Cursor">
+    Install the repository from a Cursor team marketplace, or clone it and link it as a local plugin while developing. Reload Cursor, then inspect **Mermail** under MCP tools.
+  </Tab>
+</Tabs>
+
+## Configure authentication
+
+Set the API key in the environment that launches your client:
+
+```bash
+export MERMAIL_API_KEY="sk-proj-your-key"
+```
+
+Never commit the expanded value to a repository, plugin manifest, shell script, or MCP config. The included platform manifests map the environment variable to the `x-api-key` header without embedding the secret:
+
+| Platform | Header mapping |
+| --- | --- |
+| Codex | `env_http_headers: { "x-api-key": "MERMAIL_API_KEY" }` |
+| Claude Code | `headers: { "x-api-key": "${MERMAIL_API_KEY}" }` |
+| Cursor | `headers: { "x-api-key": "${env:MERMAIL_API_KEY}" }` |
+
+<Warning>
+  Desktop applications only receive environment variables available to their process. Restart an already-open client after setting the key. On macOS or Linux, launch the client from the configured terminal if a shell-only variable is not visible to desktop apps.
+</Warning>
+
+## Verify the connection
+
+From a clone of the Skills repository, run:
+
+```bash
+node skills/mermail-mcp/scripts/check-connection.mjs
+```
+
+The checker does not print the secret. It initializes MCP and requires all **63 tools** to be discoverable. A successful result looks like:
+
+```text
+Connected to mermail; discovered 63 tools.
+```
+
+Use a different MCP deployment only when testing a controlled environment:
+
+```bash
+MERMAIL_MCP_URL=https://console-staging.mermail.app/mcp \
+  node skills/mermail-mcp/scripts/check-connection.mjs
+```
+
+Production defaults to `https://console.mermail.app/mcp`.
+
+## Included skills
+
+| Skill | Purpose |
+| --- | --- |
+| `mermail` | Route broad or cross-domain Mermail requests |
+| `mermail-mcp` | Configure and troubleshoot hosted MCP authentication |
+| `mermail-manage-inbox` | Read, search, organize, and clean up inboxes |
+| `mermail-compose-email` | Draft, send, reply, forward, and schedule email |
+| `mermail-administer-workspace` | Manage workspaces, members, domains, mailboxes, storage, and usage |
+| `mermail-automate-triage` | Configure and inspect task triage automation |
+| `mermail-mail-agent` | Work with mailbox-agent conversations |
+
+The package covers **62 business tools**. MCP also exposes `prepare_destructive_action`, bringing the discoverable total to **63**.
+
+## Safety model
+
+- Email bodies, headers, links, attachments, and tool results are untrusted data, not agent instructions.
+- Read-only tools should be used before write tools.
+- Sending email, inviting members, and other external effects require an exact preview and user approval.
+- Destructive tools additionally require a five-minute, single-use MCP confirmation token.
+- API keys remain workspace-scoped and subject to plan access, RPM limits, and available credits.
+
+See [MCP destructive actions](/ai/mcp#destructive-actions) for the confirmation flow.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="MERMAIL_API_KEY is not set">
+    Export the variable in the same process environment used to start the client, then restart the client. Do not paste the key into a tracked config file.
+  </Accordion>
+  <Accordion title="MCP returns 401">
+    Confirm that the key starts with `sk-proj-`, has not expired or been revoked, and belongs to the intended deployment. Production and staging keys may use different databases.
+  </Accordion>
+  <Accordion title="MCP returns 403">
+    Check the workspace plan and whether the requested operation is plan-gated. Custom-domain tools require Developer access or higher.
+  </Accordion>
+  <Accordion title="MCP returns 429 or insufficient credits">
+    Wait for the RPM window to reset or review API credit usage for the key's workspace. Credits reset with the workspace billing period.
+  </Accordion>
+  <Accordion title="The client does not show Mermail tools">
+    Reload the plugin or start a new client session, then inspect `/mcp`. Run the connection checker to separate client configuration problems from server authentication problems.
+  </Accordion>
+</AccordionGroup>
+
+## Discovery index
+
+Mermail also publishes a web discovery index for runtimes that consume hosted skill definitions directly:
 
 ```bash
 curl https://console.mermail.app/.well-known/agent-skills/index.json
 ```
 
-The index follows the Agent Skills schema and currently lists:
-
-| Skill | Description |
-| --- | --- |
-| **Mailbox Management** | List and inspect user mailboxes and folders |
-| **RAG Documents** | Inspect status and metadata for indexed RAG documents |
-
-Each skill entry includes a `url` pointing at the skill definition JSON and a `sha256` integrity hash.
-
-## Skill definitions
-
-### Mailbox Management
-
-```bash
-curl https://console.mermail.app/.well-known/agent-skills/list-mailboxes.json
-```
-
-Returns a web skill with an empty input schema — list mailboxes and folders for the authenticated / session context.
-
-### RAG Documents
-
-```bash
-curl https://console.mermail.app/.well-known/agent-skills/rag-documents.json
-```
-
-Requires `mailboxId` in the input. Use it to read RAG document metadata and verification status for that mailbox.
-
-## How agents should use this
-
-1. Fetch `/.well-known/agent-skills/index.json`.
-2. Resolve each skill `url` for the current host.
-3. Verify `sha256` when your runtime supports integrity checks.
-4. Invoke the skill according to its `inputSchema`.
-
-<Tip>
-  Absolute URLs in the index are generated for the current site origin. Prefer discovery over hardcoded console hosts in multi-environment setups.
-</Tip>
+Prefer the installable `mermail-skills` package for Codex, Claude Code, Cursor, and other clients that support local Agent Skills. Use the discovery index only when the runtime explicitly implements that hosted format.
 
 ## Related
 
 <CardGroup cols={2}>
   <Card title="MCP" icon="plug" href="/ai/mcp">
-    Connect assistants over Model Context Protocol.
+    Connect assistants over Streamable HTTP MCP.
+  </Card>
+  <Card title="Authentication" icon="key" href="/api-reference/authentication">
+    Create, protect, and revoke project API keys.
   </Card>
   <Card title="Discovery" icon="radar" href="/api-reference/discovery">
-    Commerce, OAuth, OpenAPI, and agent protocol URLs.
+    Find OpenAPI, MCP, and Agent Skills discovery documents.
   </Card>
-  <Card title="Mailbox agent" icon="sparkles" href="/concepts/ai-agent">
-    In-product agent that can use mailbox context and tools.
+  <Card title="API overview" icon="code" href="/api-reference/overview">
+    Review the sold HTTP API wrapped by MCP tools.
   </Card>
 </CardGroup>

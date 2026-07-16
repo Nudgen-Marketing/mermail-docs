@@ -76,7 +76,7 @@ Each tool (except `prepare_destructive_action`) maps to one sold API operation:
 | `idempotencyKey` | Optional; sent as `Idempotency-Key` |
 | `confirmationToken` | Required on **destructive** tools (see below) |
 
-Server instructions: prefer read-only tools before writes. Responses are JSON text (plus `structuredContent` when the body is an object). Binary payloads (for example attachments) are capped at **1 MiB**; larger downloads should use the REST attachment endpoint.
+Server instructions: prefer read-only tools before writes. Responses are JSON text plus object-shaped `structuredContent`. JSON arrays are exposed as `{ "items": [...] }` so the result conforms to the MCP schema. Binary payloads (for example attachments) are capped at **1 MiB**; larger downloads should use the REST attachment endpoint.
 
 ## Destructive actions
 
@@ -132,7 +132,7 @@ For request/response shapes of each underlying HTTP route, use the [API Referenc
 
 <CardGroup cols={2}>
   <Card title="Skills" icon="puzzle-piece" href="/ai/skills">
-    Agent Skills index for mailbox and RAG workflows.
+    Install Mermail workflows in Codex, Claude Code, and Cursor.
   </Card>
   <Card title="Authentication" icon="key" href="/api-reference/authentication">
     Create and use `sk-proj-` API keys.
