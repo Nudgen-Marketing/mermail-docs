@@ -103,13 +103,14 @@ Production defaults to `https://console.mermail.app/mcp`.
 | --- | --- |
 | `mermail` | Route broad or cross-domain Mermail requests |
 | `mermail-mcp` | Configure and troubleshoot hosted MCP authentication |
+| `mermail-cli` | Use deterministic shell commands and JSON output |
 | `mermail-manage-inbox` | Read, search, organize, and clean up inboxes |
 | `mermail-compose-email` | Draft, send, reply, forward, and schedule email |
 | `mermail-administer-workspace` | Manage workspaces, members, domains, mailboxes, storage, and usage |
 | `mermail-automate-triage` | Configure and inspect task triage automation |
 | `mermail-mail-agent` | Work with mailbox-agent conversations |
 
-The package covers **62 business tools**. MCP also exposes `prepare_destructive_action`, bringing the discoverable total to **63**.
+The package contains **8 skills** and covers **62 business tools**. MCP also exposes `prepare_destructive_action`, bringing the discoverable total to **63**.
 
 ## Safety model
 
@@ -154,6 +155,9 @@ Prefer the installable `mermail-skills` package for Codex, Claude Code, Cursor, 
 ## Related
 
 <CardGroup cols={2}>
+  <Card title="CLI" icon="terminal" href="/ai/cli">
+    Automate all Sold API operations from the shell.
+  </Card>
   <Card title="MCP" icon="plug" href="/ai/mcp">
     Connect assistants over Streamable HTTP MCP.
   </Card>

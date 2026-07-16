@@ -1,80 +1,155 @@
 ---
 title: "CLI"
-description: "Use Mermail from the command line — discovery, sold API calls, and MCP client setup."
+description: "Install and use the official Mermail CLI for Sold API and MCP automation."
 icon: "terminal"
 ---
 
-Mermail does not ship a separate `mermail` binary yet. Use standard CLI tools to discover endpoints, call the sold HTTP API, and register the MCP server with agent hosts.
+The official Mermail CLI exposes all **62 Sold API business operations** with deterministic output for humans, scripts, CI jobs, and coding agents.
 
-## Prerequisites
-
-- A workspace API key (`sk-proj-…`) from **Settings → API Keys** for protected HTTP calls. See [Authentication](/api-reference/authentication).
-- `curl` (or any HTTP client) on your machine.
-- Optional: an MCP-capable agent CLI (Cursor, Claude Code, etc.) for the [MCP](/ai/mcp) server.
-
-## Discover surfaces
+## Install
 
 ```bash
-# MCP server card
-curl -sS https://console.mermail.app/.well-known/mcp/server-card.json | jq .
-
-# Agent Skills index
-curl -sS https://console.mermail.app/.well-known/agent-skills/index.json | jq .
-
-# Short AI-readable index
-curl -sS https://console.mermail.app/llms.txt
+npm install -g mermail-cli
 ```
 
-## Call the sold API
-
-List workspaces visible to your key:
+Or run a command without a global installation:
 
 ```bash
-curl -sS https://console.mermail.app/api/v1/workspaces \
-  -H "x-api-key: sk-proj-YOUR_KEY" | jq .
+npx mermail-cli --help
 ```
 
-Check remaining API credits:
+Node.js 22 or newer is required.
+
+## Authenticate
+
+Create a project key in **Settings → API Keys**, then export it in the process that launches the CLI:
 
 ```bash
-curl -sS "https://console.mermail.app/api/v1/workspaces/WORKSPACE_ID/usage/credits" \
-  -H "x-api-key: sk-proj-YOUR_KEY" | jq .
+export MERMAIL_API_KEY="sk-proj-your-key"
 ```
 
-List mailboxes:
+The CLI does not store credentials and does not collect telemetry. Prefer the environment variable over `--api-key`, which may remain in shell history or process listings.
 
 ```bash
-curl -sS "https://console.mermail.app/api/v1/mailboxes?workspaceId=WORKSPACE_ID" \
-  -H "x-api-key: sk-proj-YOUR_KEY" | jq .
+mermail doctor
+mermail auth check
 ```
 
-<Info>
-  Every sold API call with `x-api-key` debits API credits. Reads cost **1** credit. See [API overview](/api-reference/overview) for the full catalog and credit classes.
-</Info>
+`doctor` checks local configuration and public discovery without API credits. `auth check` calls the Sold API and consumes one read credit.
 
-## Register MCP from a shell
+## Command structure
 
-1. Read the live Streamable HTTP endpoint and auth hint:
+Commands follow `mermail <resource> <action> [flags]`:
 
 ```bash
-curl -sS https://console.mermail.app/.well-known/mcp/server-card.json | jq .
+mermail workspaces list
+mermail mailboxes list --format table
+mermail emails list --mailbox-id agent@mermail.app
+mermail usage credits --workspace-id WORKSPACE_ID
 ```
 
-2. Add that URL to your agent’s MCP config with header `x-api-key: sk-proj-…`. Use **Streamable HTTP** (not SSE) — see [MCP](/ai/mcp).
+Run `mermail --help`, `mermail <resource> --help`, or `mermail <resource> <action> --help` for the exact flags.
+
+### Send email
+
+```bash
+mermail emails send \
+  --mailbox-id agent@mermail.app \
+  --to recipient@example.com \
+  --from agent@mermail.app \
+  --subject "Hello" \
+  --text "Hello from Mermail"
+```
+
+### Complex request bodies
+
+Common fields have typed flags. Nested or complete bodies can use JSON, a file, or stdin:
+
+```bash
+mermail triagers create --mailbox-id MAILBOX_ID --data-file triager.json
+printf '%s' '{"name":"Support"}' | \
+  mermail folders create --mailbox-id MAILBOX_ID --data-file -
+```
+
+Typed flags override the same fields supplied in JSON. `--data` and `--data-file` cannot be used together.
+
+## Output formats
+
+JSON is the stable default. Data is written to stdout; diagnostics and errors are written to stderr.
+
+| Format | Use |
+| --- | --- |
+| `json` | Scripts and agents; default |
+| `yaml` | Human-readable structured output |
+| `pretty` / `table` | Interactive inspection |
+| `raw` | Text or explicitly requested binary output |
+
+```bash
+mermail mailboxes list --format json | jq '.[].email'
+mermail attachments download \
+  --mailbox-id MAILBOX_ID \
+  --email-id EMAIL_ID \
+  --attachment-id ATTACHMENT_ID \
+  --output-file attachment.pdf
+```
+
+## Destructive actions
+
+Delete, remove, bulk-delete, and empty-trash commands prompt in an interactive terminal. Non-interactive automation must pass `--yes`:
+
+```bash
+mermail emails delete \
+  --mailbox-id MAILBOX_ID \
+  --email-id EMAIL_ID \
+  --permanent \
+  --yes
+```
+
+<Warning>
+  Verify exact resource IDs before adding `--yes`. The CLI never retries write, send, or delete operations automatically. `Idempotency-Key` protects credit accounting but does not guarantee that every business operation is executed only once.
+</Warning>
+
+## MCP checks
+
+Verify that the hosted MCP server initializes and exposes exactly 63 tools:
+
+```bash
+mermail mcp check
+mermail mcp tools --format table
+```
+
+For controlled staging tests only:
+
+```bash
+MERMAIL_BASE_URL=https://console-staging.mermail.app mermail mcp check
+```
+
+## Exit codes
+
+| Code | Meaning |
+| ---: | --- |
+| `0` | Success |
+| `1` | API, network, or runtime failure |
+| `2` | Invalid command, flag, or payload |
+| `3` | Missing, invalid, expired, or revoked API key |
+| `4` | Destructive confirmation required |
+| `130` | Cancelled or interrupted |
+
+Common API statuses remain available in JSON errors: `402` credits exhausted, `403` workspace/plan denial, and `429` RPM exceeded.
 
 ## Related
 
 <CardGroup cols={2}>
-  <Card title="MCP" icon="plug" href="/ai/mcp">
-    Server card, tools, and assistant connection.
-  </Card>
   <Card title="Skills" icon="puzzle-piece" href="/ai/skills">
-    Agent Skills index and skill JSON documents.
+    Give coding agents the dedicated `mermail-cli` workflow.
+  </Card>
+  <Card title="MCP" icon="plug" href="/ai/mcp">
+    Use direct Streamable HTTP tool calling.
   </Card>
   <Card title="Authentication" icon="key" href="/api-reference/authentication">
-    Create and use `x-api-key` credentials.
+    Create and protect project API keys.
   </Card>
-  <Card title="API playground" icon="square-terminal" href="/api-reference/overview">
-    Interactive sold API reference.
+  <Card title="API Reference" icon="code" href="/api-reference/overview">
+    Review request and response schemas.
   </Card>
 </CardGroup>
