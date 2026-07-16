@@ -73,8 +73,8 @@
               "GET /api/v1/workspaces",
               "GET /api/v1/workspaces/{workspaceId}",
               "PUT /api/v1/workspaces/{workspaceId}",
+              "DELETE /api/v1/workspaces/{workspaceId}",
               "GET /api/v1/workspaces/{workspaceId}/storage",
-              "PUT /api/v1/workspaces/{workspaceId}/storage",
               "GET /api/v1/workspaces/{workspaceId}/members",
               "PUT /api/v1/workspaces/{workspaceId}/members/{memberId}",
               "DELETE /api/v1/workspaces/{workspaceId}/members/{memberId}",
@@ -93,7 +93,7 @@
             ]
           },
           {
-            "group": "Mailboxes",
+			"group": "Mailboxes",
             "openapi": "openapi/openapi.json",
             "pages": [
               "GET /api/v1/workspaces/{workspaceId}/mailboxes",

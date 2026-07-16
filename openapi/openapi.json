@@ -281,7 +281,7 @@
     "/api/v1/workspaces/{workspaceId}/usage/credits": {
       "get": {
         "summary": "Get API credit usage",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns the workspace plan, billing period, credit limit, used credits, and remaining balance. Use this before running batch jobs against the sold API.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns sold-API credit usage for the current billing period (snake_case fields). Free workspaces use the UTC calendar month; paid workspaces use the subscription period. `limit` / `remaining` are `null` when the plan has unlimited credits. Requires workspace membership. This call itself costs **1** read credit.\n\n**API credits:** 1 (read).",
         "tags": [
           "Usage"
         ],
@@ -312,8 +312,9 @@
                 },
                 "example": {
                   "plan": "developer",
-                  "periodStart": "2026-07-01T00:00:00.000Z",
-                  "periodEnd": "2026-08-01T00:00:00.000Z",
+                  "plan_name": "Developer",
+                  "period_start": "2026-07-01T00:00:00.000Z",
+                  "period_end": "2026-08-01T00:00:00.000Z",
                   "limit": 50000,
                   "used": 1240,
                   "remaining": 48760
@@ -380,6 +381,20 @@
                 "description": "Seconds until the rate limit window resets"
               }
             }
+          },
+          "503": {
+            "description": "Paid subscription period is stale / out of range",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "subscription_period_stale",
+                  "code": "subscription_period_stale"
+                }
+              }
+            }
           }
         },
         "x-credits": 1,
@@ -414,7 +429,7 @@
     "/api/v1/workspaces/{workspaceId}/usage/email": {
       "get": {
         "summary": "Get email usage",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns email send usage for the workspace subscription period (distinct from API credits).\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns outbound email send usage (recipient counts) for the workspace subscription period — distinct from API credits. Field is `quota` (not `limit`). Includes per-mailbox breakdown and `legacy_sent_count` for pre-ledger sends. Requires workspace membership.\n\n**API credits:** 1 (read).",
         "tags": [
           "Usage"
         ],
@@ -437,18 +452,43 @@
         ],
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "Email send usage for the current period",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "$ref": "#/components/schemas/EmailUsage"
                 },
                 "example": {
+                  "workspace_id": "ws_01abc",
                   "plan": "developer",
-                  "limit": 10000,
+                  "plan_name": "Developer",
+                  "period_start": "2026-07-01T00:00:00.000Z",
+                  "period_end": "2026-08-01T00:00:00.000Z",
+                  "quota": 10000,
                   "used": 320,
-                  "remaining": 9680
+                  "remaining": 9680,
+                  "legacy_sent_count": 12,
+                  "mailboxes": [
+                    {
+                      "id": "support@mail.acme.com",
+                      "name": "Acme Support",
+                      "email": "support@mail.acme.com",
+                      "sent": 200,
+                      "providers": {
+                        "cloudflare_email": 180,
+                        "legacy": 20
+                      }
+                    },
+                    {
+                      "id": "ops@mail.acme.com",
+                      "name": "Acme Ops",
+                      "email": "ops@mail.acme.com",
+                      "sent": 120,
+                      "providers": {
+                        "resend": 120
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -546,7 +586,7 @@
     "/api/v1/workspaces": {
       "get": {
         "summary": "List workspaces",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists workspaces the caller can access. With an API key (`x-api-key`), the list is limited to the **single workspace** the key is bound to.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists workspaces the caller can access. Response shape is `{ user, workspaces }`. With an API key (`x-api-key`), `workspaces` is limited to the **single workspace** the key is bound to.\n\n**API credits:** 1 (read).",
         "tags": [
           "Workspaces"
         ],
@@ -695,7 +735,7 @@
     "/api/v1/workspaces/{workspaceId}": {
       "get": {
         "summary": "Get workspace",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns a single workspace the caller can access. With an API key, `workspaceId` must match the key’s workspace (`403` otherwise).\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns a single workspace the caller can access (includes nested `storage`). With an API key, `workspaceId` must match the key’s workspace (`403` otherwise).\n\n**API credits:** 1 (read).",
         "tags": [
           "Workspaces"
         ],
@@ -795,14 +835,14 @@
             }
           },
           "404": {
-            "description": "Not found",
+            "description": "Workspace not found",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "error": "Not found"
+                  "error": "Workspace not found"
                 }
               }
             }
@@ -859,7 +899,7 @@
       },
       "put": {
         "summary": "Update workspace",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUpdates workspace settings. Requires workspace **admin**. At least one of `name` or `timezone` is required. With an API key, `workspaceId` must match the key’s workspace.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUpdates workspace settings. Requires workspace **admin**. At least one of `name` or `timezone` is required (`timezone` may be `null` to clear). With an API key, `workspaceId` must match the key’s workspace.\n\n**API credits:** 2 (write).",
         "tags": [
           "Workspaces"
         ],
@@ -915,6 +955,19 @@
                   },
                   "created_at": "2026-07-01T12:00:00.000Z",
                   "updated_at": "2026-07-15T08:00:00.000Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (missing fields or invalid timezone)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Invalid timezone"
                 }
               }
             }
@@ -989,12 +1042,15 @@
                 "properties": {
                   "name": {
                     "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120,
                     "example": "Acme Agents"
                   },
                   "timezone": {
                     "type": "string",
                     "nullable": true,
-                    "example": "America/New_York"
+                    "example": "America/New_York",
+                    "description": "IANA timezone, or null to clear"
                   }
                 }
               },
@@ -1035,7 +1091,7 @@
       },
       "delete": {
         "summary": "Delete workspace",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes a workspace. Requires workspace **admin**.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes a workspace and tombstones its blobs. Requires workspace **admin**. Returns **204** with an empty body.\n\n**API credits:** 2 (write).",
         "tags": [
           "Workspaces"
         ],
@@ -1160,7 +1216,7 @@
     "/api/v1/workspaces/{workspaceId}/storage": {
       "get": {
         "summary": "Get workspace storage",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns Harbor / R2 storage provisioning status for the workspace.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns Harbor / R2 storage provisioning status wrapped as `{ storage }`. Requires workspace **admin**.\n\n**API credits:** 1 (read).",
         "tags": [
           "Workspaces"
         ],
@@ -1191,22 +1247,24 @@
                   "additionalProperties": true
                 },
                 "example": {
-                  "provider": "harbor_r2",
-                  "status": "ready",
-                  "redundancy_enabled": true,
-                  "storage_key_status": "ready",
-                  "storage_key_last_error": null,
-                  "space_id": "spc_01xyz",
-                  "bucket_id": "bkt_01xyz",
-                  "owner_address": "0xabc123def456",
-                  "has_api_key": true,
-                  "has_service_private_key": true,
-                  "harbor_provisioning_status": "ready",
-                  "harbor_last_error": null,
-                  "r2_bucket_name": "mermail-ws-01abc",
-                  "r2_provisioning_status": "ready",
-                  "r2_last_error": null,
-                  "last_error": null
+                  "storage": {
+                    "provider": "harbor_r2",
+                    "status": "ready",
+                    "redundancy_enabled": true,
+                    "storage_key_status": "ready",
+                    "storage_key_last_error": null,
+                    "space_id": "spc_01xyz",
+                    "bucket_id": "bkt_01xyz",
+                    "owner_address": "0xabc123def456",
+                    "has_api_key": true,
+                    "has_service_private_key": true,
+                    "harbor_provisioning_status": "ready",
+                    "harbor_last_error": null,
+                    "r2_bucket_name": "mermail-ws-01abc",
+                    "r2_provisioning_status": "ready",
+                    "r2_last_error": null,
+                    "last_error": null
+                  }
                 }
               }
             }
@@ -1299,161 +1357,12 @@
             "sidebarTitle": "Get workspace storage"
           }
         }
-      },
-      "put": {
-        "summary": "Update workspace storage",
-        "description": "**Plans:** `Developer` · `Enterprise`\n\nUpdates storage settings. **Developer or Enterprise** plan required.\n\n**API credits:** 2 (write).",
-        "tags": [
-          "Workspaces"
-        ],
-        "security": [
-          {
-            "apiKeyAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "workspaceId",
-            "in": "path",
-            "required": true,
-            "description": "Workspace id",
-            "schema": {
-              "type": "string"
-            },
-            "example": "ws_01abc"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": true
-                },
-                "example": {
-                  "provider": "harbor_r2",
-                  "status": "ready",
-                  "redundancy_enabled": true,
-                  "storage_key_status": "ready",
-                  "storage_key_last_error": null,
-                  "space_id": "spc_01xyz",
-                  "bucket_id": "bkt_01xyz",
-                  "owner_address": "0xabc123def456",
-                  "has_api_key": true,
-                  "has_service_private_key": true,
-                  "harbor_provisioning_status": "ready",
-                  "harbor_last_error": null,
-                  "r2_bucket_name": "mermail-ws-01abc",
-                  "r2_provisioning_status": "ready",
-                  "r2_last_error": null,
-                  "last_error": null
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing, invalid, expired, or revoked API key / token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "error": "Unauthorized"
-                }
-              }
-            }
-          },
-          "402": {
-            "description": "API credits exhausted for this workspace period",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "error": "Invalid request"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden — plan gate, wrong workspace, or missing role",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "error": "Forbidden"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Rate limit exceeded (workspace RPM or email send limits)",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "error": "Too many requests"
-                }
-              }
-            },
-            "headers": {
-              "Retry-After": {
-                "schema": {
-                  "type": "integer"
-                },
-                "description": "Seconds until the rate limit window resets"
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": true
-              },
-              "example": {}
-            }
-          }
-        },
-        "x-credits": 2,
-        "x-badges": [
-          {
-            "name": "Developer",
-            "color": "blue"
-          },
-          {
-            "name": "Enterprise",
-            "color": "purple"
-          }
-        ],
-        "x-plan-access": [
-          "developer",
-          "enterprise"
-        ],
-        "x-mint": {
-          "metadata": {
-            "tag": "Developer+",
-            "title": "Update workspace storage",
-            "sidebarTitle": "Update workspace storage"
-          }
-        }
       }
     },
     "/api/v1/workspaces/{workspaceId}/members": {
       "get": {
         "summary": "List workspace members",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists members and roles for the workspace.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns `{ members, invites }`. `invites` (with `invite_url`) is only populated for workspace **admins**; members see an empty `invites` array. `memberId` elsewhere is the member’s `user_address` (Sui wallet).\n\n**API credits:** 1 (read).",
         "tags": [
           "Workspaces"
         ],
@@ -1483,14 +1392,35 @@
                   "type": "object",
                   "additionalProperties": true
                 },
-                "example": [
-                  {
-                    "address": "0xabc123def456",
-                    "email": "owner@acme.com",
-                    "role": "admin",
-                    "name": "Owner"
-                  }
-                ]
+                "example": {
+                  "members": [
+                    {
+                      "user_address": "0xabc123def456",
+                      "email": "owner@acme.com",
+                      "name": "Owner",
+                      "role": "admin",
+                      "display_role": "owner",
+                      "created_at": "2026-07-01T12:00:00.000Z"
+                    },
+                    {
+                      "user_address": "0xmember…",
+                      "email": "dev@acme.com",
+                      "name": "Dev",
+                      "role": "member",
+                      "display_role": "member",
+                      "created_at": "2026-07-10T09:00:00.000Z"
+                    }
+                  ],
+                  "invites": [
+                    {
+                      "id": "inv_01xyz",
+                      "email": "new@acme.com",
+                      "role": "member",
+                      "invite_url": "https://console.mermail.app/invite/…",
+                      "created_at": "2026-07-15T08:00:00.000Z"
+                    }
+                  ]
+                }
               }
             }
           },
@@ -1587,7 +1517,7 @@
     "/api/v1/workspaces/{workspaceId}/members/{memberId}": {
       "put": {
         "summary": "Update member role",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUpdates a member role. `memberId` is the member's Sui wallet address. Requires workspace **admin**.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUpdates a member role. `memberId` is the member's Sui wallet address (`user_address`). Requires workspace **admin**. Owners cannot be demoted; the last admin cannot be demoted.\n\n**API credits:** 2 (write).",
         "tags": [
           "Workspaces"
         ],
@@ -1627,12 +1557,26 @@
                   "type": "object",
                   "properties": {
                     "status": {
-                      "type": "string"
+                      "type": "string",
+                      "example": "updated"
                     }
                   }
                 },
                 "example": {
                   "status": "updated"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Protected role change",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Workspace owners cannot be demoted"
                 }
               }
             }
@@ -1684,7 +1628,7 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "error": "Not found"
+                  "error": "Member not found"
                 }
               }
             }
@@ -1767,7 +1711,7 @@
       },
       "delete": {
         "summary": "Remove member",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nRemoves a member from the workspace. Requires **admin**.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nRemoves a member from the workspace. Requires **admin**. Owners cannot be removed. Returns **204** with an empty body.\n\n**API credits:** 2 (write).",
         "tags": [
           "Workspaces"
         ],
@@ -1804,8 +1748,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "type": "object"
                 }
               }
             }
@@ -1903,7 +1846,7 @@
     "/api/v1/workspaces/{workspaceId}/invites": {
       "post": {
         "summary": "Invite member",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nSends a workspace invite email. Requires **admin**.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nInvites a user by email. Requires **admin**. If the email already belongs to a Mermail user, they may be added immediately (`member_added`); otherwise a pending invite is created (`invited` / `invite_updated`).\n\n**API credits:** 2 (write).",
         "tags": [
           "Workspaces"
         ],
@@ -1926,12 +1869,32 @@
         ],
         "responses": {
           "201": {
-            "description": "Invite created",
+            "description": "Invite result",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "additionalProperties": true
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "invited",
+                        "invite_updated",
+                        "member_added"
+                      ]
+                    },
+                    "invite_id": {
+                      "type": "string"
+                    },
+                    "invite_url": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "status": "invited",
+                  "invite_id": "inv_01xyz",
+                  "invite_url": "https://console.mermail.app/invite/…"
                 }
               }
             }
@@ -2003,6 +1966,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "email"
+                ],
                 "properties": {
                   "email": {
                     "type": "string",
@@ -2015,6 +1981,7 @@
                       "admin",
                       "member"
                     ],
+                    "default": "member",
                     "example": "member"
                   }
                 }
@@ -2058,7 +2025,7 @@
     "/api/v1/workspaces/{workspaceId}/invites/{inviteId}/resend": {
       "post": {
         "summary": "Resend invite",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nResends a pending invite. Requires **admin**.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nResends a pending invite email. Requires **admin**.\n\n**API credits:** 2 (write).",
         "tags": [
           "Workspaces"
         ],
@@ -2091,12 +2058,17 @@
         ],
         "responses": {
           "200": {
-            "description": "Invite resent",
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "additionalProperties": true
+                },
+                "example": {
+                  "status": "resent",
+                  "invite_id": "inv_01xyz",
+                  "invite_url": "https://console.mermail.app/invite/…"
                 }
               }
             }
@@ -2194,7 +2166,7 @@
     "/api/v1/workspaces/{workspaceId}/email-domains": {
       "get": {
         "summary": "List email domains",
-        "description": "**Plans:** `Developer` · `Enterprise`\n\nLists custom email domains. **Developer or Enterprise** required.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nLists active custom email domains for a workspace (excludes tombstoned `deleted` rows). Requires workspace membership. **Developer or Enterprise** plan required.\n\n**API credits:** 1 (read).",
         "tags": [
           "Domains"
         ],
@@ -2231,9 +2203,24 @@
                     "domain": "mail.acme.com",
                     "provider": "resend",
                     "status": "pending",
-                    "dns_records": [],
+                    "provider_domain_id": "d_01",
+                    "region": "us-east-1",
+                    "dns_records": [
+                      {
+                        "type": "TXT",
+                        "name": "resend._domainkey.mail.acme.com",
+                        "value": "p=MIGf…"
+                      },
+                      {
+                        "type": "MX",
+                        "name": "mail.acme.com",
+                        "value": "feedback-smtp.us-east-1.amazonses.com"
+                      }
+                    ],
                     "last_error": null,
-                    "verified_at": null
+                    "verified_at": null,
+                    "created_at": "2026-07-15T10:00:00.000Z",
+                    "updated_at": "2026-07-15T10:00:00.000Z"
                   }
                 ]
               }
@@ -2325,7 +2312,7 @@
       },
       "post": {
         "summary": "Add email domain",
-        "description": "**Plans:** `Developer` · `Enterprise`\n\nStarts custom domain provisioning. Domain must be a subdomain (for example `mail.acme.com`). **Developer or Enterprise** required.\n\n**API credits:** 10 (provision).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nStarts custom domain provisioning with Resend. Domain must be a **subdomain** with ≥3 labels (for example `mail.acme.com` or `support.yourdomain.com`) — apex domains are rejected. Requires workspace **admin**. Subject to plan custom-domain limits. **Developer or Enterprise** required. Returns **201**. Costs **provision** credits (10).\n\n**API credits:** 10 (provision).",
         "tags": [
           "Domains"
         ],
@@ -2367,6 +2354,11 @@
                       "type": "TXT",
                       "name": "resend._domainkey.mail.acme.com",
                       "value": "p=MIGf…"
+                    },
+                    {
+                      "type": "MX",
+                      "name": "mail.acme.com",
+                      "value": "feedback-smtp.us-east-1.amazonses.com"
                     }
                   ],
                   "last_error": null,
@@ -2378,14 +2370,14 @@
             }
           },
           "400": {
-            "description": "Invalid domain shape",
+            "description": "Invalid domain shape (e.g. apex domain)",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "error": "Invalid request"
+                  "error": "Use a custom subdomain such as support.yourdomain.com or mail.yourdomain.com."
                 }
               }
             }
@@ -2417,14 +2409,14 @@
             }
           },
           "403": {
-            "description": "Forbidden — plan gate, wrong workspace, or missing role",
+            "description": "Plan limit or Free plan",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "error": "Forbidden"
+                  "error": "Upgrade to Developer to add custom email domains."
                 }
               }
             }
@@ -2463,7 +2455,7 @@
                 "properties": {
                   "domain": {
                     "type": "string",
-                    "description": "Subdomain used for agent mailboxes",
+                    "description": "Custom subdomain used for agent mailboxes",
                     "example": "mail.acme.com"
                   }
                 }
@@ -2501,7 +2493,7 @@
     "/api/v1/workspaces/{workspaceId}/email-domains/{domainId}": {
       "delete": {
         "summary": "Delete email domain",
-        "description": "**Plans:** `Developer` · `Enterprise`\n\nRemoves a custom domain. **Developer or Enterprise** required.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nRemoves the domain from Resend and deletes the local row. Fails with **409** if any mailboxes still use the domain. Requires workspace **admin**. **Developer or Enterprise** required. Returns `{ status: \"deleted\" }` (HTTP 200).\n\n**API credits:** 2 (write).",
         "tags": [
           "Domains"
         ],
@@ -2539,7 +2531,15 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "additionalProperties": true
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "deleted"
+                    }
+                  }
+                },
+                "example": {
+                  "status": "deleted"
                 }
               }
             }
@@ -2579,6 +2579,32 @@
                 },
                 "example": {
                   "error": "Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Email domain not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Email domain not found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Mailboxes still attached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Remove mailboxes from this domain before deleting it."
                 }
               }
             }
@@ -2632,7 +2658,7 @@
     "/api/v1/workspaces/{workspaceId}/email-domains/{domainId}/verify": {
       "post": {
         "summary": "Verify email domain",
-        "description": "**Plans:** `Developer` · `Enterprise`\n\nChecks DNS records and marks the domain verified when ready. **Developer or Enterprise** required.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nAsks Resend to re-check DNS and returns the updated domain object. `verified_at` is set when `status` becomes `verified`. Requires workspace **admin**. **Developer or Enterprise** required.\n\n**Note:** This path is metered as **provision** (10 credits) because all `POST …/email-domains…` routes share that credit class.\n\n**API credits:** 10 (provision).",
         "tags": [
           "Domains"
         ],
@@ -2665,17 +2691,36 @@
         ],
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "Domain verification result",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "$ref": "#/components/schemas/EmailDomain"
                 },
                 "example": {
                   "id": "ed_01xyz",
+                  "workspace_id": "ws_01abc",
+                  "domain": "mail.acme.com",
+                  "provider": "resend",
                   "status": "verified",
-                  "verified_at": "2026-07-15T11:00:00.000Z"
+                  "provider_domain_id": "d_01",
+                  "region": "us-east-1",
+                  "dns_records": [
+                    {
+                      "type": "TXT",
+                      "name": "resend._domainkey.mail.acme.com",
+                      "value": "p=MIGf…"
+                    },
+                    {
+                      "type": "MX",
+                      "name": "mail.acme.com",
+                      "value": "feedback-smtp.us-east-1.amazonses.com"
+                    }
+                  ],
+                  "last_error": null,
+                  "verified_at": "2026-07-15T11:00:00.000Z",
+                  "created_at": "2026-07-15T10:00:00.000Z",
+                  "updated_at": "2026-07-15T11:00:00.000Z"
                 }
               }
             }
@@ -2719,6 +2764,32 @@
               }
             }
           },
+          "404": {
+            "description": "Email domain not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Email domain not found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Missing provider domain id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Email domain is missing a Resend domain id"
+                }
+              }
+            }
+          },
           "429": {
             "description": "Rate limit exceeded (workspace RPM or email send limits)",
             "content": {
@@ -2741,7 +2812,7 @@
             }
           }
         },
-        "x-credits": 2,
+        "x-credits": 10,
         "x-badges": [
           {
             "name": "Developer",
@@ -2768,7 +2839,7 @@
     "/api/v1/workspaces/{workspaceId}/mailboxes": {
       "get": {
         "summary": "List workspace mailboxes",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists mailboxes in a workspace.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists mailboxes in a workspace. Each item includes `inbox_unread_by_category`. Requires workspace membership. API keys are bound to one workspace.\n\n**API credits:** 1 (read).",
         "tags": [
           "Mailboxes"
         ],
@@ -2831,7 +2902,13 @@
                       },
                       "fromName": "Acme Support"
                     },
-                    "welcome_onboarding_status": "pending"
+                    "welcome_onboarding_status": "pending",
+                    "inbox_unread_by_category": {
+                      "customer_support": 3,
+                      "partnership": 0,
+                      "technical": 1,
+                      "other": 2
+                    }
                   }
                 ]
               }
@@ -2930,7 +3007,7 @@
     "/api/v1/mailboxes": {
       "get": {
         "summary": "List mailboxes",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists mailboxes visible to the user. Optionally filter by workspace. Includes unread category counts when listing.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists mailboxes visible to the caller. Pass `workspaceId` to scope a session user; API keys are always scoped to their bound workspace. Each item includes `inbox_unread_by_category`.\n\n**API credits:** 1 (read).",
         "tags": [
           "Mailboxes"
         ],
@@ -2944,7 +3021,7 @@
             "name": "workspaceId",
             "in": "query",
             "required": false,
-            "description": "Filter by workspace id",
+            "description": "Filter by workspace id (session users). API keys ignore cross-workspace values and stay on the key’s workspace.",
             "schema": {
               "type": "string"
             },
@@ -3098,7 +3175,7 @@
       },
       "post": {
         "summary": "Create mailbox",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nProvisions a mailbox. `workspaceId` is required in the body for this route.\n\n**API credits:** 10 (provision).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nProvisions a mailbox. `workspaceId` is required in the body for this route (or is supplied by the API key’s bound workspace). Requires workspace **admin**. Returns **201**. Costs **provision** credits (10).\n\n**API credits:** 10 (provision).",
         "tags": [
           "Mailboxes"
         ],
@@ -3149,6 +3226,19 @@
                     "fromName": "Acme Support"
                   },
                   "welcome_onboarding_status": "pending"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing workspaceId or validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "workspaceId is required"
                 }
               }
             }
@@ -3222,7 +3312,8 @@
                 "type": "object",
                 "required": [
                   "email",
-                  "name"
+                  "name",
+                  "workspaceId"
                 ],
                 "properties": {
                   "email": {
@@ -3233,18 +3324,18 @@
                   },
                   "name": {
                     "type": "string",
-                    "description": "Display name",
+                    "description": "Display name (also seeds settings.fromName)",
                     "example": "Acme Support"
                   },
                   "workspaceId": {
                     "type": "string",
-                    "description": "Required for POST /api/v1/mailboxes",
+                    "description": "Required for `POST /api/v1/mailboxes`",
                     "example": "ws_01abc"
                   },
                   "settings": {
                     "type": "object",
                     "additionalProperties": true,
-                    "description": "Optional mailbox settings object"
+                    "description": "Optional mailbox settings merged over defaults"
                   }
                 }
               },
@@ -3288,7 +3379,7 @@
     "/api/v1/mailboxes/{mailboxId}": {
       "get": {
         "summary": "Get mailbox",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns a single mailbox by id (usually the email address).\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns a single mailbox by id (usually the email address). Does not include `inbox_unread_by_category` (use list endpoints for unread counts).\n\n**API credits:** 1 (read).",
         "tags": [
           "Mailboxes"
         ],
@@ -3393,6 +3484,19 @@
               }
             }
           },
+          "404": {
+            "description": "Mailbox not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Not found"
+                }
+              }
+            }
+          },
           "429": {
             "description": "Rate limit exceeded (workspace RPM or email send limits)",
             "content": {
@@ -3444,8 +3548,8 @@
         }
       },
       "put": {
-        "summary": "Update mailbox",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUpdates mailbox name or settings.\n\n**API credits:** 2 (write).",
+        "summary": "Update mailbox settings",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReplaces the mailbox `settings` JSON object. Body shape is `{ settings }` only — there is no top-level `name` field on this route. Requires mailbox **admin**.\n\n**API credits:** 2 (write).",
         "tags": [
           "Mailboxes"
         ],
@@ -3579,19 +3683,56 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "settings"
+                ],
                 "properties": {
-                  "name": {
-                    "type": "string",
-                    "example": "Acme Support"
-                  },
                   "settings": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": true,
+                    "description": "Full settings object to store on the mailbox",
+                    "example": {
+                      "forwarding": {
+                        "enabled": false,
+                        "email": ""
+                      },
+                      "signature": {
+                        "enabled": false,
+                        "text": ""
+                      },
+                      "autoReply": {
+                        "enabled": false,
+                        "subject": "",
+                        "message": ""
+                      },
+                      "agentAutoResponse": {
+                        "requireApproval": true
+                      },
+                      "fromName": "Acme Support"
+                    }
                   }
                 }
               },
               "example": {
-                "name": "Acme Support"
+                "settings": {
+                  "forwarding": {
+                    "enabled": false,
+                    "email": ""
+                  },
+                  "signature": {
+                    "enabled": false,
+                    "text": ""
+                  },
+                  "autoReply": {
+                    "enabled": false,
+                    "subject": "",
+                    "message": ""
+                  },
+                  "agentAutoResponse": {
+                    "requireApproval": true
+                  },
+                  "fromName": "Acme Support"
+                }
               }
             }
           }
@@ -3619,8 +3760,8 @@
         "x-mint": {
           "metadata": {
             "tag": "All plans",
-            "title": "Update mailbox",
-            "sidebarTitle": "Update mailbox"
+            "title": "Update mailbox settings",
+            "sidebarTitle": "Update mailbox settings"
           }
         }
       }
@@ -3628,7 +3769,7 @@
     "/api/v1/mailboxes/{mailboxId}/storage": {
       "get": {
         "summary": "Get mailbox storage",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns storage usage for a mailbox.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns stored-blob usage for a mailbox (`storage_gb` and `blob_count`). Not a plan quota limit.\n\n**API credits:** 1 (read).",
         "tags": [
           "Mailboxes"
         ],
@@ -3655,12 +3796,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "$ref": "#/components/schemas/MailboxStorage"
                 },
                 "example": {
-                  "usedBytes": 1048576,
-                  "limitBytes": 10737418240
+                  "mailbox_id": "support@mail.acme.com",
+                  "email": "support@mail.acme.com",
+                  "storage_gb": 1.25,
+                  "blob_count": 42
                 }
               }
             }
@@ -4028,7 +4170,7 @@
       },
       "post": {
         "summary": "Send email",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nSends a new outbound email from the mailbox. Provide `html` and/or `text`. Subject to send rate limits and API credits.\n\n**API credits:** 5 (email_send).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nSends a new outbound email from the mailbox. Provide `html` and/or `text` (at least one required). Subject to send rate limits and API credits. Returns **202** with `{ id, status: \"sent\" }`.\n\n**API credits:** 5 (email_send).",
         "tags": [
           "Emails"
         ],
@@ -4348,12 +4490,11 @@
         ],
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "Email",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "$ref": "#/components/schemas/Email"
                 },
                 "example": {
                   "id": "msg_7f3a2c1b",
@@ -4413,6 +4554,19 @@
                 },
                 "example": {
                   "error": "Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Email not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Email not found"
                 }
               }
             }
@@ -4644,7 +4798,7 @@
       },
       "delete": {
         "summary": "Delete email",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes or trashes an email.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nTrashes an email by default. Pass `permanent=true` to hard-delete (also used for messages already in trash). Returns **204** with an empty body.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -4673,16 +4827,25 @@
               "type": "string"
             },
             "example": "msg_7f3a2c1b"
+          },
+          {
+            "name": "permanent",
+            "in": "query",
+            "required": false,
+            "description": "Set to `true` to permanently delete instead of moving to trash",
+            "schema": {
+              "type": "string"
+            },
+            "example": "true"
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": "Deleted",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "type": "object"
                 }
               }
             }
@@ -4780,7 +4943,7 @@
     "/api/v1/mailboxes/{mailboxId}/emails/bulk-delete": {
       "post": {
         "summary": "Bulk delete emails",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes multiple emails by id.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes or trashes multiple emails by id. With `permanent: true`, hard-deletes; otherwise moves to trash (scheduled drafts are cancelled).\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -4803,12 +4966,17 @@
         ],
         "responses": {
           "200": {
-            "description": "Bulk operation completed",
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "additionalProperties": true
+                },
+                "example": {
+                  "deletedCount": 0,
+                  "trashedCount": 1,
+                  "cancelledScheduledCount": 0
                 }
               }
             }
@@ -4880,6 +5048,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "ids"
+                ],
                 "properties": {
                   "ids": {
                     "type": "array",
@@ -4891,18 +5062,17 @@
                       "msg_2"
                     ]
                   },
-                  "folderId": {
-                    "type": "string"
-                  },
-                  "read": {
-                    "type": "boolean"
+                  "permanent": {
+                    "type": "boolean",
+                    "description": "Hard-delete when true"
                   }
                 }
               },
               "example": {
                 "ids": [
                   "msg_7f3a2c1b"
-                ]
+                ],
+                "permanent": false
               }
             }
           }
@@ -4939,7 +5109,7 @@
     "/api/v1/mailboxes/{mailboxId}/emails/bulk-read": {
       "post": {
         "summary": "Bulk mark emails read",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nMarks multiple emails read/unread.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nMarks multiple emails read or unread. Marking read on a multi-message thread may update the whole thread.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -4962,12 +5132,15 @@
         ],
         "responses": {
           "200": {
-            "description": "Bulk operation completed",
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "additionalProperties": true
+                },
+                "example": {
+                  "updatedCount": 1
                 }
               }
             }
@@ -5039,6 +5212,10 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "ids",
+                  "read"
+                ],
                 "properties": {
                   "ids": {
                     "type": "array",
@@ -5050,9 +5227,6 @@
                       "msg_2"
                     ]
                   },
-                  "folderId": {
-                    "type": "string"
-                  },
                   "read": {
                     "type": "boolean"
                   }
@@ -5061,7 +5235,8 @@
               "example": {
                 "ids": [
                   "msg_7f3a2c1b"
-                ]
+                ],
+                "read": true
               }
             }
           }
@@ -5098,7 +5273,7 @@
     "/api/v1/mailboxes/{mailboxId}/emails/bulk-move": {
       "post": {
         "summary": "Bulk move emails",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nMoves multiple emails to a folder.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nMoves multiple emails into a folder. Returns `400` if the folder does not exist.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -5121,12 +5296,15 @@
         ],
         "responses": {
           "200": {
-            "description": "Bulk operation completed",
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "additionalProperties": true
+                },
+                "example": {
+                  "movedCount": 1
                 }
               }
             }
@@ -5198,6 +5376,10 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "ids",
+                  "folderId"
+                ],
                 "properties": {
                   "ids": {
                     "type": "array",
@@ -5210,17 +5392,16 @@
                     ]
                   },
                   "folderId": {
-                    "type": "string"
-                  },
-                  "read": {
-                    "type": "boolean"
+                    "type": "string",
+                    "example": "ARCHIVE"
                   }
                 }
               },
               "example": {
                 "ids": [
                   "msg_7f3a2c1b"
-                ]
+                ],
+                "folderId": "ARCHIVE"
               }
             }
           }
@@ -5257,7 +5438,7 @@
     "/api/v1/mailboxes/{mailboxId}/emails/{emailId}/move": {
       "post": {
         "summary": "Move email",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nMoves one email into a folder.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nMoves one email into a folder. Returns `{ status: \"moved\" }` or `400` if the folder is missing.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -5290,12 +5471,15 @@
         ],
         "responses": {
           "200": {
-            "description": "Moved",
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "additionalProperties": true
+                },
+                "example": {
+                  "status": "moved"
                 }
               }
             }
@@ -5367,6 +5551,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "folderId"
+                ],
                 "properties": {
                   "folderId": {
                     "type": "string",
@@ -5993,7 +6180,7 @@
     "/api/v1/mailboxes/{mailboxId}/emails/{emailId}/attachments/{attachmentId}": {
       "get": {
         "summary": "Download attachment",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDownloads an email attachment.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDownloads raw attachment bytes. Response `Content-Type` and `Content-Disposition` come from the stored attachment metadata.\n\n**API credits:** 1 (read).",
         "tags": [
           "Emails"
         ],
@@ -6036,12 +6223,12 @@
         ],
         "responses": {
           "200": {
-            "description": "Attachment bytes / metadata",
+            "description": "Attachment file bytes",
             "content": {
-              "application/json": {
+              "application/octet-stream": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -6081,6 +6268,19 @@
                 },
                 "example": {
                   "error": "Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Attachment file not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Attachment file not found"
                 }
               }
             }
@@ -6139,7 +6339,7 @@
     "/api/v1/mailboxes/{mailboxId}/drafts": {
       "post": {
         "summary": "Save draft",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nCreates or updates a draft message.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nCreates a draft (or replaces an existing draft when `draft_id` is set). Body is HTML/text in the `body` field — not `html`/`text`. Do not send `scheduled_send_at` here; use `POST /scheduled-sends`. Returns **201**.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -6161,13 +6361,21 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Draft saved",
+          "201": {
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "additionalProperties": true
+                },
+                "example": {
+                  "id": "dft_01",
+                  "draft_id": "dft_01",
+                  "status": "draft",
+                  "subject": "Draft",
+                  "recipient": "hello@example.com",
+                  "date": "2026-07-16T10:00:00.000Z"
                 }
               }
             }
@@ -6239,14 +6447,45 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": true
+                "required": [
+                  "body"
+                ],
+                "properties": {
+                  "to": {
+                    "type": "string",
+                    "example": "hello@example.com"
+                  },
+                  "cc": {
+                    "type": "string"
+                  },
+                  "bcc": {
+                    "type": "string"
+                  },
+                  "subject": {
+                    "type": "string",
+                    "example": "Draft"
+                  },
+                  "body": {
+                    "type": "string",
+                    "description": "Draft body (HTML or plain text)",
+                    "example": "<p>Working…</p>"
+                  },
+                  "in_reply_to": {
+                    "type": "string"
+                  },
+                  "thread_id": {
+                    "type": "string"
+                  },
+                  "draft_id": {
+                    "type": "string",
+                    "description": "Existing draft id to replace"
+                  }
+                }
               },
               "example": {
-                "to": [
-                  "hello@example.com"
-                ],
+                "to": "hello@example.com",
                 "subject": "Draft",
-                "text": "Working…"
+                "body": "<p>Working…</p>"
               }
             }
           }
@@ -6283,7 +6522,7 @@
     "/api/v1/mailboxes/{mailboxId}/drafts/regenerate": {
       "post": {
         "summary": "Regenerate draft with AI",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUses AI to regenerate a draft body for review.\n\n**API credits:** 15 (ai_light).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUses AI to revise the editable portion of a draft. Requires `draftId`, revision `prompt`, and current draft `body`.\n\n**API credits:** 15 (ai_light).",
         "tags": [
           "Emails"
         ],
@@ -6306,12 +6545,15 @@
         ],
         "responses": {
           "200": {
-            "description": "Draft regenerated",
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "additionalProperties": true
+                },
+                "example": {
+                  "body": "<p>Thank you for your note.</p>"
                 }
               }
             }
@@ -6383,10 +6625,30 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": true
+                "required": [
+                  "draftId",
+                  "prompt",
+                  "body"
+                ],
+                "properties": {
+                  "draftId": {
+                    "type": "string",
+                    "example": "dft_01"
+                  },
+                  "prompt": {
+                    "type": "string",
+                    "example": "Make this shorter and more formal"
+                  },
+                  "body": {
+                    "type": "string",
+                    "description": "Current draft HTML/body to revise"
+                  }
+                }
               },
               "example": {
-                "draftId": "dft_01"
+                "draftId": "dft_01",
+                "prompt": "Make this shorter and more formal",
+                "body": "<p>Thanks for your note…</p>"
               }
             }
           }
@@ -6423,7 +6685,7 @@
     "/api/v1/mailboxes/{mailboxId}/scheduled-sends": {
       "post": {
         "summary": "Schedule send",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nSchedules an outbound email for a future time.\n\n**API credits:** 5 (email_send).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nSchedules an outbound email for a future time. Uses draft-style fields (`body`, `scheduled_send_at`) rather than send-email `html`/`text`. Returns **201**.\n\n**API credits:** 5 (email_send).",
         "tags": [
           "Emails"
         ],
@@ -6445,13 +6707,21 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Scheduled",
+          "201": {
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "additionalProperties": true
+                },
+                "example": {
+                  "id": "dft_sched01",
+                  "draft_id": "dft_sched01",
+                  "status": "scheduled",
+                  "subject": "Later",
+                  "recipient": "hello@example.com",
+                  "scheduled_send_at": "2026-07-16T15:00:00.000Z"
                 }
               }
             }
@@ -6523,16 +6793,85 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": true
+                "required": [
+                  "body",
+                  "scheduled_send_at"
+                ],
+                "properties": {
+                  "to": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    ],
+                    "example": [
+                      "hello@example.com"
+                    ]
+                  },
+                  "cc": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    ]
+                  },
+                  "bcc": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    ]
+                  },
+                  "subject": {
+                    "type": "string",
+                    "example": "Later"
+                  },
+                  "body": {
+                    "type": "string",
+                    "example": "<p>See you</p>"
+                  },
+                  "in_reply_to": {
+                    "type": "string"
+                  },
+                  "thread_id": {
+                    "type": "string"
+                  },
+                  "draft_id": {
+                    "type": "string"
+                  },
+                  "scheduled_send_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Must be in the future (ISO-8601)",
+                    "example": "2026-07-16T15:00:00.000Z"
+                  }
+                }
               },
               "example": {
                 "to": [
                   "hello@example.com"
                 ],
-                "from": "support@mail.acme.com",
                 "subject": "Later",
-                "text": "See you",
-                "sendAt": "2026-07-16T15:00:00.000Z"
+                "body": "<p>See you</p>",
+                "scheduled_send_at": "2026-07-16T15:00:00.000Z"
               }
             }
           }
@@ -6569,7 +6908,7 @@
     "/api/v1/mailboxes/{mailboxId}/trash/empty": {
       "post": {
         "summary": "Empty trash",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nPermanently deletes messages in trash.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nPermanently deletes all messages currently in trash.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -6592,12 +6931,15 @@
         ],
         "responses": {
           "200": {
-            "description": "Trash emptied",
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "additionalProperties": true
+                },
+                "example": {
+                  "deletedCount": 12
                 }
               }
             }
@@ -6695,7 +7037,7 @@
     "/api/v1/mailboxes/{mailboxId}/threads/{threadId}": {
       "get": {
         "summary": "Get thread",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns a conversation thread and its messages.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns the conversation thread as an **array** of email objects (oldest → newest), including bodies.\n\n**API credits:** 1 (read).",
         "tags": [
           "Emails"
         ],
@@ -6732,34 +7074,33 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Email"
+                  }
                 },
-                "example": {
-                  "id": "thr_9aabb",
-                  "emails": [
-                    {
-                      "id": "msg_7f3a2c1b",
-                      "subject": "Order question",
-                      "sender": "alice@example.com",
-                      "recipient": "support@mail.acme.com",
-                      "cc": null,
-                      "bcc": null,
-                      "date": "2026-07-14T09:00:00.000Z",
-                      "read": false,
-                      "starred": false,
-                      "is_urgent": false,
-                      "category": "customer_support",
-                      "body": "Hi, where is my order?",
-                      "folder_id": "INBOX",
-                      "folder_name": "Inbox",
-                      "thread_id": "thr_9aabb",
-                      "snippet": "Hi, where is my order?",
-                      "scan_status": null,
-                      "attachments": []
-                    }
-                  ]
-                }
+                "example": [
+                  {
+                    "id": "msg_7f3a2c1b",
+                    "subject": "Order question",
+                    "sender": "alice@example.com",
+                    "recipient": "support@mail.acme.com",
+                    "cc": null,
+                    "bcc": null,
+                    "date": "2026-07-14T09:00:00.000Z",
+                    "read": false,
+                    "starred": false,
+                    "is_urgent": false,
+                    "category": "customer_support",
+                    "body": "Hi, where is my order?",
+                    "folder_id": "INBOX",
+                    "folder_name": "Inbox",
+                    "thread_id": "thr_9aabb",
+                    "snippet": "Hi, where is my order?",
+                    "scan_status": null,
+                    "attachments": []
+                  }
+                ]
               }
             }
           },
@@ -6889,12 +7230,15 @@
         ],
         "responses": {
           "200": {
-            "description": "Marked read",
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "additionalProperties": true
+                },
+                "example": {
+                  "status": "marked_read"
                 }
               }
             }
@@ -7435,7 +7779,7 @@
       },
       "delete": {
         "summary": "Delete folder",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes a custom folder.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes a custom folder. Returns **204** on success, or **400** if the folder is missing or cannot be deleted (e.g. system folders).\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -7467,13 +7811,12 @@
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": "Deleted",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "type": "object"
                 }
               }
             }
@@ -7842,7 +8185,7 @@
     "/api/v1/mailboxes/{mailboxId}/custom-labels": {
       "get": {
         "summary": "List custom labels",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists custom labels for a mailbox.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists custom labels for a mailbox (sorted by `sort_order`).\n\n**API credits:** 1 (read).",
         "tags": [
           "Emails"
         ],
@@ -7875,9 +8218,14 @@
                 "example": [
                   {
                     "id": "lbl_1",
+                    "mailbox_id": "support@mail.acme.com",
                     "name": "VIP",
                     "slug": "vip",
-                    "color": "#43c9cb"
+                    "rules": "from:vip@example.com",
+                    "color": "#43c9cb",
+                    "sort_order": 0,
+                    "created_at": "2026-07-14T09:00:00.000Z",
+                    "updated_at": "2026-07-14T09:00:00.000Z"
                   }
                 ]
               }
@@ -7974,7 +8322,7 @@
       },
       "post": {
         "summary": "Create custom label",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nCreates a custom label.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nCreates a custom label. Requires `name` and `rules`. Mailbox **admin** role required.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -7997,12 +8345,207 @@
         ],
         "responses": {
           "201": {
-            "description": "Label created",
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "additionalProperties": true
+                },
+                "example": {
+                  "id": "lbl_1",
+                  "mailbox_id": "support@mail.acme.com",
+                  "name": "VIP",
+                  "slug": "vip",
+                  "rules": "from:vip@example.com",
+                  "color": "#43c9cb",
+                  "sort_order": 0,
+                  "created_at": "2026-07-14T09:00:00.000Z",
+                  "updated_at": "2026-07-14T09:00:00.000Z"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, expired, or revoked API key / token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Unauthorized"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "API credits exhausted for this workspace period",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Invalid request"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden — plan gate, wrong workspace, or missing role",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Forbidden"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded (workspace RPM or email send limits)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Too many requests"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Seconds until the rate limit window resets"
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "rules"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "VIP",
+                    "maxLength": 80
+                  },
+                  "rules": {
+                    "type": "string",
+                    "description": "Label matching rules text",
+                    "example": "from:vip@example.com"
+                  },
+                  "color": {
+                    "type": "string",
+                    "nullable": true,
+                    "example": "#43c9cb",
+                    "description": "Optional hex color"
+                  }
+                }
+              },
+              "example": {
+                "name": "VIP",
+                "rules": "from:vip@example.com",
+                "color": "#43c9cb"
+              }
+            }
+          }
+        },
+        "x-credits": 2,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans",
+            "title": "Create custom label",
+            "sidebarTitle": "Create custom label"
+          }
+        }
+      }
+    },
+    "/api/v1/mailboxes/{mailboxId}/custom-labels/{labelId}": {
+      "put": {
+        "summary": "Update custom label",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUpdates a custom label (`name`, `rules`, and/or `color`). Mailbox **admin** role required.\n\n**API credits:** 2 (write).",
+        "tags": [
+          "Emails"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "mailboxId",
+            "in": "path",
+            "required": true,
+            "description": "Mailbox id (email)",
+            "schema": {
+              "type": "string"
+            },
+            "example": "support@mail.acme.com"
+          },
+          {
+            "name": "labelId",
+            "in": "path",
+            "required": true,
+            "description": "Label id",
+            "schema": {
+              "type": "string"
+            },
+            "example": "lbl_1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "example": {
+                  "id": "lbl_1",
+                  "mailbox_id": "support@mail.acme.com",
+                  "name": "VIP+",
+                  "slug": "vip",
+                  "rules": "from:vip@example.com",
+                  "color": "#43c9cb",
+                  "sort_order": 0,
+                  "created_at": "2026-07-14T09:00:00.000Z",
+                  "updated_at": "2026-07-14T09:00:00.000Z"
                 }
               }
             }
@@ -8077,164 +8620,16 @@
                 "properties": {
                   "name": {
                     "type": "string",
-                    "example": "VIP"
+                    "maxLength": 80
+                  },
+                  "rules": {
+                    "type": "string"
                   },
                   "color": {
                     "type": "string",
-                    "example": "#43c9cb"
+                    "nullable": true
                   }
                 }
-              },
-              "example": {
-                "name": "VIP",
-                "color": "#43c9cb"
-              }
-            }
-          }
-        },
-        "x-credits": 2,
-        "x-badges": [
-          {
-            "name": "Free",
-            "color": "green"
-          },
-          {
-            "name": "Developer",
-            "color": "blue"
-          },
-          {
-            "name": "Enterprise",
-            "color": "purple"
-          }
-        ],
-        "x-plan-access": [
-          "free",
-          "developer",
-          "enterprise"
-        ],
-        "x-mint": {
-          "metadata": {
-            "tag": "All plans",
-            "title": "Create custom label",
-            "sidebarTitle": "Create custom label"
-          }
-        }
-      }
-    },
-    "/api/v1/mailboxes/{mailboxId}/custom-labels/{labelId}": {
-      "put": {
-        "summary": "Update custom label",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUpdates a custom label.\n\n**API credits:** 2 (write).",
-        "tags": [
-          "Emails"
-        ],
-        "security": [
-          {
-            "apiKeyAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "mailboxId",
-            "in": "path",
-            "required": true,
-            "description": "Mailbox id (email)",
-            "schema": {
-              "type": "string"
-            },
-            "example": "support@mail.acme.com"
-          },
-          {
-            "name": "labelId",
-            "in": "path",
-            "required": true,
-            "description": "Label id",
-            "schema": {
-              "type": "string"
-            },
-            "example": "lbl_1"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Updated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": true
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing, invalid, expired, or revoked API key / token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "error": "Unauthorized"
-                }
-              }
-            }
-          },
-          "402": {
-            "description": "API credits exhausted for this workspace period",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "error": "Invalid request"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden — plan gate, wrong workspace, or missing role",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "error": "Forbidden"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Rate limit exceeded (workspace RPM or email send limits)",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "error": "Too many requests"
-                }
-              }
-            },
-            "headers": {
-              "Retry-After": {
-                "schema": {
-                  "type": "integer"
-                },
-                "description": "Seconds until the rate limit window resets"
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": true
               },
               "example": {
                 "name": "VIP+"
@@ -8272,7 +8667,7 @@
       },
       "delete": {
         "summary": "Delete custom label",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes a custom label.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes a custom label. Mailbox **admin** role required. Returns **204** with an empty body.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -8304,13 +8699,12 @@
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": "Deleted",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "type": "object"
                 }
               }
             }
@@ -8408,7 +8802,7 @@
     "/api/v1/mailboxes/{mailboxId}/agent-conversations": {
       "get": {
         "summary": "List agent conversations",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists AI agent chat conversations for a mailbox.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists AI agent chat conversations for the authenticated user in this mailbox (newest activity first).\n\n**API credits:** 1 (read).",
         "tags": [
           "AI agent"
         ],
@@ -8438,13 +8832,21 @@
                   "type": "object",
                   "additionalProperties": true
                 },
-                "example": [
-                  {
-                    "id": "conv_01",
-                    "title": "Billing help",
-                    "updatedAt": "2026-07-15T10:00:00.000Z"
-                  }
-                ]
+                "example": {
+                  "conversations": [
+                    {
+                      "id": "conv_01",
+                      "title": "Billing help",
+                      "systemKey": null,
+                      "isSystem": false,
+                      "isTriager": false,
+                      "messageCount": 2,
+                      "lastMessageAt": "2026-07-15T10:00:00.000Z",
+                      "createdAt": "2026-07-15T09:00:00.000Z",
+                      "updatedAt": "2026-07-15T10:00:00.000Z"
+                    }
+                  ]
+                }
               }
             }
           },
@@ -8539,7 +8941,7 @@
       },
       "post": {
         "summary": "Create agent conversation",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nCreates a new agent conversation thread.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nCreates a new agent conversation. Pass `title` for a normal chat (defaults to `New chat`), or `threadId` to find/create the conversation linked to an email thread.\n\n**API credits:** 2 (write).",
         "tags": [
           "AI agent"
         ],
@@ -8571,7 +8973,14 @@
                 },
                 "example": {
                   "id": "conv_01",
-                  "title": "Billing help"
+                  "title": "Billing help",
+                  "systemKey": null,
+                  "isSystem": false,
+                  "isTriager": false,
+                  "messageCount": 2,
+                  "lastMessageAt": "2026-07-15T10:00:00.000Z",
+                  "createdAt": "2026-07-15T09:00:00.000Z",
+                  "updatedAt": "2026-07-15T10:00:00.000Z"
                 }
               }
             }
@@ -8645,7 +9054,16 @@
                 "type": "object",
                 "properties": {
                   "title": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80,
+                    "description": "Required when creating a normal chat if provided; 1–80 chars",
+                    "example": "Billing help"
+                  },
+                  "threadId": {
+                    "type": "string",
+                    "description": "When set, finds or creates the thread-linked conversation (title optional; defaults to “(No subject)”)",
+                    "example": "thread_01"
                   }
                 }
               },
@@ -8686,8 +9104,8 @@
     },
     "/api/v1/mailboxes/{mailboxId}/agent-conversations/{conversationId}": {
       "patch": {
-        "summary": "Update agent conversation",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUpdates conversation metadata (for example title).\n\n**API credits:** 2 (write).",
+        "summary": "Rename agent conversation",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nRenames a conversation. `title` is required (1–80 chars). System/triager conversations cannot be renamed (`400`).\n\n**API credits:** 2 (write).",
         "tags": [
           "AI agent"
         ],
@@ -8726,6 +9144,17 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true
+                },
+                "example": {
+                  "id": "conv_01",
+                  "title": "Updated",
+                  "systemKey": null,
+                  "isSystem": false,
+                  "isTriager": false,
+                  "messageCount": 2,
+                  "lastMessageAt": "2026-07-15T10:00:00.000Z",
+                  "createdAt": "2026-07-15T09:00:00.000Z",
+                  "updatedAt": "2026-07-15T10:00:00.000Z"
                 }
               }
             }
@@ -8797,9 +9226,15 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "title"
+                ],
                 "properties": {
                   "title": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80,
+                    "example": "Updated"
                   }
                 }
               },
@@ -8832,14 +9267,14 @@
         "x-mint": {
           "metadata": {
             "tag": "All plans",
-            "title": "Update agent conversation",
-            "sidebarTitle": "Update agent conversation"
+            "title": "Rename agent conversation",
+            "sidebarTitle": "Rename agent conversation"
           }
         }
       },
       "delete": {
         "summary": "Delete agent conversation",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes an agent conversation.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes an agent conversation. System/triager conversations cannot be deleted (`400`). Returns **204** with an empty body.\n\n**API credits:** 2 (write).",
         "tags": [
           "AI agent"
         ],
@@ -8871,13 +9306,12 @@
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": "Deleted",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "type": "object"
                 }
               }
             }
@@ -8975,7 +9409,7 @@
     "/api/v1/mailboxes/{mailboxId}/agent-conversations/{conversationId}/messages": {
       "get": {
         "summary": "List agent messages",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists messages in an agent conversation.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists AI SDK UI messages in a conversation (chronological). Supports cursor pagination.\n\n**API credits:** 1 (read).",
         "tags": [
           "AI agent"
         ],
@@ -9004,6 +9438,29 @@
               "type": "string"
             },
             "example": "conv_01"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Page size (1–50, default 50)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 50
+            },
+            "example": 50
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Opaque cursor from a previous `nextCursor` value",
+            "schema": {
+              "type": "string"
+            },
+            "example": "msg_row_id"
           }
         ],
         "responses": {
@@ -9015,18 +9472,31 @@
                   "type": "object",
                   "additionalProperties": true
                 },
-                "example": [
-                  {
-                    "id": "m1",
-                    "role": "user",
-                    "content": "Summarize inbox"
-                  },
-                  {
-                    "id": "m2",
-                    "role": "assistant",
-                    "content": "You have 3 unread…"
-                  }
-                ]
+                "example": {
+                  "messages": [
+                    {
+                      "id": "m1",
+                      "role": "user",
+                      "parts": [
+                        {
+                          "type": "text",
+                          "text": "Summarize inbox"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "m2",
+                      "role": "assistant",
+                      "parts": [
+                        {
+                          "type": "text",
+                          "text": "You have 3 unread…"
+                        }
+                      ]
+                    }
+                  ],
+                  "nextCursor": null
+                }
               }
             }
           },
@@ -9123,7 +9593,7 @@
     "/api/agent/mailbox": {
       "post": {
         "summary": "Chat with mailbox agent",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nStreams an AI agent chat turn for a mailbox conversation. Response is an AI SDK UI message stream (not a plain JSON object). The latest message must be from the user.\n\n**API credits:** 25 (ai_heavy).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nStreams an AI agent chat turn for a mailbox conversation. Response is an AI SDK UI message stream (not a plain JSON object). The latest message must be from the user. Duplicate message ids return `409`.\n\n**API credits:** 25 (ai_heavy).",
         "tags": [
           "AI agent"
         ],
@@ -9142,6 +9612,19 @@
                   "type": "string"
                 },
                 "example": "(streaming AI SDK UI message response)"
+              }
+            }
+          },
+          "400": {
+            "description": "Latest message is not from the user, or invalid body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Invalid request"
+                }
               }
             }
           },
@@ -9245,7 +9728,7 @@
                       "type": "object",
                       "additionalProperties": true
                     },
-                    "description": "AI SDK UIMessage array"
+                    "description": "AI SDK UIMessage array (id, role, parts)"
                   },
                   "thread_id": {
                     "type": "string",
@@ -9312,7 +9795,7 @@
     "/api/v1/mailboxes/{mailboxId}/task-triagers": {
       "get": {
         "summary": "List task triagers",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists task triagers for the mailbox.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists task triagers for the mailbox. Ensures the default system triager exists.\n\n**API credits:** 1 (read).",
         "tags": [
           "Task triage"
         ],
@@ -9443,7 +9926,7 @@
       },
       "post": {
         "summary": "Create task triager",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nCreates a task triager for the mailbox.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nCreates a task triager. Requires non-empty `instructions` and at least one trigger. Caller needs mailbox **admin** or **member**.\n\n**API credits:** 2 (write).",
         "tags": [
           "Task triage"
         ],
@@ -9543,10 +10026,125 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": true
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "Support queue"
+                  },
+                  "instructions": {
+                    "type": "string",
+                    "description": "Required non-empty instructions for create/update",
+                    "example": "Draft a polite reply for inbound support mail."
+                  },
+                  "triggers": {
+                    "type": "array",
+                    "description": "At least one trigger is required",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "kind",
+                        "enabled"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "example": "trg_01"
+                        },
+                        "kind": {
+                          "type": "string",
+                          "example": "mail.received",
+                          "description": "calendar.event_created | calendar.event_updated | calendar.event_canceled | mail.received | mail.sent | mail.received_or_sent"
+                        },
+                        "enabled": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "calendars": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "mailDomains": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "inboxes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "onlyInbox": {
+                          "type": "boolean",
+                          "default": false
+                        },
+                        "filters": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        },
+                        "filterJoin": {
+                          "type": "string",
+                          "enum": [
+                            "and",
+                            "or"
+                          ],
+                          "default": "and"
+                        }
+                      }
+                    }
+                  },
+                  "tasks": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "kind",
+                        "enabled"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string"
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "priority": {
+                          "type": "integer",
+                          "default": 0
+                        },
+                        "config": {
+                          "type": "object",
+                          "additionalProperties": true
+                        }
+                      }
+                    }
+                  }
+                }
               },
               "example": {
-                "name": "Support queue"
+                "name": "Support queue",
+                "instructions": "Draft a polite reply for inbound support mail.",
+                "triggers": [
+                  {
+                    "id": "trg_01",
+                    "kind": "mail.received",
+                    "enabled": true,
+                    "onlyInbox": true,
+                    "filters": [],
+                    "filterJoin": "and"
+                  }
+                ],
+                "tasks": []
               }
             }
           }
@@ -9583,7 +10181,7 @@
     "/api/v1/mailboxes/{mailboxId}/task-triager-runs/recent": {
       "get": {
         "summary": "List recent triager runs",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nRecent triager execution history for the mailbox.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nRecent succeeded/failed triager runs for the mailbox, newest first.\n\n**API credits:** 1 (read).",
         "tags": [
           "Task triage"
         ],
@@ -9602,6 +10200,19 @@
               "type": "string"
             },
             "example": "support@mail.acme.com"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Max runs to return (1–20, default 10)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20,
+              "default": 10
+            },
+            "example": 10
           }
         ],
         "responses": {
@@ -9613,7 +10224,18 @@
                   "type": "object",
                   "additionalProperties": true
                 },
-                "example": []
+                "example": {
+                  "runs": [
+                    {
+                      "id": "run_01",
+                      "triager": "Support queue",
+                      "source": "inbound_email",
+                      "status": "SUCCEEDED",
+                      "summary": "Drafted reply",
+                      "finishedAt": "2026-07-15T10:00:00.000Z"
+                    }
+                  ]
+                }
               }
             }
           },
@@ -9710,7 +10332,7 @@
     "/api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}": {
       "put": {
         "summary": "Update task triager",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUpdates a task triager.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUpdates a task triager. Default system triager blocks changing protected triggers/instructions (`409`).\n\n**API credits:** 2 (write).",
         "tags": [
           "Task triage"
         ],
@@ -9820,10 +10442,125 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": true
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "Support queue"
+                  },
+                  "instructions": {
+                    "type": "string",
+                    "description": "Required non-empty instructions for create/update",
+                    "example": "Draft a polite reply for inbound support mail."
+                  },
+                  "triggers": {
+                    "type": "array",
+                    "description": "At least one trigger is required",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "kind",
+                        "enabled"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "example": "trg_01"
+                        },
+                        "kind": {
+                          "type": "string",
+                          "example": "mail.received",
+                          "description": "calendar.event_created | calendar.event_updated | calendar.event_canceled | mail.received | mail.sent | mail.received_or_sent"
+                        },
+                        "enabled": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "calendars": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "mailDomains": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "inboxes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "onlyInbox": {
+                          "type": "boolean",
+                          "default": false
+                        },
+                        "filters": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        },
+                        "filterJoin": {
+                          "type": "string",
+                          "enum": [
+                            "and",
+                            "or"
+                          ],
+                          "default": "and"
+                        }
+                      }
+                    }
+                  },
+                  "tasks": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "kind",
+                        "enabled"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string"
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "priority": {
+                          "type": "integer",
+                          "default": 0
+                        },
+                        "config": {
+                          "type": "object",
+                          "additionalProperties": true
+                        }
+                      }
+                    }
+                  }
+                }
               },
               "example": {
-                "name": "Support queue"
+                "name": "Support queue",
+                "instructions": "Draft a polite reply for inbound support mail.",
+                "triggers": [
+                  {
+                    "id": "trg_01",
+                    "kind": "mail.received",
+                    "enabled": true,
+                    "onlyInbox": true,
+                    "filters": [],
+                    "filterJoin": "and"
+                  }
+                ],
+                "tasks": []
               }
             }
           }
@@ -9858,7 +10595,7 @@
       },
       "delete": {
         "summary": "Delete task triager",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes a task triager.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes a task triager. Returns **204** with an empty body.\n\n**API credits:** 2 (write).",
         "tags": [
           "Task triage"
         ],
@@ -9890,13 +10627,12 @@
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": "Deleted",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": true
+                  "type": "object"
                 }
               }
             }
@@ -9994,7 +10730,7 @@
     "/api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}/default": {
       "post": {
         "summary": "Set default task triager",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nMarks a triager as the mailbox default.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nMarks a triager as the mailbox default (clears the previous default).\n\n**API credits:** 2 (write).",
         "tags": [
           "Task triage"
         ],
@@ -10129,8 +10865,8 @@
     },
     "/api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}/agent-conversation": {
       "post": {
-        "summary": "Attach agent conversation to triager",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLinks an agent conversation to a triager.\n\n**API credits:** 2 (write).",
+        "summary": "Get or create triager agent conversation",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns the dedicated agent conversation for this triager, creating it if missing. No request body is required.\n\n**API credits:** 2 (write).",
         "tags": [
           "Task triage"
         ],
@@ -10163,12 +10899,17 @@
         ],
         "responses": {
           "200": {
-            "description": "Attached",
+            "description": "Conversation",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "additionalProperties": true
+                },
+                "example": {
+                  "id": "conv_01",
+                  "title": "Support queue",
+                  "message_count": 0
                 }
               }
             }
@@ -10234,24 +10975,6 @@
             }
           }
         },
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "conversationId": {
-                    "type": "string"
-                  }
-                }
-              },
-              "example": {
-                "conversationId": "conv_01"
-              }
-            }
-          }
-        },
         "x-credits": 2,
         "x-badges": [
           {
@@ -10275,8 +10998,8 @@
         "x-mint": {
           "metadata": {
             "tag": "All plans",
-            "title": "Attach agent conversation to triager",
-            "sidebarTitle": "Attach agent conversation to triager"
+            "title": "Get or create triager agent conversation",
+            "sidebarTitle": "Get or create triager agent conversation"
           }
         }
       }
@@ -14006,16 +14729,22 @@
             "type": "string",
             "example": "developer"
           },
-          "periodStart": {
+          "plan_name": {
+            "type": "string",
+            "example": "Developer"
+          },
+          "period_start": {
             "type": "string",
             "format": "date-time"
           },
-          "periodEnd": {
+          "period_end": {
             "type": "string",
             "format": "date-time"
           },
           "limit": {
             "type": "number",
+            "nullable": true,
+            "description": "Null when the plan has unlimited API credits",
             "example": 50000
           },
           "used": {
@@ -14024,7 +14753,73 @@
           },
           "remaining": {
             "type": "number",
+            "nullable": true,
+            "description": "Null when unlimited",
             "example": 48760
+          }
+        }
+      },
+      "EmailUsage": {
+        "type": "object",
+        "properties": {
+          "workspace_id": {
+            "type": "string"
+          },
+          "plan": {
+            "type": "string"
+          },
+          "plan_name": {
+            "type": "string"
+          },
+          "period_start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "quota": {
+            "type": "number",
+            "nullable": true,
+            "description": "Plan email send quota (recipient count); null if unlimited"
+          },
+          "used": {
+            "type": "number"
+          },
+          "remaining": {
+            "type": "number",
+            "nullable": true
+          },
+          "legacy_sent_count": {
+            "type": "number",
+            "description": "Pre-ledger sent recipients included in `used`"
+          },
+          "mailboxes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "sent": {
+                  "type": "number"
+                },
+                "providers": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
           }
         }
       },
@@ -14097,20 +14892,71 @@
             "type": "string"
           },
           "email": {
-            "type": "string"
+            "type": "string",
+            "format": "email"
           },
           "name": {
             "type": "string"
+          },
+          "email_domain_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "inbound_provider": {
+            "type": "string"
+          },
+          "outbound_provider": {
+            "type": "string"
+          },
+          "provider_metadata": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "bucket_id": {
+            "type": "string",
+            "nullable": true
           },
           "settings": {
             "type": "object",
             "additionalProperties": true
           },
+          "welcome_onboarding_status": {
+            "type": "string"
+          },
           "inbox_unread_by_category": {
             "type": "object",
-            "additionalProperties": {
-              "type": "integer"
+            "description": "Present on list endpoints only",
+            "properties": {
+              "customer_support": {
+                "type": "integer"
+              },
+              "partnership": {
+                "type": "integer"
+              },
+              "technical": {
+                "type": "integer"
+              },
+              "other": {
+                "type": "integer"
+              }
             }
+          }
+        }
+      },
+      "MailboxStorage": {
+        "type": "object",
+        "properties": {
+          "mailbox_id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "storage_gb": {
+            "type": "number"
+          },
+          "blob_count": {
+            "type": "integer"
           }
         }
       },
@@ -14206,21 +15052,45 @@
             "type": "string"
           },
           "provider": {
-            "type": "string"
+            "type": "string",
+            "example": "resend"
           },
           "status": {
-            "type": "string"
+            "type": "string",
+            "description": "Provider/local status such as `pending`, `verified`, `deleting`, `deleted`"
+          },
+          "provider_domain_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "region": {
+            "type": "string",
+            "nullable": true
           },
           "dns_records": {
             "type": "array",
             "items": {
-              "type": "object"
-            }
+              "type": "object",
+              "additionalProperties": true
+            },
+            "nullable": true
+          },
+          "last_error": {
+            "type": "string",
+            "nullable": true
           },
           "verified_at": {
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },

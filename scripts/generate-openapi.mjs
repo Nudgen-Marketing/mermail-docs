@@ -403,13 +403,51 @@ add(
 );
 
 // —— Usage ——
+const apiCreditUsageExample = {
+	plan: "developer",
+	plan_name: "Developer",
+	period_start: "2026-07-01T00:00:00.000Z",
+	period_end: "2026-08-01T00:00:00.000Z",
+	limit: 50000,
+	used: 1240,
+	remaining: 48760,
+};
+
+const emailUsageExample = {
+	workspace_id: "ws_01abc",
+	plan: "developer",
+	plan_name: "Developer",
+	period_start: "2026-07-01T00:00:00.000Z",
+	period_end: "2026-08-01T00:00:00.000Z",
+	quota: 10000,
+	used: 320,
+	remaining: 9680,
+	legacy_sent_count: 12,
+	mailboxes: [
+		{
+			id: "support@mail.acme.com",
+			name: "Acme Support",
+			email: "support@mail.acme.com",
+			sent: 200,
+			providers: { cloudflare_email: 180, legacy: 20 },
+		},
+		{
+			id: "ops@mail.acme.com",
+			name: "Acme Ops",
+			email: "ops@mail.acme.com",
+			sent: 120,
+			providers: { resend: 120 },
+		},
+	],
+};
+
 add(
 	"/api/v1/workspaces/{workspaceId}/usage/credits",
 	"get",
 	op({
 		summary: "Get API credit usage",
 		description:
-			"Returns the workspace plan, billing period, credit limit, used credits, and remaining balance. Use this before running batch jobs against the sold API.",
+			"Returns sold-API credit usage for the current billing period (snake_case fields). Free workspaces use the UTC calendar month; paid workspaces use the subscription period. `limit` / `remaining` are `null` when the plan has unlimited credits. Requires workspace membership. This call itself costs **1** read credit.",
 		tags: ["Usage"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
@@ -419,15 +457,15 @@ add(
 			"200": jsonResponse(
 				"Credit usage for the current period",
 				{ $ref: "#/components/schemas/ApiCreditUsage" },
-				{
-					plan: "developer",
-					periodStart: "2026-07-01T00:00:00.000Z",
-					periodEnd: "2026-08-01T00:00:00.000Z",
-					limit: 50000,
-					used: 1240,
-					remaining: 48760,
-				},
+				apiCreditUsageExample,
 			),
+			"503": {
+				description: "Paid subscription period is stale / out of range",
+				...errorContent({
+					error: "subscription_period_stale",
+					code: "subscription_period_stale",
+				}),
+			},
 		},
 	}),
 );
@@ -435,32 +473,63 @@ add(
 add(
 	"/api/v1/workspaces/{workspaceId}/usage/email",
 	"get",
-	slimOp({
+	op({
 		summary: "Get email usage",
 		description:
-			"Returns email send usage for the workspace subscription period (distinct from API credits).",
+			"Returns outbound email send usage (recipient counts) for the workspace subscription period — distinct from API credits. Field is `quota` (not `limit`). Includes per-mailbox breakdown and `legacy_sent_count` for pre-ledger sends. Requires workspace membership.",
 		tags: ["Usage"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
 		],
 		xCredits: 1,
-		successExample: {
-			plan: "developer",
-			limit: 10000,
-			used: 320,
-			remaining: 9680,
+		responses: {
+			"200": jsonResponse(
+				"Email send usage for the current period",
+				{ $ref: "#/components/schemas/EmailUsage" },
+				emailUsageExample,
+			),
 		},
 	}),
 );
 
 // —— Workspaces ——
+const workspaceMembersExample = {
+	members: [
+		{
+			user_address: "0xabc123def456",
+			email: "owner@acme.com",
+			name: "Owner",
+			role: "admin",
+			display_role: "owner",
+			created_at: "2026-07-01T12:00:00.000Z",
+		},
+		{
+			user_address: "0xmember…",
+			email: "dev@acme.com",
+			name: "Dev",
+			role: "member",
+			display_role: "member",
+			created_at: "2026-07-10T09:00:00.000Z",
+		},
+	],
+	invites: [
+		{
+			id: "inv_01xyz",
+			email: "new@acme.com",
+			role: "member",
+			invite_url: "https://console.mermail.app/invite/…",
+			created_at: "2026-07-15T08:00:00.000Z",
+		},
+	],
+};
+
 add(
 	"/api/v1/workspaces",
 	"get",
 	op({
 		summary: "List workspaces",
 		description:
-			"Lists workspaces the caller can access. With an API key (`x-api-key`), the list is limited to the **single workspace** the key is bound to.",
+			"Lists workspaces the caller can access. Response shape is `{ user, workspaces }`. With an API key (`x-api-key`), `workspaces` is limited to the **single workspace** the key is bound to.",
 		tags: ["Workspaces"],
 		xCredits: 1,
 		responses: {
@@ -479,7 +548,7 @@ add(
 	op({
 		summary: "Get workspace",
 		description:
-			"Returns a single workspace the caller can access. With an API key, `workspaceId` must match the key’s workspace (`403` otherwise).",
+			"Returns a single workspace the caller can access (includes nested `storage`). With an API key, `workspaceId` must match the key’s workspace (`403` otherwise).",
 		tags: ["Workspaces"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
@@ -492,8 +561,8 @@ add(
 				workspaceExample,
 			),
 			"404": {
-				description: "Not found",
-				...errorContent({ error: "Not found" }),
+				description: "Workspace not found",
+				...errorContent({ error: "Workspace not found" }),
 			},
 		},
 	}),
@@ -505,7 +574,7 @@ add(
 	op({
 		summary: "Update workspace",
 		description:
-			"Updates workspace settings. Requires workspace **admin**. At least one of `name` or `timezone` is required. With an API key, `workspaceId` must match the key’s workspace.",
+			"Updates workspace settings. Requires workspace **admin**. At least one of `name` or `timezone` is required (`timezone` may be `null` to clear). With an API key, `workspaceId` must match the key’s workspace.",
 		tags: ["Workspaces"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
@@ -515,11 +584,17 @@ add(
 			{
 				type: "object",
 				properties: {
-					name: { type: "string", example: "Acme Agents" },
+					name: {
+						type: "string",
+						minLength: 1,
+						maxLength: 120,
+						example: "Acme Agents",
+					},
 					timezone: {
 						type: "string",
 						nullable: true,
 						example: "America/New_York",
+						description: "IANA timezone, or null to clear",
 					},
 				},
 			},
@@ -531,6 +606,10 @@ add(
 				{ $ref: "#/components/schemas/Workspace" },
 				workspaceExample,
 			),
+			"400": {
+				description: "Validation error (missing fields or invalid timezone)",
+				...errorContent({ error: "Invalid timezone" }),
+			},
 		},
 	}),
 );
@@ -540,7 +619,8 @@ add(
 	"delete",
 	slimOp({
 		summary: "Delete workspace",
-		description: "Deletes a workspace. Requires workspace **admin**.",
+		description:
+			"Deletes a workspace and tombstones its blobs. Requires workspace **admin**. Returns **204** with an empty body.",
 		tags: ["Workspaces"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
@@ -557,34 +637,14 @@ add(
 	"get",
 	slimOp({
 		summary: "Get workspace storage",
-		description: "Returns Harbor / R2 storage provisioning status for the workspace.",
+		description:
+			"Returns Harbor / R2 storage provisioning status wrapped as `{ storage }`. Requires workspace **admin**.",
 		tags: ["Workspaces"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
 		],
 		xCredits: 1,
-		successExample: workspaceExample.storage,
-	}),
-);
-
-add(
-	"/api/v1/workspaces/{workspaceId}/storage",
-	"put",
-	slimOp({
-		summary: "Update workspace storage",
-		description:
-			"Updates storage settings. **Developer or Enterprise** plan required.",
-		tags: ["Workspaces"],
-		parameters: [
-			pathParam("workspaceId", "Workspace id", "ws_01abc"),
-		],
-		xCredits: 2,
-		requestBody: jsonBody(
-			{ type: "object", additionalProperties: true },
-			{},
-			false,
-		),
-		successExample: workspaceExample.storage,
+		successExample: { storage: workspaceExample.storage },
 	}),
 );
 
@@ -593,20 +653,14 @@ add(
 	"get",
 	slimOp({
 		summary: "List workspace members",
-		description: "Lists members and roles for the workspace.",
+		description:
+			"Returns `{ members, invites }`. `invites` (with `invite_url`) is only populated for workspace **admins**; members see an empty `invites` array. `memberId` elsewhere is the member’s `user_address` (Sui wallet).",
 		tags: ["Workspaces"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
 		],
 		xCredits: 1,
-		successExample: [
-			{
-				address: "0xabc123def456",
-				email: "owner@acme.com",
-				role: "admin",
-				name: "Owner",
-			},
-		],
+		successExample: workspaceMembersExample,
 	}),
 );
 
@@ -616,7 +670,7 @@ add(
 	op({
 		summary: "Update member role",
 		description:
-			"Updates a member role. `memberId` is the member's Sui wallet address. Requires workspace **admin**.",
+			"Updates a member role. `memberId` is the member's Sui wallet address (`user_address`). Requires workspace **admin**. Owners cannot be demoted; the last admin cannot be demoted.",
 		tags: ["Workspaces"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
@@ -642,13 +696,17 @@ add(
 				"Role updated",
 				{
 					type: "object",
-					properties: { status: { type: "string" } },
+					properties: { status: { type: "string", example: "updated" } },
 				},
 				{ status: "updated" },
 			),
+			"400": {
+				description: "Protected role change",
+				...errorContent({ error: "Workspace owners cannot be demoted" }),
+			},
 			"404": {
 				description: "Member not found",
-				...errorContent({ error: "Not found" }),
+				...errorContent({ error: "Member not found" }),
 			},
 		},
 	}),
@@ -659,7 +717,8 @@ add(
 	"delete",
 	slimOp({
 		summary: "Remove member",
-		description: "Removes a member from the workspace. Requires **admin**.",
+		description:
+			"Removes a member from the workspace. Requires **admin**. Owners cannot be removed. Returns **204** with an empty body.",
 		tags: ["Workspaces"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
@@ -668,15 +727,17 @@ add(
 		xCredits: 2,
 		successStatus: "204",
 		successDescription: "Removed",
+		successSchema: { type: "object" },
 	}),
 );
 
 add(
 	"/api/v1/workspaces/{workspaceId}/invites",
 	"post",
-	slimOp({
+	op({
 		summary: "Invite member",
-		description: "Sends a workspace invite email. Requires **admin**.",
+		description:
+			"Invites a user by email. Requires **admin**. If the email already belongs to a Mermail user, they may be added immediately (`member_added`); otherwise a pending invite is created (`invited` / `invite_updated`).",
 		tags: ["Workspaces"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
@@ -685,15 +746,40 @@ add(
 		requestBody: jsonBody(
 			{
 				type: "object",
+				required: ["email"],
 				properties: {
 					email: { type: "string", format: "email", example: "dev@acme.com" },
-					role: { type: "string", enum: ["admin", "member"], example: "member" },
+					role: {
+						type: "string",
+						enum: ["admin", "member"],
+						default: "member",
+						example: "member",
+					},
 				},
 			},
 			{ email: "dev@acme.com", role: "member" },
 		),
-		successStatus: "201",
-		successDescription: "Invite created",
+		responses: {
+			"201": jsonResponse(
+				"Invite result",
+				{
+					type: "object",
+					properties: {
+						status: {
+							type: "string",
+							enum: ["invited", "invite_updated", "member_added"],
+						},
+						invite_id: { type: "string" },
+						invite_url: { type: "string" },
+					},
+				},
+				{
+					status: "invited",
+					invite_id: "inv_01xyz",
+					invite_url: "https://console.mermail.app/invite/…",
+				},
+			),
+		},
 	}),
 );
 
@@ -702,42 +788,61 @@ add(
 	"post",
 	slimOp({
 		summary: "Resend invite",
-		description: "Resends a pending invite. Requires **admin**.",
+		description: "Resends a pending invite email. Requires **admin**.",
 		tags: ["Workspaces"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
 			pathParam("inviteId", "Invite id", "inv_01xyz"),
 		],
 		xCredits: 2,
-		successDescription: "Invite resent",
+		successExample: {
+			status: "resent",
+			invite_id: "inv_01xyz",
+			invite_url: "https://console.mermail.app/invite/…",
+		},
 	}),
 );
 
 // —— Domains ——
+const emailDomainExample = {
+	id: "ed_01xyz",
+	workspace_id: "ws_01abc",
+	domain: "mail.acme.com",
+	provider: "resend",
+	status: "pending",
+	provider_domain_id: "d_01",
+	region: "us-east-1",
+	dns_records: [
+		{
+			type: "TXT",
+			name: "resend._domainkey.mail.acme.com",
+			value: "p=MIGf…",
+		},
+		{
+			type: "MX",
+			name: "mail.acme.com",
+			value: "feedback-smtp.us-east-1.amazonses.com",
+		},
+	],
+	last_error: null,
+	verified_at: null,
+	created_at: "2026-07-15T10:00:00.000Z",
+	updated_at: "2026-07-15T10:00:00.000Z",
+};
+
 add(
 	"/api/v1/workspaces/{workspaceId}/email-domains",
 	"get",
 	slimOp({
 		summary: "List email domains",
 		description:
-			"Lists custom email domains. **Developer or Enterprise** required.",
+			"Lists active custom email domains for a workspace (excludes tombstoned `deleted` rows). Requires workspace membership. **Developer or Enterprise** plan required.",
 		tags: ["Domains"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
 		],
 		xCredits: 1,
-		successExample: [
-			{
-				id: "ed_01xyz",
-				workspace_id: "ws_01abc",
-				domain: "mail.acme.com",
-				provider: "resend",
-				status: "pending",
-				dns_records: [],
-				last_error: null,
-				verified_at: null,
-			},
-		],
+		successExample: [emailDomainExample],
 	}),
 );
 
@@ -747,7 +852,7 @@ add(
 	op({
 		summary: "Add email domain",
 		description:
-			"Starts custom domain provisioning. Domain must be a subdomain (for example `mail.acme.com`). **Developer or Enterprise** required.",
+			"Starts custom domain provisioning with Resend. Domain must be a **subdomain** with ≥3 labels (for example `mail.acme.com` or `support.yourdomain.com`) — apex domains are rejected. Requires workspace **admin**. Subject to plan custom-domain limits. **Developer or Enterprise** required. Returns **201**. Costs **provision** credits (10).",
 		tags: ["Domains"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
@@ -760,7 +865,7 @@ add(
 				properties: {
 					domain: {
 						type: "string",
-						description: "Subdomain used for agent mailboxes",
+						description: "Custom subdomain used for agent mailboxes",
 						example: "mail.acme.com",
 					},
 				},
@@ -771,30 +876,20 @@ add(
 			"201": jsonResponse(
 				"Domain created (DNS verification pending)",
 				{ $ref: "#/components/schemas/EmailDomain" },
-				{
-					id: "ed_01xyz",
-					workspace_id: "ws_01abc",
-					domain: "mail.acme.com",
-					provider: "resend",
-					status: "pending",
-					provider_domain_id: "d_01",
-					region: "us-east-1",
-					dns_records: [
-						{
-							type: "TXT",
-							name: "resend._domainkey.mail.acme.com",
-							value: "p=MIGf…",
-						},
-					],
-					last_error: null,
-					verified_at: null,
-					created_at: "2026-07-15T10:00:00.000Z",
-					updated_at: "2026-07-15T10:00:00.000Z",
-				},
+				emailDomainExample,
 			),
 			"400": {
-				description: "Invalid domain shape",
-				...errorContent({ error: "Invalid request" }),
+				description: "Invalid domain shape (e.g. apex domain)",
+				...errorContent({
+					error:
+						"Use a custom subdomain such as support.yourdomain.com or mail.yourdomain.com.",
+				}),
+			},
+			"403": {
+				description: "Plan limit or Free plan",
+				...errorContent({
+					error: "Upgrade to Developer to add custom email domains.",
+				}),
 			},
 		},
 	}),
@@ -803,41 +898,92 @@ add(
 add(
 	"/api/v1/workspaces/{workspaceId}/email-domains/{domainId}",
 	"delete",
-	slimOp({
+	op({
 		summary: "Delete email domain",
-		description: "Removes a custom domain. **Developer or Enterprise** required.",
+		description:
+			"Removes the domain from Resend and deletes the local row. Fails with **409** if any mailboxes still use the domain. Requires workspace **admin**. **Developer or Enterprise** required. Returns `{ status: \"deleted\" }` (HTTP 200).",
 		tags: ["Domains"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
 			pathParam("domainId", "Email domain id", "ed_01xyz"),
 		],
 		xCredits: 2,
-		successDescription: "Domain deleted",
+		responses: {
+			"200": jsonResponse(
+				"Domain deleted",
+				{
+					type: "object",
+					properties: {
+						status: { type: "string", example: "deleted" },
+					},
+				},
+				{ status: "deleted" },
+			),
+			"404": {
+				description: "Email domain not found",
+				...errorContent({ error: "Email domain not found" }),
+			},
+			"409": {
+				description: "Mailboxes still attached",
+				...errorContent({
+					error: "Remove mailboxes from this domain before deleting it.",
+				}),
+			},
+		},
 	}),
 );
 
 add(
 	"/api/v1/workspaces/{workspaceId}/email-domains/{domainId}/verify",
 	"post",
-	slimOp({
+	op({
 		summary: "Verify email domain",
 		description:
-			"Checks DNS records and marks the domain verified when ready. **Developer or Enterprise** required.",
+			"Asks Resend to re-check DNS and returns the updated domain object. `verified_at` is set when `status` becomes `verified`. Requires workspace **admin**. **Developer or Enterprise** required.\n\n**Note:** This path is metered as **provision** (10 credits) because all `POST …/email-domains…` routes share that credit class.",
 		tags: ["Domains"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
 			pathParam("domainId", "Email domain id", "ed_01xyz"),
 		],
-		xCredits: 2,
-		successExample: {
-			id: "ed_01xyz",
-			status: "verified",
-			verified_at: "2026-07-15T11:00:00.000Z",
+		xCredits: 10,
+		responses: {
+			"200": jsonResponse(
+				"Domain verification result",
+				{ $ref: "#/components/schemas/EmailDomain" },
+				{
+					...emailDomainExample,
+					status: "verified",
+					verified_at: "2026-07-15T11:00:00.000Z",
+					updated_at: "2026-07-15T11:00:00.000Z",
+				},
+			),
+			"404": {
+				description: "Email domain not found",
+				...errorContent({ error: "Email domain not found" }),
+			},
+			"409": {
+				description: "Missing provider domain id",
+				...errorContent({
+					error: "Email domain is missing a Resend domain id",
+				}),
+			},
 		},
 	}),
 );
 
 // —— Mailboxes ——
+const mailboxListExample = [
+	{
+		...mailboxExample,
+		inbox_unread_by_category: {
+			customer_support: 3,
+			partnership: 0,
+			technical: 1,
+			other: 2,
+		},
+	},
+];
+
 const createMailboxBody = {
 	type: "object",
 	required: ["email", "name"],
@@ -850,18 +996,18 @@ const createMailboxBody = {
 		},
 		name: {
 			type: "string",
-			description: "Display name",
+			description: "Display name (also seeds settings.fromName)",
 			example: "Acme Support",
 		},
 		workspaceId: {
 			type: "string",
-			description: "Required for POST /api/v1/mailboxes",
+			description: "Required for `POST /api/v1/mailboxes`",
 			example: "ws_01abc",
 		},
 		settings: {
 			type: "object",
 			additionalProperties: true,
-			description: "Optional mailbox settings object",
+			description: "Optional mailbox settings merged over defaults",
 		},
 	},
 };
@@ -871,13 +1017,14 @@ add(
 	"get",
 	slimOp({
 		summary: "List workspace mailboxes",
-		description: "Lists mailboxes in a workspace.",
+		description:
+			"Lists mailboxes in a workspace. Each item includes `inbox_unread_by_category`. Requires workspace membership. API keys are bound to one workspace.",
 		tags: ["Mailboxes"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
 		],
 		xCredits: 1,
-		successExample: [mailboxExample],
+		successExample: mailboxListExample,
 	}),
 );
 
@@ -887,11 +1034,12 @@ add(
 	op({
 		summary: "List mailboxes",
 		description:
-			"Lists mailboxes visible to the user. Optionally filter by workspace. Includes unread category counts when listing.",
+			"Lists mailboxes visible to the caller. Pass `workspaceId` to scope a session user; API keys are always scoped to their bound workspace. Each item includes `inbox_unread_by_category`.",
 		tags: ["Mailboxes"],
 		parameters: [
 			queryParam("workspaceId", {
-				description: "Filter by workspace id",
+				description:
+					"Filter by workspace id (session users). API keys ignore cross-workspace values and stay on the key’s workspace.",
 				example: "ws_01abc",
 			}),
 		],
@@ -903,17 +1051,7 @@ add(
 					type: "array",
 					items: { $ref: "#/components/schemas/Mailbox" },
 				},
-				[
-					{
-						...mailboxExample,
-						inbox_unread_by_category: {
-							customer_support: 3,
-							partnership: 0,
-							technical: 1,
-							other: 2,
-						},
-					},
-				],
+				mailboxListExample,
 			),
 		},
 	}),
@@ -925,20 +1063,30 @@ add(
 	op({
 		summary: "Create mailbox",
 		description:
-			"Provisions a mailbox. `workspaceId` is required in the body for this route.",
+			"Provisions a mailbox. `workspaceId` is required in the body for this route (or is supplied by the API key’s bound workspace). Requires workspace **admin**. Returns **201**. Costs **provision** credits (10).",
 		tags: ["Mailboxes"],
 		xCredits: 10,
-		requestBody: jsonBody(createMailboxBody, {
-			email: "ops@mail.acme.com",
-			name: "Acme Ops",
-			workspaceId: "ws_01abc",
-		}),
+		requestBody: jsonBody(
+			{
+				...createMailboxBody,
+				required: ["email", "name", "workspaceId"],
+			},
+			{
+				email: "ops@mail.acme.com",
+				name: "Acme Ops",
+				workspaceId: "ws_01abc",
+			},
+		),
 		responses: {
 			"201": jsonResponse(
 				"Mailbox created",
 				{ $ref: "#/components/schemas/Mailbox" },
 				{ ...mailboxExample, email: "ops@mail.acme.com", name: "Acme Ops" },
 			),
+			"400": {
+				description: "Missing workspaceId or validation error",
+				...errorContent({ error: "workspaceId is required" }),
+			},
 		},
 	}),
 );
@@ -948,7 +1096,8 @@ add(
 	"get",
 	op({
 		summary: "Get mailbox",
-		description: "Returns a single mailbox by id (usually the email address).",
+		description:
+			"Returns a single mailbox by id (usually the email address). Does not include `inbox_unread_by_category` (use list endpoints for unread counts).",
 		tags: ["Mailboxes"],
 		parameters: [
 			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
@@ -960,6 +1109,10 @@ add(
 				{ $ref: "#/components/schemas/Mailbox" },
 				mailboxExample,
 			),
+			"404": {
+				description: "Mailbox not found",
+				...errorContent({ error: "Not found" }),
+			},
 		},
 	}),
 );
@@ -968,8 +1121,9 @@ add(
 	"/api/v1/mailboxes/{mailboxId}",
 	"put",
 	slimOp({
-		summary: "Update mailbox",
-		description: "Updates mailbox name or settings.",
+		summary: "Update mailbox settings",
+		description:
+			"Replaces the mailbox `settings` JSON object. Body shape is `{ settings }` only — there is no top-level `name` field on this route. Requires mailbox **admin**.",
 		tags: ["Mailboxes"],
 		parameters: [
 			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
@@ -978,12 +1132,17 @@ add(
 		requestBody: jsonBody(
 			{
 				type: "object",
+				required: ["settings"],
 				properties: {
-					name: { type: "string", example: "Acme Support" },
-					settings: { type: "object", additionalProperties: true },
+					settings: {
+						type: "object",
+						additionalProperties: true,
+						description: "Full settings object to store on the mailbox",
+						example: mailboxExample.settings,
+					},
 				},
 			},
-			{ name: "Acme Support" },
+			{ settings: mailboxExample.settings },
 		),
 		successExample: mailboxExample,
 	}),
@@ -994,13 +1153,20 @@ add(
 	"get",
 	slimOp({
 		summary: "Get mailbox storage",
-		description: "Returns storage usage for a mailbox.",
+		description:
+			"Returns stored-blob usage for a mailbox (`storage_gb` and `blob_count`). Not a plan quota limit.",
 		tags: ["Mailboxes"],
 		parameters: [
 			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
 		],
 		xCredits: 1,
-		successExample: { usedBytes: 1048576, limitBytes: 10737418240 },
+		successSchema: { $ref: "#/components/schemas/MailboxStorage" },
+		successExample: {
+			mailbox_id: "support@mail.acme.com",
+			email: "support@mail.acme.com",
+			storage_gb: 1.25,
+			blob_count: 42,
+		},
 	}),
 );
 
@@ -1137,7 +1303,7 @@ add(
 	op({
 		summary: "Send email",
 		description:
-			"Sends a new outbound email from the mailbox. Provide `html` and/or `text`. Subject to send rate limits and API credits.",
+			"Sends a new outbound email from the mailbox. Provide `html` and/or `text` (at least one required). Subject to send rate limits and API credits. Returns **202** with `{ id, status: \"sent\" }`.",
 		tags: ["Emails"],
 		parameters: [
 			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
@@ -1166,7 +1332,7 @@ add(
 add(
 	"/api/v1/mailboxes/{mailboxId}/emails/{emailId}",
 	"get",
-	slimOp({
+	op({
 		summary: "Get email",
 		description: "Fetches a single email with body and metadata.",
 		tags: ["Emails"],
@@ -1175,7 +1341,17 @@ add(
 			pathParam("emailId", "Email id", "msg_7f3a2c1b"),
 		],
 		xCredits: 1,
-		successExample: emailListItem,
+		responses: {
+			"200": jsonResponse(
+				"Email",
+				{ $ref: "#/components/schemas/Email" },
+				emailListItem,
+			),
+			"404": {
+				description: "Email not found",
+				...errorContent({ error: "Email not found" }),
+			},
+		},
 	}),
 );
 
@@ -1210,59 +1386,127 @@ add(
 	"delete",
 	slimOp({
 		summary: "Delete email",
-		description: "Deletes or trashes an email.",
+		description:
+			"Trashes an email by default. Pass `permanent=true` to hard-delete (also used for messages already in trash). Returns **204** with an empty body.",
 		tags: ["Emails"],
 		parameters: [
 			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
 			pathParam("emailId", "Email id", "msg_7f3a2c1b"),
+			queryParam("permanent", {
+				description: "Set to `true` to permanently delete instead of moving to trash",
+				example: "true",
+			}),
 		],
 		xCredits: 2,
+		successStatus: "204",
 		successDescription: "Deleted",
+		successSchema: { type: "object" },
 	}),
 );
 
-for (const [suffix, summary, desc] of [
-	["bulk-delete", "Bulk delete emails", "Deletes multiple emails by id."],
-	["bulk-read", "Bulk mark emails read", "Marks multiple emails read/unread."],
-	["bulk-move", "Bulk move emails", "Moves multiple emails to a folder."],
-]) {
-	add(
-		`/api/v1/mailboxes/{mailboxId}/emails/${suffix}`,
-		"post",
-		slimOp({
-			summary,
-			description: desc,
-			tags: ["Emails"],
-			parameters: [
-				pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
-			],
-			xCredits: 2,
-			requestBody: jsonBody(
-				{
-					type: "object",
-					properties: {
-						ids: {
-							type: "array",
-							items: { type: "string" },
-							example: ["msg_1", "msg_2"],
-						},
-						folderId: { type: "string" },
-						read: { type: "boolean" },
+add(
+	"/api/v1/mailboxes/{mailboxId}/emails/bulk-delete",
+	"post",
+	slimOp({
+		summary: "Bulk delete emails",
+		description:
+			"Deletes or trashes multiple emails by id. With `permanent: true`, hard-deletes; otherwise moves to trash (scheduled drafts are cancelled).",
+		tags: ["Emails"],
+		parameters: [
+			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+		],
+		xCredits: 2,
+		requestBody: jsonBody(
+			{
+				type: "object",
+				required: ["ids"],
+				properties: {
+					ids: {
+						type: "array",
+						items: { type: "string" },
+						example: ["msg_1", "msg_2"],
 					},
+					permanent: { type: "boolean", description: "Hard-delete when true" },
 				},
-				{ ids: ["msg_7f3a2c1b"] },
-			),
-			successDescription: "Bulk operation completed",
-		}),
-	);
-}
+			},
+			{ ids: ["msg_7f3a2c1b"], permanent: false },
+		),
+		successExample: {
+			deletedCount: 0,
+			trashedCount: 1,
+			cancelledScheduledCount: 0,
+		},
+	}),
+);
+
+add(
+	"/api/v1/mailboxes/{mailboxId}/emails/bulk-read",
+	"post",
+	slimOp({
+		summary: "Bulk mark emails read",
+		description:
+			"Marks multiple emails read or unread. Marking read on a multi-message thread may update the whole thread.",
+		tags: ["Emails"],
+		parameters: [
+			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+		],
+		xCredits: 2,
+		requestBody: jsonBody(
+			{
+				type: "object",
+				required: ["ids", "read"],
+				properties: {
+					ids: {
+						type: "array",
+						items: { type: "string" },
+						example: ["msg_1", "msg_2"],
+					},
+					read: { type: "boolean" },
+				},
+			},
+			{ ids: ["msg_7f3a2c1b"], read: true },
+		),
+		successExample: { updatedCount: 1 },
+	}),
+);
+
+add(
+	"/api/v1/mailboxes/{mailboxId}/emails/bulk-move",
+	"post",
+	slimOp({
+		summary: "Bulk move emails",
+		description: "Moves multiple emails into a folder. Returns `400` if the folder does not exist.",
+		tags: ["Emails"],
+		parameters: [
+			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+		],
+		xCredits: 2,
+		requestBody: jsonBody(
+			{
+				type: "object",
+				required: ["ids", "folderId"],
+				properties: {
+					ids: {
+						type: "array",
+						items: { type: "string" },
+						example: ["msg_1", "msg_2"],
+					},
+					folderId: { type: "string", example: "ARCHIVE" },
+				},
+			},
+			{ ids: ["msg_7f3a2c1b"], folderId: "ARCHIVE" },
+		),
+		successExample: { movedCount: 1 },
+	}),
+);
 
 add(
 	"/api/v1/mailboxes/{mailboxId}/emails/{emailId}/move",
 	"post",
 	slimOp({
 		summary: "Move email",
-		description: "Moves one email into a folder.",
+		description:
+			"Moves one email into a folder. Returns `{ status: \"moved\" }` or `400` if the folder is missing.",
 		tags: ["Emails"],
 		parameters: [
 			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
@@ -1272,11 +1516,12 @@ add(
 		requestBody: jsonBody(
 			{
 				type: "object",
+				required: ["folderId"],
 				properties: { folderId: { type: "string", example: "ARCHIVE" } },
 			},
 			{ folderId: "ARCHIVE" },
 		),
-		successDescription: "Moved",
+		successExample: { status: "moved" },
 	}),
 );
 
@@ -1344,9 +1589,10 @@ add(
 add(
 	"/api/v1/mailboxes/{mailboxId}/emails/{emailId}/attachments/{attachmentId}",
 	"get",
-	slimOp({
+	op({
 		summary: "Download attachment",
-		description: "Downloads an email attachment.",
+		description:
+			"Downloads raw attachment bytes. Response `Content-Type` and `Content-Disposition` come from the stored attachment metadata.",
 		tags: ["Emails"],
 		parameters: [
 			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
@@ -1354,7 +1600,20 @@ add(
 			pathParam("attachmentId", "Attachment id", "att_01"),
 		],
 		xCredits: 1,
-		successDescription: "Attachment bytes / metadata",
+		responses: {
+			"200": {
+				description: "Attachment file bytes",
+				content: {
+					"application/octet-stream": {
+						schema: { type: "string", format: "binary" },
+					},
+				},
+			},
+			"404": {
+				description: "Attachment file not found",
+				...errorContent({ error: "Attachment file not found" }),
+			},
+		},
 	}),
 );
 
@@ -1363,21 +1622,50 @@ add(
 	"post",
 	slimOp({
 		summary: "Save draft",
-		description: "Creates or updates a draft message.",
+		description:
+			"Creates a draft (or replaces an existing draft when `draft_id` is set). Body is HTML/text in the `body` field — not `html`/`text`. Do not send `scheduled_send_at` here; use `POST /scheduled-sends`. Returns **201**.",
 		tags: ["Emails"],
 		parameters: [
 			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
 		],
 		xCredits: 2,
 		requestBody: jsonBody(
-			{ type: "object", additionalProperties: true },
 			{
-				to: ["hello@example.com"],
+				type: "object",
+				required: ["body"],
+				properties: {
+					to: { type: "string", example: "hello@example.com" },
+					cc: { type: "string" },
+					bcc: { type: "string" },
+					subject: { type: "string", example: "Draft" },
+					body: {
+						type: "string",
+						description: "Draft body (HTML or plain text)",
+						example: "<p>Working…</p>",
+					},
+					in_reply_to: { type: "string" },
+					thread_id: { type: "string" },
+					draft_id: {
+						type: "string",
+						description: "Existing draft id to replace",
+					},
+				},
+			},
+			{
+				to: "hello@example.com",
 				subject: "Draft",
-				text: "Working…",
+				body: "<p>Working…</p>",
 			},
 		),
-		successDescription: "Draft saved",
+		successStatus: "201",
+		successExample: {
+			id: "dft_01",
+			draft_id: "dft_01",
+			status: "draft",
+			subject: "Draft",
+			recipient: "hello@example.com",
+			date: "2026-07-16T10:00:00.000Z",
+		},
 	}),
 );
 
@@ -1386,17 +1674,36 @@ add(
 	"post",
 	slimOp({
 		summary: "Regenerate draft with AI",
-		description: "Uses AI to regenerate a draft body for review.",
+		description:
+			"Uses AI to revise the editable portion of a draft. Requires `draftId`, revision `prompt`, and current draft `body`.",
 		tags: ["Emails"],
 		parameters: [
 			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
 		],
 		xCredits: 15,
 		requestBody: jsonBody(
-			{ type: "object", additionalProperties: true },
-			{ draftId: "dft_01" },
+			{
+				type: "object",
+				required: ["draftId", "prompt", "body"],
+				properties: {
+					draftId: { type: "string", example: "dft_01" },
+					prompt: {
+						type: "string",
+						example: "Make this shorter and more formal",
+					},
+					body: {
+						type: "string",
+						description: "Current draft HTML/body to revise",
+					},
+				},
+			},
+			{
+				draftId: "dft_01",
+				prompt: "Make this shorter and more formal",
+				body: "<p>Thanks for your note…</p>",
+			},
 		),
-		successDescription: "Draft regenerated",
+		successExample: { body: "<p>Thank you for your note.</p>" },
 	}),
 );
 
@@ -1405,23 +1712,66 @@ add(
 	"post",
 	slimOp({
 		summary: "Schedule send",
-		description: "Schedules an outbound email for a future time.",
+		description:
+			"Schedules an outbound email for a future time. Uses draft-style fields (`body`, `scheduled_send_at`) rather than send-email `html`/`text`. Returns **201**.",
 		tags: ["Emails"],
 		parameters: [
 			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
 		],
 		xCredits: 5,
 		requestBody: jsonBody(
-			{ type: "object", additionalProperties: true },
+			{
+				type: "object",
+				required: ["body", "scheduled_send_at"],
+				properties: {
+					to: {
+						oneOf: [
+							{ type: "string" },
+							{ type: "array", items: { type: "string" } },
+						],
+						example: ["hello@example.com"],
+					},
+					cc: {
+						oneOf: [
+							{ type: "string" },
+							{ type: "array", items: { type: "string" } },
+						],
+					},
+					bcc: {
+						oneOf: [
+							{ type: "string" },
+							{ type: "array", items: { type: "string" } },
+						],
+					},
+					subject: { type: "string", example: "Later" },
+					body: { type: "string", example: "<p>See you</p>" },
+					in_reply_to: { type: "string" },
+					thread_id: { type: "string" },
+					draft_id: { type: "string" },
+					scheduled_send_at: {
+						type: "string",
+						format: "date-time",
+						description: "Must be in the future (ISO-8601)",
+						example: "2026-07-16T15:00:00.000Z",
+					},
+				},
+			},
 			{
 				to: ["hello@example.com"],
-				from: "support@mail.acme.com",
 				subject: "Later",
-				text: "See you",
-				sendAt: "2026-07-16T15:00:00.000Z",
+				body: "<p>See you</p>",
+				scheduled_send_at: "2026-07-16T15:00:00.000Z",
 			},
 		),
-		successDescription: "Scheduled",
+		successStatus: "201",
+		successExample: {
+			id: "dft_sched01",
+			draft_id: "dft_sched01",
+			status: "scheduled",
+			subject: "Later",
+			recipient: "hello@example.com",
+			scheduled_send_at: "2026-07-16T15:00:00.000Z",
+		},
 	}),
 );
 
@@ -1430,13 +1780,13 @@ add(
 	"post",
 	slimOp({
 		summary: "Empty trash",
-		description: "Permanently deletes messages in trash.",
+		description: "Permanently deletes all messages currently in trash.",
 		tags: ["Emails"],
 		parameters: [
 			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
 		],
 		xCredits: 2,
-		successDescription: "Trash emptied",
+		successExample: { deletedCount: 12 },
 	}),
 );
 
@@ -1445,14 +1795,19 @@ add(
 	"get",
 	slimOp({
 		summary: "Get thread",
-		description: "Returns a conversation thread and its messages.",
+		description:
+			"Returns the conversation thread as an **array** of email objects (oldest → newest), including bodies.",
 		tags: ["Emails"],
 		parameters: [
 			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
 			pathParam("threadId", "Thread id", "thr_9aabb"),
 		],
 		xCredits: 1,
-		successExample: { id: "thr_9aabb", emails: [emailListItem] },
+		successSchema: {
+			type: "array",
+			items: { $ref: "#/components/schemas/Email" },
+		},
+		successExample: [emailListItem],
 	}),
 );
 
@@ -1468,7 +1823,7 @@ add(
 			pathParam("threadId", "Thread id", "thr_9aabb"),
 		],
 		xCredits: 2,
-		successDescription: "Marked read",
+		successExample: { status: "marked_read" },
 	}),
 );
 
@@ -1548,14 +1903,17 @@ add(
 	"delete",
 	slimOp({
 		summary: "Delete folder",
-		description: "Deletes a custom folder.",
+		description:
+			"Deletes a custom folder. Returns **204** on success, or **400** if the folder is missing or cannot be deleted (e.g. system folders).",
 		tags: ["Emails"],
 		parameters: [
 			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
 			pathParam("folderId", "Folder id", "vip-customers"),
 		],
 		xCredits: 2,
+		successStatus: "204",
 		successDescription: "Deleted",
+		successSchema: { type: "object" },
 	}),
 );
 
@@ -1609,18 +1967,30 @@ add(
 );
 
 // custom labels
+const customLabelExample = {
+	id: "lbl_1",
+	mailbox_id: "support@mail.acme.com",
+	name: "VIP",
+	slug: "vip",
+	rules: "from:vip@example.com",
+	color: "#43c9cb",
+	sort_order: 0,
+	created_at: "2026-07-14T09:00:00.000Z",
+	updated_at: "2026-07-14T09:00:00.000Z",
+};
+
 add(
 	"/api/v1/mailboxes/{mailboxId}/custom-labels",
 	"get",
 	slimOp({
 		summary: "List custom labels",
-		description: "Lists custom labels for a mailbox.",
+		description: "Lists custom labels for a mailbox (sorted by `sort_order`).",
 		tags: ["Emails"],
 		parameters: [
 			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
 		],
 		xCredits: 1,
-		successExample: [{ id: "lbl_1", name: "VIP", slug: "vip", color: "#43c9cb" }],
+		successExample: [customLabelExample],
 	}),
 );
 add(
@@ -1628,8 +1998,120 @@ add(
 	"post",
 	slimOp({
 		summary: "Create custom label",
-		description: "Creates a custom label.",
+		description:
+			"Creates a custom label. Requires `name` and `rules`. Mailbox **admin** role required.",
 		tags: ["Emails"],
+		parameters: [
+			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+		],
+		xCredits: 2,
+		requestBody: jsonBody(
+			{
+				type: "object",
+				required: ["name", "rules"],
+				properties: {
+					name: { type: "string", example: "VIP", maxLength: 80 },
+					rules: {
+						type: "string",
+						description: "Label matching rules text",
+						example: "from:vip@example.com",
+					},
+					color: {
+						type: "string",
+						nullable: true,
+						example: "#43c9cb",
+						description: "Optional hex color",
+					},
+				},
+			},
+			{ name: "VIP", rules: "from:vip@example.com", color: "#43c9cb" },
+		),
+		successStatus: "201",
+		successExample: customLabelExample,
+	}),
+);
+add(
+	"/api/v1/mailboxes/{mailboxId}/custom-labels/{labelId}",
+	"put",
+	slimOp({
+		summary: "Update custom label",
+		description:
+			"Updates a custom label (`name`, `rules`, and/or `color`). Mailbox **admin** role required.",
+		tags: ["Emails"],
+		parameters: [
+			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			pathParam("labelId", "Label id", "lbl_1"),
+		],
+		xCredits: 2,
+		requestBody: jsonBody(
+			{
+				type: "object",
+				properties: {
+					name: { type: "string", maxLength: 80 },
+					rules: { type: "string" },
+					color: { type: "string", nullable: true },
+				},
+			},
+			{ name: "VIP+" },
+		),
+		successExample: { ...customLabelExample, name: "VIP+" },
+	}),
+);
+add(
+	"/api/v1/mailboxes/{mailboxId}/custom-labels/{labelId}",
+	"delete",
+	slimOp({
+		summary: "Delete custom label",
+		description:
+			"Deletes a custom label. Mailbox **admin** role required. Returns **204** with an empty body.",
+		tags: ["Emails"],
+		parameters: [
+			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			pathParam("labelId", "Label id", "lbl_1"),
+		],
+		xCredits: 2,
+		successStatus: "204",
+		successDescription: "Deleted",
+		successSchema: { type: "object" },
+	}),
+);
+
+// —— AI agent ——
+const agentConversationExample = {
+	id: "conv_01",
+	title: "Billing help",
+	systemKey: null,
+	isSystem: false,
+	isTriager: false,
+	messageCount: 2,
+	lastMessageAt: "2026-07-15T10:00:00.000Z",
+	createdAt: "2026-07-15T09:00:00.000Z",
+	updatedAt: "2026-07-15T10:00:00.000Z",
+};
+
+add(
+	"/api/v1/mailboxes/{mailboxId}/agent-conversations",
+	"get",
+	slimOp({
+		summary: "List agent conversations",
+		description:
+			"Lists AI agent chat conversations for the authenticated user in this mailbox (newest activity first).",
+		tags: ["AI agent"],
+		parameters: [
+			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+		],
+		xCredits: 1,
+		successExample: { conversations: [agentConversationExample] },
+	}),
+);
+add(
+	"/api/v1/mailboxes/{mailboxId}/agent-conversations",
+	"post",
+	slimOp({
+		summary: "Create agent conversation",
+		description:
+			"Creates a new agent conversation. Pass `title` for a normal chat (defaults to `New chat`), or `threadId` to find/create the conversation linked to an email thread.",
+		tags: ["AI agent"],
 		parameters: [
 			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
 		],
@@ -1638,101 +2120,35 @@ add(
 			{
 				type: "object",
 				properties: {
-					name: { type: "string", example: "VIP" },
-					color: { type: "string", example: "#43c9cb" },
+					title: {
+						type: "string",
+						minLength: 1,
+						maxLength: 80,
+						description: "Required when creating a normal chat if provided; 1–80 chars",
+						example: "Billing help",
+					},
+					threadId: {
+						type: "string",
+						description:
+							"When set, finds or creates the thread-linked conversation (title optional; defaults to “(No subject)”)",
+						example: "thread_01",
+					},
 				},
-			},
-			{ name: "VIP", color: "#43c9cb" },
-		),
-		successStatus: "201",
-		successDescription: "Label created",
-	}),
-);
-add(
-	"/api/v1/mailboxes/{mailboxId}/custom-labels/{labelId}",
-	"put",
-	slimOp({
-		summary: "Update custom label",
-		description: "Updates a custom label.",
-		tags: ["Emails"],
-		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
-			pathParam("labelId", "Label id", "lbl_1"),
-		],
-		xCredits: 2,
-		requestBody: jsonBody(
-			{ type: "object", additionalProperties: true },
-			{ name: "VIP+" },
-		),
-		successDescription: "Updated",
-	}),
-);
-add(
-	"/api/v1/mailboxes/{mailboxId}/custom-labels/{labelId}",
-	"delete",
-	slimOp({
-		summary: "Delete custom label",
-		description: "Deletes a custom label.",
-		tags: ["Emails"],
-		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
-			pathParam("labelId", "Label id", "lbl_1"),
-		],
-		xCredits: 2,
-		successDescription: "Deleted",
-	}),
-);
-
-// —— AI agent ——
-add(
-	"/api/v1/mailboxes/{mailboxId}/agent-conversations",
-	"get",
-	slimOp({
-		summary: "List agent conversations",
-		description: "Lists AI agent chat conversations for a mailbox.",
-		tags: ["AI agent"],
-		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
-		],
-		xCredits: 1,
-		successExample: [
-			{
-				id: "conv_01",
-				title: "Billing help",
-				updatedAt: "2026-07-15T10:00:00.000Z",
-			},
-		],
-	}),
-);
-add(
-	"/api/v1/mailboxes/{mailboxId}/agent-conversations",
-	"post",
-	slimOp({
-		summary: "Create agent conversation",
-		description: "Creates a new agent conversation thread.",
-		tags: ["AI agent"],
-		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
-		],
-		xCredits: 2,
-		requestBody: jsonBody(
-			{
-				type: "object",
-				properties: { title: { type: "string" } },
 			},
 			{ title: "Billing help" },
 			false,
 		),
 		successStatus: "201",
-		successExample: { id: "conv_01", title: "Billing help" },
+		successExample: agentConversationExample,
 	}),
 );
 add(
 	"/api/v1/mailboxes/{mailboxId}/agent-conversations/{conversationId}",
 	"patch",
 	slimOp({
-		summary: "Update agent conversation",
-		description: "Updates conversation metadata (for example title).",
+		summary: "Rename agent conversation",
+		description:
+			"Renames a conversation. `title` is required (1–80 chars). System/triager conversations cannot be renamed (`400`).",
 		tags: ["AI agent"],
 		parameters: [
 			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
@@ -1740,10 +2156,17 @@ add(
 		],
 		xCredits: 2,
 		requestBody: jsonBody(
-			{ type: "object", properties: { title: { type: "string" } } },
+			{
+				type: "object",
+				required: ["title"],
+				properties: {
+					title: { type: "string", minLength: 1, maxLength: 80, example: "Updated" },
+				},
+			},
 			{ title: "Updated" },
 		),
 		successDescription: "Updated",
+		successExample: { ...agentConversationExample, title: "Updated" },
 	}),
 );
 add(
@@ -1751,14 +2174,17 @@ add(
 	"delete",
 	slimOp({
 		summary: "Delete agent conversation",
-		description: "Deletes an agent conversation.",
+		description:
+			"Deletes an agent conversation. System/triager conversations cannot be deleted (`400`). Returns **204** with an empty body.",
 		tags: ["AI agent"],
 		parameters: [
 			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
 			pathParam("conversationId", "Conversation id", "conv_01"),
 		],
 		xCredits: 2,
+		successStatus: "204",
 		successDescription: "Deleted",
+		successSchema: { type: "object" },
 	}),
 );
 add(
@@ -1766,17 +2192,38 @@ add(
 	"get",
 	slimOp({
 		summary: "List agent messages",
-		description: "Lists messages in an agent conversation.",
+		description:
+			"Lists AI SDK UI messages in a conversation (chronological). Supports cursor pagination.",
 		tags: ["AI agent"],
 		parameters: [
 			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
 			pathParam("conversationId", "Conversation id", "conv_01"),
+			queryParam("limit", {
+				description: "Page size (1–50, default 50)",
+				schema: { type: "integer", minimum: 1, maximum: 50, default: 50 },
+				example: 50,
+			}),
+			queryParam("cursor", {
+				description: "Opaque cursor from a previous `nextCursor` value",
+				example: "msg_row_id",
+			}),
 		],
 		xCredits: 1,
-		successExample: [
-			{ id: "m1", role: "user", content: "Summarize inbox" },
-			{ id: "m2", role: "assistant", content: "You have 3 unread…" },
-		],
+		successExample: {
+			messages: [
+				{
+					id: "m1",
+					role: "user",
+					parts: [{ type: "text", text: "Summarize inbox" }],
+				},
+				{
+					id: "m2",
+					role: "assistant",
+					parts: [{ type: "text", text: "You have 3 unread…" }],
+				},
+			],
+			nextCursor: null,
+		},
 	}),
 );
 
@@ -1786,7 +2233,7 @@ add(
 	op({
 		summary: "Chat with mailbox agent",
 		description:
-			"Streams an AI agent chat turn for a mailbox conversation. Response is an AI SDK UI message stream (not a plain JSON object). The latest message must be from the user.",
+			"Streams an AI agent chat turn for a mailbox conversation. Response is an AI SDK UI message stream (not a plain JSON object). The latest message must be from the user. Duplicate message ids return `409`.",
 		tags: ["AI agent"],
 		xCredits: 25,
 		requestBody: jsonBody(
@@ -1802,7 +2249,7 @@ add(
 					messages: {
 						type: "array",
 						items: { type: "object", additionalProperties: true },
-						description: "AI SDK UIMessage array",
+						description: "AI SDK UIMessage array (id, role, parts)",
 					},
 					thread_id: { type: "string", nullable: true },
 					trigger: {
@@ -1834,6 +2281,10 @@ add(
 					},
 				},
 			},
+			"400": {
+				description: "Latest message is not from the user, or invalid body",
+				...errorContent({ error: "Invalid request" }),
+			},
 			"409": {
 				description: "Duplicate message submit",
 				...errorContent({ error: "Conflict" }),
@@ -1846,12 +2297,78 @@ add(
 const triagerParams = [
 	pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
 ];
+const taskTriagerBodySchema = {
+	type: "object",
+	properties: {
+		name: { type: "string", example: "Support queue" },
+		instructions: {
+			type: "string",
+			description: "Required non-empty instructions for create/update",
+			example: "Draft a polite reply for inbound support mail.",
+		},
+		triggers: {
+			type: "array",
+			description: "At least one trigger is required",
+			items: {
+				type: "object",
+				required: ["id", "kind", "enabled"],
+				properties: {
+					id: { type: "string", example: "trg_01" },
+					kind: {
+						type: "string",
+						example: "mail.received",
+						description:
+							"calendar.event_created | calendar.event_updated | calendar.event_canceled | mail.received | mail.sent | mail.received_or_sent",
+					},
+					enabled: { type: "boolean", example: true },
+					calendars: { type: "array", items: { type: "string" } },
+					mailDomains: { type: "array", items: { type: "string" } },
+					inboxes: { type: "array", items: { type: "string" } },
+					onlyInbox: { type: "boolean", default: false },
+					filters: { type: "array", items: { type: "object" } },
+					filterJoin: { type: "string", enum: ["and", "or"], default: "and" },
+				},
+			},
+		},
+		tasks: {
+			type: "array",
+			items: {
+				type: "object",
+				required: ["id", "kind", "enabled"],
+				properties: {
+					id: { type: "string" },
+					kind: { type: "string" },
+					enabled: { type: "boolean" },
+					priority: { type: "integer", default: 0 },
+					config: { type: "object", additionalProperties: true },
+				},
+			},
+		},
+	},
+};
+const taskTriagerBodyExample = {
+	name: "Support queue",
+	instructions: "Draft a polite reply for inbound support mail.",
+	triggers: [
+		{
+			id: "trg_01",
+			kind: "mail.received",
+			enabled: true,
+			onlyInbox: true,
+			filters: [],
+			filterJoin: "and",
+		},
+	],
+	tasks: [],
+};
+
 add(
 	"/api/v1/mailboxes/{mailboxId}/task-triagers",
 	"get",
 	slimOp({
 		summary: "List task triagers",
-		description: "Lists task triagers for the mailbox.",
+		description:
+			"Lists task triagers for the mailbox. Ensures the default system triager exists.",
 		tags: ["Task triage"],
 		parameters: triagerParams,
 		xCredits: 1,
@@ -1863,14 +2380,12 @@ add(
 	"post",
 	slimOp({
 		summary: "Create task triager",
-		description: "Creates a task triager for the mailbox.",
+		description:
+			"Creates a task triager. Requires non-empty `instructions` and at least one trigger. Caller needs mailbox **admin** or **member**.",
 		tags: ["Task triage"],
 		parameters: triagerParams,
 		xCredits: 2,
-		requestBody: jsonBody(
-			{ type: "object", additionalProperties: true },
-			{ name: "Support queue" },
-		),
+		requestBody: jsonBody(taskTriagerBodySchema, taskTriagerBodyExample),
 		successStatus: "201",
 		successDescription: "Created",
 	}),
@@ -1880,11 +2395,30 @@ add(
 	"get",
 	slimOp({
 		summary: "List recent triager runs",
-		description: "Recent triager execution history for the mailbox.",
+		description:
+			"Recent succeeded/failed triager runs for the mailbox, newest first.",
 		tags: ["Task triage"],
-		parameters: triagerParams,
+		parameters: [
+			...triagerParams,
+			queryParam("limit", {
+				description: "Max runs to return (1–20, default 10)",
+				schema: { type: "integer", minimum: 1, maximum: 20, default: 10 },
+				example: 10,
+			}),
+		],
 		xCredits: 1,
-		successExample: [],
+		successExample: {
+			runs: [
+				{
+					id: "run_01",
+					triager: "Support queue",
+					source: "inbound_email",
+					status: "SUCCEEDED",
+					summary: "Drafted reply",
+					finishedAt: "2026-07-15T10:00:00.000Z",
+				},
+			],
+		},
 	}),
 );
 add(
@@ -1892,17 +2426,15 @@ add(
 	"put",
 	slimOp({
 		summary: "Update task triager",
-		description: "Updates a task triager.",
+		description:
+			"Updates a task triager. Default system triager blocks changing protected triggers/instructions (`409`).",
 		tags: ["Task triage"],
 		parameters: [
 			...triagerParams,
 			pathParam("triagerId", "Triager id", "tr_01"),
 		],
 		xCredits: 2,
-		requestBody: jsonBody(
-			{ type: "object", additionalProperties: true },
-			{ name: "Support queue" },
-		),
+		requestBody: jsonBody(taskTriagerBodySchema, taskTriagerBodyExample),
 		successDescription: "Updated",
 	}),
 );
@@ -1911,14 +2443,16 @@ add(
 	"delete",
 	slimOp({
 		summary: "Delete task triager",
-		description: "Deletes a task triager.",
+		description: "Deletes a task triager. Returns **204** with an empty body.",
 		tags: ["Task triage"],
 		parameters: [
 			...triagerParams,
 			pathParam("triagerId", "Triager id", "tr_01"),
 		],
 		xCredits: 2,
+		successStatus: "204",
 		successDescription: "Deleted",
+		successSchema: { type: "object" },
 	}),
 );
 add(
@@ -1926,7 +2460,8 @@ add(
 	"post",
 	slimOp({
 		summary: "Set default task triager",
-		description: "Marks a triager as the mailbox default.",
+		description:
+			"Marks a triager as the mailbox default (clears the previous default).",
 		tags: ["Task triage"],
 		parameters: [
 			...triagerParams,
@@ -1940,23 +2475,21 @@ add(
 	"/api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}/agent-conversation",
 	"post",
 	slimOp({
-		summary: "Attach agent conversation to triager",
-		description: "Links an agent conversation to a triager.",
+		summary: "Get or create triager agent conversation",
+		description:
+			"Returns the dedicated agent conversation for this triager, creating it if missing. No request body is required.",
 		tags: ["Task triage"],
 		parameters: [
 			...triagerParams,
 			pathParam("triagerId", "Triager id", "tr_01"),
 		],
 		xCredits: 2,
-		requestBody: jsonBody(
-			{
-				type: "object",
-				properties: { conversationId: { type: "string" } },
-			},
-			{ conversationId: "conv_01" },
-			false,
-		),
-		successDescription: "Attached",
+		successDescription: "Conversation",
+		successExample: {
+			id: "conv_01",
+			title: "Support queue",
+			message_count: 0,
+		},
 	}),
 );
 
@@ -2483,11 +3016,59 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 				type: "object",
 				properties: {
 					plan: { type: "string", example: "developer" },
-					periodStart: { type: "string", format: "date-time" },
-					periodEnd: { type: "string", format: "date-time" },
-					limit: { type: "number", example: 50000 },
+					plan_name: { type: "string", example: "Developer" },
+					period_start: { type: "string", format: "date-time" },
+					period_end: { type: "string", format: "date-time" },
+					limit: {
+						type: "number",
+						nullable: true,
+						description: "Null when the plan has unlimited API credits",
+						example: 50000,
+					},
 					used: { type: "number", example: 1240 },
-					remaining: { type: "number", example: 48760 },
+					remaining: {
+						type: "number",
+						nullable: true,
+						description: "Null when unlimited",
+						example: 48760,
+					},
+				},
+			},
+			EmailUsage: {
+				type: "object",
+				properties: {
+					workspace_id: { type: "string" },
+					plan: { type: "string" },
+					plan_name: { type: "string" },
+					period_start: { type: "string", format: "date-time" },
+					period_end: { type: "string", format: "date-time" },
+					quota: {
+						type: "number",
+						nullable: true,
+						description: "Plan email send quota (recipient count); null if unlimited",
+					},
+					used: { type: "number" },
+					remaining: { type: "number", nullable: true },
+					legacy_sent_count: {
+						type: "number",
+						description: "Pre-ledger sent recipients included in `used`",
+					},
+					mailboxes: {
+						type: "array",
+						items: {
+							type: "object",
+							properties: {
+								id: { type: "string" },
+								name: { type: "string" },
+								email: { type: "string" },
+								sent: { type: "number" },
+								providers: {
+									type: "object",
+									additionalProperties: { type: "number" },
+								},
+							},
+						},
+					},
 				},
 			},
 			Workspace: {
@@ -2522,13 +3103,34 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 				properties: {
 					id: { type: "string" },
 					workspace_id: { type: "string" },
-					email: { type: "string" },
+					email: { type: "string", format: "email" },
 					name: { type: "string" },
+					email_domain_id: { type: "string", nullable: true },
+					inbound_provider: { type: "string" },
+					outbound_provider: { type: "string" },
+					provider_metadata: { type: "object", additionalProperties: true },
+					bucket_id: { type: "string", nullable: true },
 					settings: { type: "object", additionalProperties: true },
+					welcome_onboarding_status: { type: "string" },
 					inbox_unread_by_category: {
 						type: "object",
-						additionalProperties: { type: "integer" },
+						description: "Present on list endpoints only",
+						properties: {
+							customer_support: { type: "integer" },
+							partnership: { type: "integer" },
+							technical: { type: "integer" },
+							other: { type: "integer" },
+						},
 					},
+				},
+			},
+			MailboxStorage: {
+				type: "object",
+				properties: {
+					mailbox_id: { type: "string" },
+					email: { type: "string" },
+					storage_gb: { type: "number" },
+					blob_count: { type: "integer" },
 				},
 			},
 			Email: {
@@ -2578,10 +3180,27 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 					id: { type: "string" },
 					workspace_id: { type: "string" },
 					domain: { type: "string" },
-					provider: { type: "string" },
-					status: { type: "string" },
-					dns_records: { type: "array", items: { type: "object" } },
-					verified_at: { type: "string", format: "date-time", nullable: true },
+					provider: { type: "string", example: "resend" },
+					status: {
+						type: "string",
+						description:
+							"Provider/local status such as `pending`, `verified`, `deleting`, `deleted`",
+					},
+					provider_domain_id: { type: "string", nullable: true },
+					region: { type: "string", nullable: true },
+					dns_records: {
+						type: "array",
+						items: { type: "object", additionalProperties: true },
+						nullable: true,
+					},
+					last_error: { type: "string", nullable: true },
+					verified_at: {
+						type: "string",
+						format: "date-time",
+						nullable: true,
+					},
+					created_at: { type: "string", format: "date-time" },
+					updated_at: { type: "string", format: "date-time" },
 				},
 			},
 			RagRecallResponse: {
