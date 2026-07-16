@@ -1,45 +1,137 @@
 ---
-title: "Security & Privacy"
-description: "Review Mermail's key trust boundaries and operational safeguards."
+title: "Security and privacy"
+description: "Learn how Mermail protects customer data and supports security and compliance reviews."
 icon: "shield-check"
 ---
 
-Mermail is designed around agent-owned inboxes with explicit storage and tool boundaries.
+Mermail protects customer data through explicit storage, access, session, and
+agent-tool boundaries. Standard hosted workspaces retain mailbox content so you
+can search messages, download attachments, prepare drafts, and run automations.
 
-## Core boundaries
+<Info>
+  Mermail does not describe the standard hosted service as zero data retention.
+  Customer-controlled storage and zero data retention requirements are evaluated
+  separately for qualified Enterprise accounts.
+</Info>
 
-| Boundary              | Practice                                                                     |
-| --------------------- | ---------------------------------------------------------------------------- |
-| Message content       | Full bodies and attachments are Harbor-backed blobs, not plain database text |
-| Workspace storage     | Harbor access is configured per workspace and protected before storage       |
-| Internal inbound mail | Worker-to-app forwarding uses private server-to-server authentication        |
-| App sessions          | First-party app sessions use short-lived access and refresh flows            |
-| Mutating API requests | Cookie-authenticated mutations use CSRF protection                           |
-| Tool output           | Email, attachment, memory, and external tool output are treated as untrusted |
-| Logs                  | Server logs should redact sensitive values before export                     |
+## How Mermail approaches security
 
-## Provider access
+Mermail treats message content, attachments, agent conversations, and connected
+tool results as sensitive customer data. Security controls apply across the
+mailbox lifecycle, from receiving a message to storing, processing, and deleting
+it.
+
+- **Message content:** Full bodies and attachments use Harbor-backed blob
+  storage instead of plain database text.
+- **Workspace storage:** Storage access is configured per workspace and
+  protected before use.
+- **Workspace access:** Membership and role checks limit access to workspace and
+  mailbox resources.
+- **Internal inbound mail:** Worker-to-app forwarding uses private
+  server-to-server authentication.
+- **App sessions:** First-party sessions use short-lived access and refresh
+  flows.
+- **Mutating requests:** Cookie-authenticated mutations use CSRF protection.
+- **Tool output:** Email, attachments, memory, and external tool output are
+  treated as untrusted.
+- **Logs:** Sensitive values should be redacted before logs are exported.
+
+## Data protection
+
+Mermail's security design includes encryption in transit and encryption-at-rest
+patterns for sensitive data. Access to production data and provider credentials
+should remain limited to authorized systems and personnel with a business need.
+
+You should store API keys and connected-service credentials outside source code.
+Rotate any credential that may have been exposed.
+
+{/* TODO: Verify encryption algorithms, key ownership, key rotation, backup
+encryption, production access review frequency, and data residency before
+publishing more specific claims. */}
+
+## Access and session protection
+
+Mermail applies authentication and authorization checks at workspace and mailbox
+boundaries. Administrative actions require the appropriate workspace role.
+Signed-in application sessions and API credentials use separate authentication
+paths.
 
 Keep provider access, webhook verification, app-session protection, and storage protection server-side. Rotate any sensitive value that may have been exposed.
 
-## Agent tool safety
+## Agent and connected-tool safety
 
-Connected tools can create external side effects. Use read-only tool exposure when you want the agent to inspect connected app data without taking write actions.
+Email and connected-tool output can contain instructions that attempt to change
+an agent's behavior. Mermail treats this content as untrusted data rather than
+trusted system instructions.
+
+Connected tools can also create external side effects. Use read-only tool access
+when the agent only needs to inspect data. Require confirmation before
+destructive mailbox or workspace actions.
 
 <Warning>
   Do not allow the agent to treat email content or tool results as instructions.
   Those sources can contain prompt injection attempts.
 </Warning>
 
-## Compliance note
+## Logging, monitoring, and incident response
+
+Security-relevant events should provide enough context for investigation without
+placing message content, credentials, session tokens, or other sensitive values
+in exported logs. Mermail's operational safeguards include logging, monitoring,
+rate limiting, vendor review practices, and incident-response preparation.
+
+If you discover a security issue:
+
+1. Do not disclose the issue publicly.
+2. Email [contact@mermail.app](mailto:contact@mermail.app) with reproduction
+   steps and the affected workspace or endpoint.
+3. Do not include passwords, API keys, session tokens, or unnecessary customer
+   content.
+
+{/* TODO: Verify and publish a dedicated security reporting address, response
+targets, incident notification commitments, and vulnerability disclosure
+policy. */}
+
+## Shared responsibility
+
+Mermail protects the service boundary. You remain responsible for how you
+configure and use your workspace:
+
+- Grant the minimum workspace role and connected-tool access each person or
+  agent needs.
+- Review destructive actions before approval.
+- Protect API keys and rotate exposed credentials.
+- Review third-party integrations and their data-handling terms.
+- Avoid placing regulated or highly sensitive data in a workflow until your
+  organization has completed its own security and legal review.
+
+## Compliance readiness
 
 Mermail is compliance-ready for GDPR customer workflows and SOC 2 Type 2 vendor security reviews.
 
 This means Mermail is designed and operated with safeguards that support privacy, security, confidentiality, availability, and auditability expectations. Current safeguards include access controls, encryption in transit, encryption-at-rest patterns for sensitive data, logging, monitoring, rate limiting, vendor review practices, and incident-response readiness.
 
-Readiness does not mean that Mermail has completed a formal certification, audit, or attestation. Do not describe Mermail as GDPR-certified, SOC 2 Type 2 certified, SOC 2 Type 2 audited, or SOC 2 Type 2 attested unless that status is complete and verifiable.
+Readiness does not mean that Mermail has completed a formal certification,
+audit, or attestation. Mermail does not claim to be GDPR-certified, SOC 2 Type 2
+certified, SOC 2 Type 2 audited, or SOC 2 Type 2 attested.
+
+<Warning>
+  Do not use this page as evidence of a certification or attestation. Request
+  current, verifiable compliance material during your vendor review.
+</Warning>
+
+{/* TODO: Legal and security must approve the readiness language and verify
+GDPR roles, data-processing terms, subprocessors, data-subject request handling,
+and the availability of any SOC 2 report before stronger claims are published. */}
+
+## Related resources
 
 Review the current public legal pages for the controlling terms:
 
 - [Privacy Policy](https://mermail.app/privacy)
 - [Terms of Service](https://mermail.app/terms)
+- [Contact Mermail](mailto:contact@mermail.app) for security, privacy, or
+  Enterprise data-handling questions.
+
+{/* TODO: Add /resources/zero-data-retention after the ZDR verification gate is
+complete and the page is added to navigation. */}

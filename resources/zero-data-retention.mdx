@@ -1,0 +1,137 @@
+---
+title: "Zero data retention"
+description: "Review the proposed scope and verification requirements for Enterprise zero data retention."
+icon: "database-zap"
+tag: "Verification required"
+---
+
+{/* This page intentionally remains outside docs.json navigation until security
+and legal owners verify every retention, provider, deletion, and compliance
+claim listed below. */}
+
+Mermail evaluates customer-controlled storage and zero data retention
+requirements for qualified Enterprise accounts. A workspace is not covered by
+zero data retention unless Mermail confirms the configuration and its scope in
+writing.
+
+<Warning>
+  This page describes the requirements for a zero data retention configuration.
+  It is not a statement that zero data retention is currently enabled or
+  generally available.
+</Warning>
+
+## What customer content includes
+
+For a zero data retention review, customer content includes:
+
+- Email message bodies, headers, and attachments.
+- Drafts, replies, and other generated mailbox content.
+- Agent prompts, model inputs, and model outputs.
+- Agent conversations and retrieved context.
+- Connected-tool inputs and results.
+
+Account identifiers, billing records, security events, usage measurements, and
+audit metadata are operational data. A written Enterprise agreement must define
+which operational data Mermail retains and for how long.
+
+## Proposed scope
+
+A customer-controlled storage configuration is intended to separate real-time
+processing from persistent content storage. When confirmed in writing:
+
+- Customer content is processed only to provide the requested mailbox or agent
+  operation.
+- Persistent customer content is written to the approved customer-controlled
+  storage boundary.
+- Mermail does not use customer content to train shared models.
+- Any temporary copies, queues, caches, logs, or derived content follow the
+  retention limits in the Enterprise agreement.
+
+{/* TODO: Verify whether Mermail or any provider retains temporary copies,
+queues, caches, logs, backups, or derived content outside customer-controlled
+storage. Verify the exact deletion and backup-expiration behavior. */}
+
+## What is not covered
+
+Zero data retention does not automatically remove all operational records. The
+written scope may exclude data needed for:
+
+- **Account and organization data:** Authentication, workspace administration,
+  and support.
+- **Billing and usage data:** Metering, invoices, limits, and capacity planning.
+- **Security and audit events:** Access review, abuse prevention, incident
+  investigation, and compliance evidence.
+- **Delivery metadata:** Routing, suppression, bounce, complaint, and
+  deliverability operations.
+- **Legal records:** Compliance with applicable law and binding legal
+  obligations.
+
+The Enterprise agreement must identify each retained category, its fields,
+storage location, access controls, and retention period.
+
+## Third-party providers
+
+Customer-controlled storage does not by itself control every external service.
+Email delivery, model inference, observability, support, and connected tools may
+process customer content or operational data.
+
+Before enablement, Mermail and the customer must verify:
+
+- Which providers receive customer content.
+- The provider's retention and training terms.
+- Whether a zero-retention or equivalent provider configuration is available.
+- Data residency and cross-border transfer requirements.
+- Subprocessor and deletion obligations.
+
+<Info>
+  Data sent directly to a third-party integration follows that provider's terms
+  unless a written agreement states otherwise.
+</Info>
+
+{/* TODO: Verify and document the AI, email-delivery, observability, storage,
+support, and integration providers used by the ZDR configuration. */}
+
+## Feature availability
+
+Mailbox features that depend on persistent content require working
+customer-controlled storage. A feature may be unavailable when its data cannot
+remain within the approved boundary.
+
+The enablement review must confirm support for:
+
+- Message history, search, and thread views.
+- Attachments, drafts, and scheduled sends.
+- Agent conversation history and retrieval.
+- Task triage, memory, and RAG documents.
+- Support diagnostics, exports, and backups.
+
+If a feature cannot meet the approved storage and retention boundary, Mermail
+must disable it or document the exception before enablement.
+
+{/* TODO: Verify the exact feature limitations and failure behavior for
+customer-controlled storage. */}
+
+## Legal, security, and abuse-prevention exceptions
+
+A zero data retention agreement may allow limited retention when required by
+law, needed to investigate a security incident, or necessary to prevent abuse.
+Any exception must define its trigger, access controls, retention limit, and
+deletion process.
+
+Mermail must not describe an exception as unlimited or use it to retain customer
+content for unrelated product development or model training.
+
+## Request an Enterprise review
+
+Email [contact@mermail.app](mailto:contact@mermail.app) to request an Enterprise
+data-handling review. Include:
+
+- The customer-controlled storage environment you want to use.
+- Required regions and data residency.
+- Required retention and deletion periods.
+- Mailbox and agent features you need.
+- Model and third-party provider restrictions.
+- Your GDPR, security, and audit requirements.
+
+Mermail must confirm eligibility, scope, limitations, providers, and exceptions
+in writing before you treat a workspace as zero data retention.
