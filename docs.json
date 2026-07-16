@@ -52,7 +52,7 @@
         "groups": [
           {
             "group": "AI for agents",
-            "pages": ["ai/mcp"]
+            "pages": ["ai/mcp", "ai/skills", "ai/cli"]
           }
         ]
       },
