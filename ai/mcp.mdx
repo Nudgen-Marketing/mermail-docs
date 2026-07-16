@@ -1,0 +1,146 @@
+---
+title: "MCP"
+description: "Connect AI assistants to Mermail over Streamable HTTP MCP with an API key."
+icon: "plug"
+---
+
+Mermail exposes a [Model Context Protocol](https://modelcontextprotocol.io) server that wraps the sold HTTP API. Assistants call the same workspace-scoped endpoints as `x-api-key` clients — including usage, workspaces, mailboxes, email, agent conversations, and task triage.
+
+## Endpoint
+
+| Item | Value |
+| --- | --- |
+| URL | `https://console.mermail.app/mcp` |
+| Transport | **Streamable HTTP** (JSON-RPC over `POST`) |
+| Auth | `x-api-key: sk-proj-…` (API key only) |
+| Methods | `POST` only — `GET` / `DELETE` return `405` |
+
+The server is **stateless**: there is no SSE subscription. Clients that expect long-lived SSE should use a Streamable HTTP–capable MCP host instead.
+
+## Discover the server
+
+```bash
+curl -sS https://console.mermail.app/.well-known/mcp/server-card.json | jq .
+```
+
+The card includes:
+
+| Field | Meaning |
+| --- | --- |
+| `serverInfo` | Name `Mermail MCP`, version |
+| `transport.protocol` | `streamable-http` |
+| `transport.endpoint` | Absolute MCP URL (`…/mcp`) |
+| `authentication` | `api-key` via `x-api-key`, prefix `sk-proj-` |
+| `capabilities.tools.list` | `prepare_destructive_action` plus every catalog tool |
+
+<Tip>
+  Prefer the URL and tool list from the live server card for your host. Do not hardcode a host if you deploy to a custom domain.
+</Tip>
+
+## Authentication and metering
+
+1. Create a workspace API key in **Settings → API Keys**. See [Authentication](/api-reference/authentication).
+2. Send it on every MCP `POST` as `x-api-key`.
+3. Cookie / console sessions are **rejected** (`401` `api_key_required`).
+
+The key’s bound workspace scopes every tool. Calls consume that workspace’s **RPM** and **API credits**, the same as the REST sold API.
+
+## Connect an assistant
+
+Configure an MCP client with Streamable HTTP + header auth. Example shape:
+
+```json
+{
+  "mcpServers": {
+    "mermail": {
+      "url": "https://console.mermail.app/mcp",
+      "headers": {
+        "x-api-key": "sk-proj-YOUR_KEY"
+      }
+    }
+  }
+}
+```
+
+Exact config keys differ by host (Cursor, Claude Code, custom MCP clients). The important parts are the `/mcp` URL, Streamable HTTP (not SSE), and `x-api-key`.
+
+## How tools map to the API
+
+Each tool (except `prepare_destructive_action`) maps to one sold API operation:
+
+| Argument | Use |
+| --- | --- |
+| Path params | Top-level strings (`mailboxId`, `workspaceId`, …) matching the OpenAPI path |
+| `query` | Optional object of query-string values |
+| `body` | Optional JSON body for `POST` / `PUT` / `PATCH` |
+| `idempotencyKey` | Optional; sent as `Idempotency-Key` |
+| `confirmationToken` | Required on **destructive** tools (see below) |
+
+Server instructions: prefer read-only tools before writes. Responses are JSON text (plus `structuredContent` when the body is an object). Binary payloads (for example attachments) are capped at **1 MiB**; larger downloads should use the REST attachment endpoint.
+
+## Destructive actions
+
+Destructive tools (delete workspace/member/domain/email/folder/label/conversation/triager, bulk delete, empty trash, …) require a short-lived confirmation token:
+
+1. Call `prepare_destructive_action` with:
+   - `action` — the destructive tool name
+   - `arguments` — the same arguments you will pass to that tool (without `confirmationToken`)
+2. Receive `{ confirmationToken, expiresInSeconds }` (token prefix `mcp_confirm_`, TTL **5 minutes**, single-use, Redis-backed).
+3. Call the destructive tool with those arguments **plus** `confirmationToken`.
+
+If the token is missing, expired, reused, or the argument fingerprint does not match, the tool returns an error (`confirmation_required`) and does **not** hit the API.
+
+<Warning>
+  Confirmations require Redis. If Redis / cache is disabled, `prepare_destructive_action` fails with `503` `confirmation_unavailable`.
+</Warning>
+
+## Tool catalog
+
+The live server exposes **63** tools: `prepare_destructive_action` + **62** API wrappers. Grouped by area:
+
+<AccordionGroup>
+  <Accordion title="Usage">
+    `get_api_credit_usage`, `get_email_usage`
+  </Accordion>
+  <Accordion title="Workspaces & members">
+    `list_workspaces`, `get_workspace`, `update_workspace`, `delete_workspace`, `get_workspace_storage`, `list_workspace_members`, `update_member_role`, `remove_workspace_member`, `invite_workspace_member`, `resend_workspace_invite`
+  </Accordion>
+  <Accordion title="Custom domains (Developer+)">
+    `list_email_domains`, `add_email_domain`, `delete_email_domain`, `verify_email_domain`
+
+    These hit Developer-gated REST paths. Free workspaces receive `403` when the tool runs.
+  </Accordion>
+  <Accordion title="Mailboxes">
+    `list_workspace_mailboxes`, `list_mailboxes`, `create_mailbox`, `get_mailbox`, `update_mailbox_settings`, `get_mailbox_storage`
+  </Accordion>
+  <Accordion title="Emails, drafts, threads, folders, labels">
+    `list_emails`, `send_email`, `get_email`, `update_email`, `delete_email`, `bulk_delete_emails`, `bulk_mark_emails_read`, `bulk_move_emails`, `move_email`, `reply_to_email`, `forward_email`, `download_attachment`, `save_draft`, `regenerate_draft`, `schedule_email_send`, `empty_trash`, `get_thread`, `mark_thread_read`, `list_folders`, `create_folder`, `update_folder`, `delete_folder`, `search_emails`, `list_custom_labels`, `create_custom_label`, `update_custom_label`, `delete_custom_label`
+  </Accordion>
+  <Accordion title="AI agent & task triage">
+    `list_agent_conversations`, `create_agent_conversation`, `rename_agent_conversation`, `delete_agent_conversation`, `list_agent_messages`, `chat_with_mailbox_agent`, `list_task_triagers`, `create_task_triager`, `list_recent_triager_runs`, `update_task_triager`, `delete_task_triager`, `set_default_task_triager`, `get_or_create_triager_conversation`
+  </Accordion>
+  <Accordion title="Safety">
+    `prepare_destructive_action` — issues confirmation tokens for destructive tools
+  </Accordion>
+</AccordionGroup>
+
+Open-world tools (outbound email / invites / agent chat) are annotated `openWorldHint` for MCP clients that surface that signal.
+
+For request/response shapes of each underlying HTTP route, use the [API Reference](/api-reference/overview).
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/api-reference/authentication">
+    Create and use `sk-proj-` API keys.
+  </Card>
+  <Card title="Discovery" icon="radar" href="/api-reference/discovery">
+    Public discovery URLs including the MCP server card.
+  </Card>
+  <Card title="API overview" icon="code" href="/api-reference/overview">
+    HTTP sold API with `x-api-key` authentication.
+  </Card>
+  <Card title="Mailbox agent" icon="sparkles" href="/concepts/ai-agent">
+    In-product agent that uses mailbox context and tools.
+  </Card>
+</CardGroup>

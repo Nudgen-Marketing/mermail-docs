@@ -1,0 +1,80 @@
+---
+title: "CLI"
+description: "Use Mermail from the command line — discovery, sold API calls, and MCP client setup."
+icon: "terminal"
+---
+
+Mermail does not ship a separate `mermail` binary yet. Use standard CLI tools to discover endpoints, call the sold HTTP API, and register the MCP server with agent hosts.
+
+## Prerequisites
+
+- A workspace API key (`sk-proj-…`) from **Settings → API Keys** for protected HTTP calls. See [Authentication](/api-reference/authentication).
+- `curl` (or any HTTP client) on your machine.
+- Optional: an MCP-capable agent CLI (Cursor, Claude Code, etc.) for the [MCP](/ai/mcp) server.
+
+## Discover surfaces
+
+```bash
+# MCP server card
+curl -sS https://console.mermail.app/.well-known/mcp/server-card.json | jq .
+
+# Agent Skills index
+curl -sS https://console.mermail.app/.well-known/agent-skills/index.json | jq .
+
+# Short AI-readable index
+curl -sS https://console.mermail.app/llms.txt
+```
+
+## Call the sold API
+
+List workspaces visible to your key:
+
+```bash
+curl -sS https://console.mermail.app/api/v1/workspaces \
+  -H "x-api-key: sk-proj-YOUR_KEY" | jq .
+```
+
+Check remaining API credits:
+
+```bash
+curl -sS "https://console.mermail.app/api/v1/workspaces/WORKSPACE_ID/usage/credits" \
+  -H "x-api-key: sk-proj-YOUR_KEY" | jq .
+```
+
+List mailboxes:
+
+```bash
+curl -sS "https://console.mermail.app/api/v1/mailboxes?workspaceId=WORKSPACE_ID" \
+  -H "x-api-key: sk-proj-YOUR_KEY" | jq .
+```
+
+<Info>
+  Every sold API call with `x-api-key` debits API credits. Reads cost **1** credit. See [API overview](/api-reference/overview) for the full catalog and credit classes.
+</Info>
+
+## Register MCP from a shell
+
+1. Read the live Streamable HTTP endpoint and auth hint:
+
+```bash
+curl -sS https://console.mermail.app/.well-known/mcp/server-card.json | jq .
+```
+
+2. Add that URL to your agent’s MCP config with header `x-api-key: sk-proj-…`. Use **Streamable HTTP** (not SSE) — see [MCP](/ai/mcp).
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="MCP" icon="plug" href="/ai/mcp">
+    Server card, tools, and assistant connection.
+  </Card>
+  <Card title="Skills" icon="puzzle-piece" href="/ai/skills">
+    Agent Skills index and skill JSON documents.
+  </Card>
+  <Card title="Authentication" icon="key" href="/api-reference/authentication">
+    Create and use `x-api-key` credentials.
+  </Card>
+  <Card title="API playground" icon="square-terminal" href="/api-reference/overview">
+    Interactive sold API reference.
+  </Card>
+</CardGroup>

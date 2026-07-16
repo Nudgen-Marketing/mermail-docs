@@ -47,6 +47,16 @@
         ]
       },
       {
+        "tab": "AI for agents",
+        "icon": "sparkles",
+        "groups": [
+          {
+            "group": "AI for agents",
+            "pages": ["ai/mcp"]
+          }
+        ]
+      },
+      {
         "tab": "API Reference",
         "icon": "square-terminal",
         "groups": [

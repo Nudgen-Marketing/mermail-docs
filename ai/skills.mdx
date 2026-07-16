@@ -1,0 +1,68 @@
+---
+title: "Skills"
+description: "Use Mermail Agent Skills for mailbox management and RAG document inspection."
+icon: "puzzle-piece"
+---
+
+Mermail publishes an [Agent Skills](https://agentskills.io) index so agents can discover reusable skills without hardcoding product URLs.
+
+## Skills index
+
+```bash
+curl https://console.mermail.app/.well-known/agent-skills/index.json
+```
+
+The index follows the Agent Skills schema and currently lists:
+
+| Skill | Description |
+| --- | --- |
+| **Mailbox Management** | List and inspect user mailboxes and folders |
+| **RAG Documents** | Inspect status and metadata for indexed RAG documents |
+
+Each skill entry includes a `url` pointing at the skill definition JSON and a `sha256` integrity hash.
+
+## Skill definitions
+
+### Mailbox Management
+
+```bash
+curl https://console.mermail.app/.well-known/agent-skills/list-mailboxes.json
+```
+
+Returns a web skill with an empty input schema — list mailboxes and folders for the authenticated / session context.
+
+### RAG Documents
+
+```bash
+curl https://console.mermail.app/.well-known/agent-skills/rag-documents.json
+```
+
+Requires `mailboxId` in the input. Use it to read RAG document metadata and verification status for that mailbox.
+
+## How agents should use this
+
+1. Fetch `/.well-known/agent-skills/index.json`.
+2. Resolve each skill `url` for the current host.
+3. Verify `sha256` when your runtime supports integrity checks.
+4. Invoke the skill according to its `inputSchema`.
+
+<Tip>
+  Absolute URLs in the index are generated for the current site origin. Prefer discovery over hardcoded console hosts in multi-environment setups.
+</Tip>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="MCP" icon="plug" href="/ai/mcp">
+    Connect assistants over Model Context Protocol.
+  </Card>
+  <Card title="CLI" icon="terminal" href="/ai/cli">
+    Fetch skill documents and call the HTTP API from a shell.
+  </Card>
+  <Card title="Discovery" icon="radar" href="/api-reference/discovery">
+    Commerce, OAuth, OpenAPI, and agent protocol URLs.
+  </Card>
+  <Card title="Mailbox agent" icon="sparkles" href="/concepts/ai-agent">
+    In-product agent that can use mailbox context and tools.
+  </Card>
+</CardGroup>
