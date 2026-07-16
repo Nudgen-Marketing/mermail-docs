@@ -1,0 +1,109 @@
+---
+title: "Auto-forward email to Mermail"
+sidebarTitle: "Overview"
+description: "Use Mermail alongside your existing email provider while controlling which messages the AI can process."
+icon: "circle-info"
+---
+
+Mermail can work alongside Gmail, Outlook, and other email providers. You keep using your existing inbox and forward selected messages to a Mermail mailbox.
+
+Mermail does not sign in to your provider account or read your whole inbox. Its AI can process only messages delivered to the Mermail mailbox and the thread context delivered with them.
+
+![Email moves from an existing provider through a selective rule to a Mermail mailbox. An AI draft can be handled in Mermail, while a direct reply in the original provider permanently hands the thread to a human.](/images/guides/auto-forwarding-workflow.svg)
+
+## Choose what the AI can process
+
+<Tip>
+  Start with a selective forwarding rule instead of forwarding your entire inbox. Expand the rule after you confirm that it includes only the mail you want Mermail to process.
+</Tip>
+
+Useful allowlist criteria include:
+
+- Messages sent to a support or sales address.
+- Messages from known customers or partner domains.
+- Messages with a project label or a specific subject prefix.
+- Messages that match an existing provider folder or rule.
+
+Exclude messages that should remain outside the AI workflow, such as invoices, payroll, legal correspondence, medical information, password resets, security alerts, and personal conversations.
+
+<Info>
+  Your forwarding rule defines the data boundary. A message that is not forwarded to Mermail is not available to the Mermail mailbox or its AI.
+</Info>
+
+## Understand human takeover
+
+Use a Mermail AI draft when you want the thread to remain in the Mermail workflow.
+
+If you reply directly from Gmail, Outlook, or another original provider, Mermail treats that action as a human takeover. The entire thread becomes human-managed, and Mermail AI permanently stops processing later messages in that thread.
+
+<Warning>
+  Human takeover applies to the whole thread, not only the message you answered. Continue the conversation in your original provider after taking it over.
+</Warning>
+
+## Prerequisites
+
+- A working Mermail mailbox.
+- Access to the forwarding settings or rules in your existing email provider.
+- Permission from your organization administrator if external forwarding is restricted.
+- The Mermail mailbox address that should receive forwarded messages.
+
+## Set up and test forwarding
+
+<Steps>
+  <Step title="Choose a provider guide">
+    Follow the instructions for your existing email provider.
+  </Step>
+  <Step title="Create a narrow rule">
+    Start with one sender, recipient address, label, or subject condition that is safe for AI processing.
+  </Step>
+  <Step title="Verify the destination">
+    If your provider sends a confirmation message, open the Mermail mailbox and approve the forwarding request.
+  </Step>
+  <Step title="Send a matching test message">
+    Send a new message that matches the rule. Existing messages are not normally forwarded retroactively.
+  </Step>
+  <Step title="Confirm delivery">
+    Check that the message appears in Mermail and that an unrelated or excluded message does not.
+  </Step>
+</Steps>
+
+<Check>
+  Forwarding is ready when matching new messages appear in Mermail and excluded messages remain only in the original provider.
+</Check>
+
+## Choose your email provider
+
+<Columns cols={2}>
+  <Card title="Gmail" icon="google" href="/guides/auto-forwarding/gmail">
+    Forward selected Gmail messages with filters.
+  </Card>
+  <Card title="Outlook" icon="microsoft" href="/guides/auto-forwarding/outlook">
+    Use Outlook forwarding settings or inbox rules.
+  </Card>
+  <Card title="iCloud Mail" icon="apple" href="/guides/auto-forwarding/icloud">
+    Forward all mail or use iCloud Mail rules.
+  </Card>
+  <Card title="Proton Mail" icon="shield" href="/guides/auto-forwarding/proton">
+    Create a conditional forwarding rule on a paid plan.
+  </Card>
+  <Card title="Yahoo Mail" icon="envelope" href="/guides/auto-forwarding/yahoo">
+    Configure forwarding when it is available for your plan and locale.
+  </Card>
+  <Card title="Lark Mail" icon="feather" href="/guides/auto-forwarding/lark">
+    Enable administrator permissions, then configure mailbox forwarding.
+  </Card>
+</Columns>
+
+## Stop forwarding
+
+Disable or delete the rule in your original provider. This prevents new messages from reaching Mermail. Messages already delivered to Mermail remain subject to your workspace storage and retention settings.
+
+## Troubleshooting
+
+| Problem | What to check |
+| --- | --- |
+| No verification message appears | Check the Mermail inbox and spam folder, then confirm the destination address |
+| Matching messages do not arrive | Check that the rule is enabled and applies to new incoming mail |
+| Too many messages arrive | Narrow the rule and disable any separate account-wide forwarding setting |
+| External forwarding is unavailable | Ask your email administrator whether organization policy blocks it |
+| A thread no longer receives AI processing | Check whether someone replied directly from the original provider |

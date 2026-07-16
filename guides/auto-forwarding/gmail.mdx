@@ -1,0 +1,89 @@
+---
+title: "Forward Gmail to Mermail"
+description: "Forward selected Gmail messages to a Mermail mailbox with a privacy-first filter."
+icon: "google"
+---
+
+Use a Gmail filter to forward only the messages you want Mermail AI to process. Gmail can also forward all new non-spam messages, but selective forwarding provides a narrower data boundary.
+
+## Prerequisites
+
+- A Mermail mailbox address.
+- Access to Gmail in a desktop browser.
+- Permission to configure forwarding if you use Google Workspace.
+
+## Add and verify the Mermail address
+
+<Steps>
+  <Step title="Open Gmail settings">
+    In Gmail, click **Settings** and then **See all settings**.
+  </Step>
+  <Step title="Add a forwarding address">
+    Open **Forwarding and POP/IMAP** or **Forwarding**, then click **Add a forwarding address**.
+  </Step>
+  <Step title="Enter the Mermail address">
+    Enter your Mermail mailbox address. Confirm the prompts to send a verification message.
+  </Step>
+  <Step title="Approve the request">
+    Open the verification message in Mermail and follow its confirmation link.
+  </Step>
+  <Step title="Refresh Gmail">
+    Return to Gmail settings and refresh the page so the verified address becomes available to filters.
+  </Step>
+</Steps>
+
+## Forward selected messages
+
+<Steps>
+  <Step title="Keep account-wide forwarding disabled">
+    In **Forwarding and POP/IMAP**, select **Disable forwarding**. A filter can still forward matching messages to the verified address.
+  </Step>
+  <Step title="Define the filter">
+    In the Gmail search box, click **Show search options**. Enter criteria such as a recipient address, sender domain, label, or subject.
+  </Step>
+  <Step title="Test the criteria">
+    Click **Search** and review the results. Confirm that the search excludes private messages you do not want AI to process.
+  </Step>
+  <Step title="Create the forwarding action">
+    Click **Create filter**, select **Forward it**, choose the Mermail address, and click **Create filter** again.
+  </Step>
+</Steps>
+
+<Tip>
+  Prefer a positive rule such as `to:support@example.com` over a broad rule with many exceptions. Positive rules are easier to audit.
+</Tip>
+
+## Forward all new messages
+
+To forward all new non-spam messages, open **Forwarding and POP/IMAP**, select **Forward a copy of incoming mail to**, choose the Mermail address, and save your changes.
+
+Google recommends keeping the Gmail copy in the inbox. Account-wide forwarding does not forward spam.
+
+<Warning>
+  Account-wide forwarding sends substantially more mailbox content to Mermail. Use it only when you intend the Mermail mailbox and its AI to receive all new non-spam messages.
+</Warning>
+
+## Test the setup
+
+Send one new message that matches the filter and one that does not. Confirm that only the matching message appears in Mermail.
+
+## Stop forwarding
+
+- For selective forwarding, open **Settings** → **Filters and Blocked Addresses**, then disable or delete the filter.
+- For account-wide forwarding, open **Forwarding and POP/IMAP**, select **Disable forwarding**, and save your changes.
+
+## Human takeover
+
+If you reply to a forwarded thread directly in Gmail, Mermail treats the entire thread as human-managed and permanently stops AI processing for it.
+
+## Troubleshooting
+
+| Problem | What to check |
+| --- | --- |
+| The forwarding address is unavailable | Complete the verification link from the message delivered to Mermail |
+| Every message is forwarded | Disable account-wide forwarding and keep only the selective filter |
+| A filter forwards the wrong mail | Re-run its search criteria before saving changes |
+| Settings are unavailable | Ask your Google Workspace administrator whether forwarding is restricted |
+
+For current provider instructions, see [Automatically forward Gmail messages to another account](https://support.google.com/mail/answer/10957?hl=en).
+

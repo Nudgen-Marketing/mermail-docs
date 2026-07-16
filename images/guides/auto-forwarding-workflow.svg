@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Privacy-first email forwarding workflow</title>
+  <desc id="desc">Email moves from an existing provider through a selective filter to Mermail. An AI draft can remain managed in Mermail, or a direct reply in the original provider permanently hands the thread to a human.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0 0 L12 6 L0 12 Z" fill="#257b7d"/>
+    </marker>
+    <style>
+      .box { fill: #ffffff; stroke: #257b7d; stroke-width: 3; }
+      .accent { fill: #e8fafa; stroke: #257b7d; stroke-width: 3; }
+      .human { fill: #fff5e8; stroke: #a65f00; stroke-width: 3; }
+      .line { fill: none; stroke: #257b7d; stroke-width: 4; marker-end: url(#arrow); }
+      .heading { fill: #15292a; font: 700 26px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .body { fill: #334d4e; font: 18px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .note { fill: #744400; font: 700 18px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    </style>
+  </defs>
+  <rect width="1200" height="760" rx="28" fill="#f6fbfb"/>
+
+  <rect class="box" x="390" y="40" width="420" height="100" rx="18"/>
+  <text class="heading" x="600" y="82" text-anchor="middle">Existing email provider</text>
+  <text class="body" x="600" y="113" text-anchor="middle">Gmail, Outlook, iCloud, Proton, Yahoo, or Lark</text>
+
+  <path class="line" d="M600 140 L600 190"/>
+  <rect class="accent" x="390" y="190" width="420" height="100" rx="18"/>
+  <text class="heading" x="600" y="232" text-anchor="middle">Selective filter or rule</text>
+  <text class="body" x="600" y="263" text-anchor="middle">Only approved messages cross the AI data boundary</text>
+
+  <path class="line" d="M600 290 L600 340"/>
+  <rect class="accent" x="390" y="340" width="420" height="100" rx="18"/>
+  <text class="heading" x="600" y="382" text-anchor="middle">Mermail mailbox</text>
+  <text class="body" x="600" y="413" text-anchor="middle">Forwarded messages and delivered thread context</text>
+
+  <path class="line" d="M600 440 L600 490"/>
+  <rect class="box" x="390" y="490" width="420" height="90" rx="18"/>
+  <text class="heading" x="600" y="530" text-anchor="middle">AI draft for review</text>
+  <text class="body" x="600" y="559" text-anchor="middle">You decide where to continue the conversation</text>
+
+  <path class="line" d="M500 580 C500 625 315 615 315 650"/>
+  <path class="line" d="M700 580 C700 625 885 615 885 650"/>
+
+  <rect class="accent" x="90" y="650" width="450" height="80" rx="18"/>
+  <text class="heading" x="315" y="685" text-anchor="middle">Reply with the AI draft</text>
+  <text class="body" x="315" y="714" text-anchor="middle">The thread remains managed in Mermail</text>
+
+  <rect class="human" x="660" y="650" width="450" height="80" rx="18"/>
+  <text class="heading" x="885" y="685" text-anchor="middle">Reply in the original provider</text>
+  <text class="note" x="885" y="714" text-anchor="middle">Permanent human takeover for the thread</text>
+</svg>

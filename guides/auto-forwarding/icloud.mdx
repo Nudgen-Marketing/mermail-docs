@@ -1,0 +1,80 @@
+---
+title: "Forward iCloud Mail to Mermail"
+description: "Forward all or selected iCloud Mail messages to a Mermail mailbox."
+icon: "apple"
+---
+
+iCloud Mail can forward all incoming mail or use rules to forward selected messages. Use a rule when you want to limit what Mermail AI can process.
+
+## Prerequisites
+
+- A Mermail mailbox address.
+- An active iCloud Mail account.
+- Access to [iCloud Mail](https://www.icloud.com/mail) in a browser.
+
+## Forward selected messages
+
+<Steps>
+  <Step title="Open iCloud Mail settings">
+    Sign in to iCloud Mail, click the settings button above the mailbox list, and choose **Settings**.
+  </Step>
+  <Step title="Open rules">
+    Select **Rules**, then add a rule.
+  </Step>
+  <Step title="Define the messages">
+    Choose criteria such as sender, recipient, or subject that identify mail you want Mermail to process.
+  </Step>
+  <Step title="Choose forwarding">
+    Set the rule action to forward the message to your Mermail mailbox address.
+  </Step>
+  <Step title="Save and test">
+    Save the rule and send a new matching message.
+  </Step>
+</Steps>
+
+<Info>
+  Each iCloud Mail forwarding rule can use one forwarding address.
+</Info>
+
+## Forward all messages
+
+<Steps>
+  <Step title="Open Mail Forwarding">
+    In iCloud Mail settings, select **Mail Forwarding**.
+  </Step>
+  <Step title="Enable forwarding">
+    Select **Forward my email to** and enter the Mermail mailbox address.
+  </Step>
+  <Step title="Keep the iCloud copy">
+    Leave **Delete messages after forwarding** cleared unless you intentionally want iCloud to remove its copy.
+  </Step>
+</Steps>
+
+<Warning>
+  Deleting messages after forwarding removes the provider copy. Keeping it gives you an independent record in iCloud Mail and makes human takeover easier.
+</Warning>
+
+## Test the setup
+
+Send a new message that matches the rule. Confirm that it appears in both iCloud Mail and Mermail. If you created a selective rule, send a second excluded message and confirm that it remains only in iCloud Mail.
+
+## Stop forwarding
+
+- Delete or disable the selective rule in iCloud Mail settings.
+- For account-wide forwarding, open **Mail Forwarding** and clear **Forward my email to**.
+
+## Human takeover
+
+If you reply to a forwarded thread directly in iCloud Mail, Mermail treats the entire thread as human-managed and permanently stops AI processing for it.
+
+## Troubleshooting
+
+| Problem | What to check |
+| --- | --- |
+| New mail is not forwarded | Confirm the forwarding address and rule criteria |
+| Old mail is not forwarded | Automatic forwarding applies to new incoming messages |
+| iCloud storage keeps growing | Review whether provider copies should be archived or deleted |
+| Sensitive messages reach Mermail | Replace account-wide forwarding with a narrow rule |
+
+For current provider instructions, see [Automatically forward email in Mail on iCloud.com](https://support.apple.com/en-vn/guide/icloud/mm6b1a3960/icloud).
+

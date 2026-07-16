@@ -1,48 +1,120 @@
 ---
 title: "Custom domains"
-description: "Configure a custom email subdomain for Mermail mailboxes."
+description: "Add and verify a custom email subdomain for Mermail mailboxes."
 icon: "globe"
 ---
 
-Custom domains let your workspace create Mermail mailboxes on a domain you control. Mermail supports the custom-domain path through Resend domain verification.
+Custom domains let you create Mermail mailboxes on a domain your organization controls. Use them when an agent needs an address that matches your product, team, or company identity.
 
-## Use a subdomain first
+Mermail provisions custom domains through Resend and returns the DNS records you need to publish. After the domain is verified, you can create mailboxes such as `support@mail.example.com`.
 
-Use a subdomain such as:
+## Before you begin
 
-```text
-support.mail.example.com
-```
+You need:
 
-Avoid changing MX records for the root domain unless you intend Mermail to own that whole mail lane. Root domains often already receive company email through Google Workspace, Microsoft 365, or another provider.
+- A Developer or Enterprise workspace with an available custom-domain slot.
+- Workspace admin access.
+- Permission to edit DNS records for the parent domain.
+- A dedicated subdomain with at least three labels, such as `mail.example.com` or `support.mail.example.com`.
 
-## Setup flow
+<Warning>
+  Mermail does not accept a bare root domain such as `example.com`. Use a dedicated subdomain so you do not replace the MX records that route your organization's existing email.
+</Warning>
+
+## Add and verify the domain
 
 <Steps>
-  <Step title="Choose the subdomain">
-    Pick a subdomain dedicated to Mermail mailbox traffic.
+  <Step title="Choose a dedicated subdomain">
+    Choose the exact subdomain that should appear after `@` in the new mailbox addresses.
+
+    For example, registering `mail.example.com` lets you create an address such as `support@mail.example.com`.
   </Step>
-  <Step title="Add it in workspace settings">
-    Mermail creates a provider domain and returns DNS records.
+
+  <Step title="Add the domain to your workspace">
+    Open the Mermail console, select the workspace, and go to its custom-domain settings. Add the complete subdomain, including the parent domain.
+
+    Mermail creates the provider domain and displays the DNS records required for verification.
   </Step>
+
   <Step title="Publish DNS records">
-    Add the required records with your DNS provider.
+    Open the DNS dashboard for the parent domain. Create every record shown in Mermail and copy each field exactly.
+
+    | Mermail field | DNS provider field | What to enter |
+    | --- | --- | --- |
+    | Type | Type | Select the returned record type, such as `TXT` or `MX` |
+    | Name | Name, host, or hostname | Copy the returned record name |
+    | Value | Value, content, target, or mail server | Copy the returned record value |
+    | Priority | Priority | For an MX record, copy the returned priority when one is provided |
+
+    DNS providers format record names differently. Some expect the complete name, such as `resend._domainkey.mail.example.com`. Others expect only the part relative to the parent zone. Follow your provider's convention and confirm that it does not append the parent domain twice.
+
+    <Info>
+      Keep any existing DNS records that are not replaced by the records Mermail returns. Do not add guessed SPF, DKIM, MX, or DMARC values.
+    </Info>
   </Step>
-  <Step title="Verify in Mermail">
-    Mermail asks the provider to verify the domain and records the verified status.
+
+  <Step title="Wait for DNS propagation">
+    DNS changes may appear within minutes but can take longer depending on the provider and record TTL. Review the published records before starting verification.
   </Step>
-  <Step title="Create mailboxes">
-    Create mailboxes on the verified domain.
+
+  <Step title="Verify the domain">
+    Return to the domain in Mermail and click **Verify**. Mermail asks Resend to check the current DNS records.
+
+    If the domain remains `pending`, wait for propagation, compare each record with the values shown in Mermail, and verify again. Review `last_error` when Mermail displays a provider error.
+  </Step>
+
+  <Step title="Create a mailbox">
+    Wait until the domain status is `verified`, then follow [Create a mailbox](/guides/create-mailbox) and select the verified domain for the address.
   </Step>
 </Steps>
+
+<Check>
+  The domain is ready when its status is `verified` and Mermail shows a verification time.
+</Check>
+
+## Understand domain status
+
+| Status or field | Meaning |
+| --- | --- |
+| `pending` | The domain exists, but Mermail has not confirmed all required DNS records |
+| `verified` | The DNS records are confirmed and the domain can be used for mailboxes |
+| `deleting` | Domain removal is in progress |
+| `deleted` | The domain has been removed |
+| `last_error` | The most recent provider or verification error, when available |
+| `verified_at` | The time Mermail recorded successful verification |
+
+## Manage an existing domain
+
+You can list, verify, and delete custom domains from the workspace. Verification is safe to retry after you correct DNS records or wait for propagation.
+
+Before deleting a domain, remove every mailbox that uses it. Mermail rejects deletion while a mailbox is still attached to the domain.
+
+<Warning>
+  Deleting a domain removes its Mermail and provider configuration. Confirm that no active mailbox or integration depends on it before you proceed.
+</Warning>
+
+<Card title="Domains API reference" icon="square-terminal" href="/api-reference/overview">
+  Open the Domains group in the API Reference to list, add, verify, or delete domains programmatically.
+</Card>
 
 ## Domain requirements
 
 - The value must be a subdomain, not a bare root domain.
+- The subdomain must contain at least three labels.
 - Each DNS label must use letters, numbers, and hyphens.
-- A workspace must be on a plan that includes custom domains.
+- The workspace must be on a plan that includes custom domains.
+- Adding, verifying, and deleting a domain requires workspace admin access.
 - You must remove mailboxes from a domain before deleting the domain.
 
-<Warning>
-  DNS changes can affect existing email delivery. Confirm the subdomain is dedicated to Mermail before you publish records.
-</Warning>
+## Troubleshooting
+
+| Problem | What to check |
+| --- | --- |
+| The domain is rejected | Enter a subdomain with at least three labels instead of a root domain |
+| You cannot add or verify the domain | Confirm that you are a workspace admin and the workspace is on Developer or Enterprise |
+| The workspace domain limit is reached | Remove an unused domain or review the workspace plan limits |
+| The domain remains `pending` | Wait for DNS propagation, then run verification again |
+| A record is not detected | Check its type, name, value, and MX priority against the values shown in Mermail |
+| A record name contains the domain twice | Use the relative host format required by your DNS provider |
+| Verification returns an error | Review `last_error`, correct the DNS records, and retry verification |
+| The domain cannot be deleted | Remove all mailboxes that use the domain before deleting it |

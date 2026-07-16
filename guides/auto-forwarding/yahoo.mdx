@@ -1,0 +1,59 @@
+---
+title: "Forward Yahoo Mail to Mermail"
+description: "Configure Yahoo Mail forwarding to a Mermail mailbox when the feature is available."
+icon: "envelope"
+---
+
+Yahoo Mail forwarding is available with Yahoo Mail Plus and is not available in every locale. The setting may not appear in your account.
+
+## Prerequisites
+
+- A Yahoo Mail Plus subscription.
+- A Mermail mailbox address.
+- A locale and account where Yahoo exposes automatic forwarding.
+
+## Enable forwarding
+
+<Steps>
+  <Step title="Open Yahoo settings">
+    In Yahoo Mail, click **Settings** and then **More Settings**.
+  </Step>
+  <Step title="Choose the mailbox">
+    Click **Mailboxes** and select the primary mailbox account.
+  </Step>
+  <Step title="Enter the destination">
+    Under **Forwarding** or **Auto-forwarding**, enter the Mermail mailbox address.
+  </Step>
+  <Step title="Verify the address">
+    Click **Verify**, then open the message delivered to Mermail and follow its instructions.
+  </Step>
+  <Step title="Test new mail">
+    Send a new message to the Yahoo address and confirm that it appears in Mermail.
+  </Step>
+</Steps>
+
+<Warning>
+  Yahoo’s published forwarding setup is account-wide. Do not assume selective forwarding is available unless your current Yahoo Mail interface provides supported rule conditions for it.
+</Warning>
+
+If the account contains messages that should not reach AI, use a dedicated Yahoo address for the Mermail workflow or choose a provider that supports conditional forwarding.
+
+## Stop forwarding
+
+Return to **Settings** → **More Settings** → **Mailboxes**, select the primary mailbox, and remove or disable the forwarding address.
+
+## Human takeover
+
+If you reply to a forwarded thread directly in Yahoo Mail, Mermail treats the entire thread as human-managed and permanently stops AI processing for it.
+
+## Troubleshooting
+
+| Problem | What to check |
+| --- | --- |
+| Forwarding is not listed | Confirm your Mail Plus subscription and locale availability |
+| Forwarding is not active | Complete the verification instructions delivered to Mermail |
+| Private messages reach Mermail | Disable account-wide forwarding and use a dedicated source mailbox |
+| New mail is delayed | Check both Yahoo and Mermail spam folders before retrying |
+
+For current provider instructions, see [Enable automatic email forwarding in Yahoo Mail](https://help.yahoo.com/kb/SLN29133.html).
+

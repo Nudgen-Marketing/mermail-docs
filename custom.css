@@ -1,0 +1,9 @@
+[data-component-name="primary-header-button"],
+#topbar-cta-button {
+  color: #000 !important;
+}
+
+[data-component-name="primary-header-button"] svg,
+#topbar-cta-button svg {
+  display: none;
+}
