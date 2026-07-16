@@ -1,0 +1,87 @@
+---
+title: "Forward Outlook to Mermail"
+description: "Use Outlook forwarding or inbox rules to send selected messages to a Mermail mailbox."
+icon: "microsoft"
+---
+
+Outlook supports account-wide forwarding and conditional inbox rules. Use an inbox rule when you want Mermail AI to process only selected messages.
+
+## Prerequisites
+
+- A Mermail mailbox address.
+- Access to Outlook settings or rules.
+- Administrator approval if your Microsoft 365 organization blocks external forwarding.
+
+## Forward selected messages with a rule
+
+<Steps>
+  <Step title="Open Outlook rules">
+    In new Outlook, Outlook on the web, or Outlook.com, open **Settings** → **Mail** → **Rules**.
+  </Step>
+  <Step title="Create a rule">
+    Click **Add new rule** and enter a clear name such as `Forward support mail to Mermail`.
+  </Step>
+  <Step title="Choose conditions">
+    Add conditions for the recipient address, sender, subject, or another supported field. Add exceptions for sensitive messages when needed.
+  </Step>
+  <Step title="Choose the forwarding action">
+    Select **Redirect to** when you want the message to retain the original sender, then enter the Mermail address.
+  </Step>
+  <Step title="Save and test">
+    Save the rule and send a new matching message. Confirm that it appears in Mermail.
+  </Step>
+</Steps>
+
+<Info>
+  A forwarded message appears to come from your Outlook address. A redirected message appears to come from the original sender. Redirecting is usually a better fit for a mailbox workflow because it preserves sender identity.
+</Info>
+
+## Forward all messages
+
+In new Outlook or Outlook on the web:
+
+<Steps>
+  <Step title="Open forwarding settings">
+    Open **Settings** → **Mail** → **Forwarding**.
+  </Step>
+  <Step title="Enable forwarding">
+    Turn on **Enable forwarding** and enter the Mermail mailbox address.
+  </Step>
+  <Step title="Keep an Outlook copy">
+    Select **Keep a copy of forwarded messages** if you want the original provider to retain each message.
+  </Step>
+  <Step title="Save">
+    Save the setting and test with a new incoming message.
+  </Step>
+</Steps>
+
+Outlook.com may place the setting under **Settings** → **Email** → **Forwarding and IMAP**.
+
+<Warning>
+  Account-wide forwarding sends all eligible new messages to Mermail. Prefer a rule with explicit conditions when the inbox contains mail that AI should not process.
+</Warning>
+
+## Test the setup
+
+Send one message that matches the rule and one that does not. Check the Mermail mailbox and the Outlook junk folder. Confirm that only the intended message reaches Mermail.
+
+## Stop forwarding
+
+- Delete or disable the inbox rule under **Mail** → **Rules**.
+- For account-wide forwarding, return to **Mail** → **Forwarding**, disable forwarding, and save.
+
+## Human takeover
+
+If you reply to a forwarded thread directly in Outlook, Mermail treats the entire thread as human-managed and permanently stops AI processing for it.
+
+## Troubleshooting
+
+| Problem | What to check |
+| --- | --- |
+| External forwarding does not work | Ask your Microsoft 365 administrator whether outbound automatic forwarding is blocked |
+| Replies use the wrong sender | Use **Redirect to** instead of **Forward to** |
+| Mailbox storage is full | Remove old mail; forwarding rules can stop when the mailbox exceeds its limit |
+| The rule affects too many messages | Add conditions or exceptions and test the rule again |
+
+See Microsoft’s current guides for [automatic forwarding](https://support.microsoft.com/en-us/outlook/mail/turn-automatic-forwarding-on-or-off-in-outlook) and [rule-based forwarding or redirecting](https://support.microsoft.com/en-US/Outlook/mail/use-rules-to-automatically-forward-messages).
+

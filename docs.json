@@ -29,7 +29,23 @@
           },
           {
             "group": "Guides",
-            "pages": ["guides/create-mailbox", "guides/custom-domains"]
+            "pages": [
+              "guides/create-mailbox",
+              "guides/custom-domains",
+              {
+                "group": "Auto forwarding",
+                "icon": "forward",
+                "pages": [
+                  "guides/auto-forwarding/overview",
+                  "guides/auto-forwarding/gmail",
+                  "guides/auto-forwarding/outlook",
+                  "guides/auto-forwarding/icloud",
+                  "guides/auto-forwarding/proton",
+                  "guides/auto-forwarding/yahoo",
+                  "guides/auto-forwarding/lark"
+                ]
+              }
+            ]
           },
           {
             "group": "Integrations",
@@ -44,6 +60,7 @@
             "pages": [
               "resources/faq",
               "resources/support",
+              "resources/contact-socials",
               "resources/plans"
             ]
           }

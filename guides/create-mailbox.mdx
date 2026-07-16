@@ -25,26 +25,34 @@ Create a mailbox when an agent needs its own email identity.
 
 ## Create a custom-domain mailbox
 
-Before creating a custom-domain mailbox, add and verify the subdomain in workspace settings.
+Before creating the mailbox, [add and verify the custom domain](/guides/custom-domains). The domain must have a `verified` status.
 
 <Steps>
-  <Step title="Add the domain">
-    Go to workspace settings and add a subdomain such as `support.mail.example.com`.
+  <Step title="Open the workspace">
+    In the console, select the workspace that owns the verified domain.
   </Step>
-  <Step title="Add DNS records">
-    Add the DNS records returned by the provider.
+  <Step title="Start mailbox creation">
+    Click **New mailbox** and select the verified custom domain.
   </Step>
-  <Step title="Verify the domain">
-    Click **Verify** after DNS has propagated.
+  <Step title="Choose the address">
+    Enter the username that should appear before `@`.
   </Step>
-  <Step title="Create the mailbox">
-    Create a mailbox using an address on the verified domain.
+  <Step title="Confirm the mailbox">
+    Review the complete custom-domain address and create the mailbox.
   </Step>
 </Steps>
 
 <Info>
   Custom domains require a paid plan. The Developer plan includes up to 5 custom domains.
 </Info>
+
+## Receive mail from an existing inbox
+
+You can keep using Gmail, Outlook, or another email provider and forward selected messages to the new Mermail mailbox. Mermail does not receive direct access to the provider account.
+
+<Card title="Set up auto forwarding" icon="forward" href="/guides/auto-forwarding/overview">
+  Define a privacy-first forwarding rule and choose a provider guide.
+</Card>
 
 ## Troubleshooting
 

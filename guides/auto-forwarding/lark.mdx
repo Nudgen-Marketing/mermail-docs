@@ -1,0 +1,105 @@
+---
+title: "Forward Lark Mail to Mermail"
+description: "Enable Lark Mail forwarding permissions and forward selected messages to a Mermail mailbox."
+icon: "feather"
+---
+
+Lark Mail administrators must allow auto-forwarding before members can configure it. After permission is enabled, a member can forward all new messages or create auto filters for selected messages.
+
+## Prerequisites
+
+- A Mermail mailbox address.
+- A Lark Mail member or public mailbox.
+- A primary administrator or an administrator with Email permissions.
+- Organization policy that permits sending mail to external recipients.
+
+## Administrator: allow auto-forwarding
+
+<Steps>
+  <Step title="Open the Lark Admin Console">
+    Go to the [Lark Admin Console](https://www.larksuite.com/admin).
+  </Step>
+  <Step title="Open forwarding permissions">
+    Select **Product Settings** → **Mail** → **Email Management Tools** → **User Function Permissions** → **Auto Forward**.
+  </Step>
+  <Step title="Edit the permission">
+    Click **Edit** and select **On** under **Permissions**.
+  </Step>
+  <Step title="Choose the scope">
+    Select **Entire organization** or **Set range**. Use **Set range** when only specific member or public mailboxes should be allowed to forward externally.
+  </Step>
+  <Step title="Save">
+    Save the permission change.
+  </Step>
+</Steps>
+
+<Tip>
+  Limit permission scope to the mailboxes that need Mermail. This reduces the number of accounts that can create external forwarding rules.
+</Tip>
+
+## Member: forward selected messages
+
+<Steps>
+  <Step title="Open auto filters">
+    In Lark Mail, click the **Auto filters** icon and then **Create Auto Filter**.
+  </Step>
+  <Step title="Define the filter">
+    Enter a name and add conditions for messages that are safe for Mermail AI to process.
+  </Step>
+  <Step title="Add the action">
+    Under **Then do this**, select **Auto-forward to** and enter the Mermail mailbox address.
+  </Step>
+  <Step title="Create and verify">
+    Click **Create**, then approve the verification message delivered to Mermail.
+  </Step>
+</Steps>
+
+Lark allows up to five forwarding addresses through auto filters. Delete the destination from **Auto filters** when you want to stop selective forwarding.
+
+## Member: forward all new messages
+
+<Steps>
+  <Step title="Open email settings">
+    Click your profile photo and select **Settings** → **Email**.
+  </Step>
+  <Step title="Open Auto-forward">
+    Under **Auto-forward**, click **Set Up Now**.
+  </Step>
+  <Step title="Add Mermail">
+    Enter the Mermail mailbox address and click **Add**.
+  </Step>
+  <Step title="Verify the destination">
+    Approve the verification message delivered to Mermail. Lark sends a notification after setup succeeds.
+  </Step>
+</Steps>
+
+Lark allows up to two addresses for account-wide auto-forwarding.
+
+<Info>
+  For a public mailbox, switch to that mailbox before following the member steps. Administrator permission must include the public mailbox.
+</Info>
+
+## Test the setup
+
+Send a new matching message. Lark does not forward existing messages, spam, messages addressed to a mailing list destination, or certain automatic replies.
+
+## Stop forwarding
+
+- For selected messages, delete the Mermail destination from **Auto filters**.
+- For all messages, return to **Settings** → **Email** → **Auto-forward** → **Set Up Now**, then turn off **Enable auto-forward** for the address.
+
+## Human takeover
+
+If you reply to a forwarded thread directly in Lark Mail, Mermail treats the entire thread as human-managed and permanently stops AI processing for it.
+
+## Troubleshooting
+
+| Problem | What to check |
+| --- | --- |
+| Members cannot configure forwarding | Confirm that an administrator enabled the permission for their scope |
+| External addresses are rejected | Check organization restrictions on sending to external recipients |
+| Old or spam messages are missing | Lark forwards only eligible new messages and excludes spam |
+| The rule is inactive | Complete destination verification in Mermail |
+
+See Lark’s current guides for [administrator auto-forwarding permissions](https://www.larksuite.com/hc/en-US/articles/540862218086-admin-configure-email-auto-forwarding) and [member email auto-forwarding](https://www.larksuite.com/hc/en-US/articles/360048488155-set-up-email-auto-forwarding).
+

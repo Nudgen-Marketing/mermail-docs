@@ -1,0 +1,70 @@
+---
+title: "Forward Proton Mail to Mermail"
+description: "Create a conditional Proton Mail forwarding rule for a Mermail mailbox."
+icon: "shield"
+---
+
+Proton Mail supports forwarding on paid Proton Mail plans. You can add conditions so only selected messages reach Mermail.
+
+## Prerequisites
+
+- A Proton Mail Plus, Proton Unlimited, or other paid Proton Mail plan.
+- A Mermail mailbox address.
+- Access to Proton Mail account settings.
+
+## Create a forwarding rule
+
+<Steps>
+  <Step title="Open Proton settings">
+    Sign in to Proton Mail and select **Settings** → **All settings**.
+  </Step>
+  <Step title="Start a forwarding rule">
+    Select **Forward and auto-reply**, then click **Add forwarding rule**.
+  </Step>
+  <Step title="Choose the addresses">
+    Select the Proton address to forward from and enter the Mermail mailbox address in **Forward to**.
+  </Step>
+  <Step title="Add privacy conditions">
+    Click **Add condition** and define the sender, subject, attachment, or other criteria that identify messages safe for Mermail AI.
+  </Step>
+  <Step title="Send confirmation">
+    Save the conditions, click **Send confirmation email**, then approve the request from the message delivered to Mermail.
+  </Step>
+  <Step title="Confirm activation">
+    Return to Proton Mail and verify that the forwarding rule is active.
+  </Step>
+</Steps>
+
+<Warning>
+  Forwarding to a non-Proton address disables end-to-end encryption for mail to and from the Proton address being forwarded. Proton states that this does not affect your other Proton addresses. Consider using a dedicated Proton address for the Mermail workflow.
+</Warning>
+
+## Forwarding limitations
+
+- Proton does not re-forward messages that were already forwarded into Proton Mail.
+- The destination must accept the confirmation request before forwarding starts.
+- Conditional forwarding and account-wide forwarding both require a paid Proton Mail plan.
+
+## Test the setup
+
+Send one new message that matches the conditions and one that does not. Confirm that only the matching message appears in Mermail.
+
+## Stop forwarding
+
+Open **Settings** → **All settings** → **Forward and auto-reply**. Use the rule’s action menu to pause, edit, or delete it.
+
+## Human takeover
+
+If you reply to a forwarded thread directly in Proton Mail, Mermail treats the entire thread as human-managed and permanently stops AI processing for it.
+
+## Troubleshooting
+
+| Problem | What to check |
+| --- | --- |
+| Forwarding settings are unavailable | Confirm that the Proton account has a paid Mail plan |
+| The rule remains inactive | Accept the forwarding request from the Mermail mailbox |
+| A forwarded message is skipped | Proton does not support forwarding chains |
+| Too much mail reaches Mermail | Add or narrow the forwarding conditions |
+
+For current provider instructions and encryption details, see [How to use email forwarding](https://proton.me/support/email-forwarding).
+
