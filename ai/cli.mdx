@@ -63,7 +63,7 @@ mermail emails send \
 
 ### Complex request bodies
 
-Flags, enum choices, required query parameters, and request validation are generated from the checked-in OpenAPI contract for each operation. Unrelated flags are not shown. Nested or complete bodies can still use JSON, a file, or stdin:
+Common fields have typed flags. Nested or complete bodies can use JSON, a file, or stdin:
 
 ```bash
 mermail triagers create --mailbox-id MAILBOX_ID --data-file triager.json
@@ -83,19 +83,15 @@ JSON is the stable default. Data is written to stdout; diagnostics and errors ar
 | `yaml` | Human-readable structured output |
 | `pretty` / `table` | Interactive inspection |
 | `raw` | Text or explicitly requested binary output |
-| `explore` | Interactive traversal in a human-operated terminal |
 
 ```bash
-mermail mailboxes list --transform '[].email'
-mermail mailboxes list --format explore
+mermail mailboxes list --format json | jq '.[].email'
 mermail attachments download \
   --mailbox-id MAILBOX_ID \
   --email-id EMAIL_ID \
   --attachment-id ATTACHMENT_ID \
   --output-file attachment.pdf
 ```
-
-`--transform` uses JMESPath and runs before formatting. Agents and CI should keep the default JSON format; `explore` requires an interactive terminal.
 
 ## Destructive actions
 
@@ -140,12 +136,6 @@ MERMAIL_BASE_URL=https://console-staging.mermail.app mermail mcp check
 | `130` | Cancelled or interrupted |
 
 Common API statuses remain available in JSON errors: `402` credits exhausted, `403` workspace/plan denial, and `429` RPM exceeded.
-
-## Contract and retry behavior
-
-The CLI validates all 62 method/path pairs against a reproducible OpenAPI snapshot. A scheduled remote check compares the same 62 operation names with the production MCP server card so additions and removals cannot silently drift.
-
-Only read requests retry transient network failures, `408`, `429`, `502`, `503`, and `504`. `Retry-After` supports both seconds and HTTP dates and is capped at 30 seconds. Writes and external effects are never retried automatically.
 
 ## Related
 
