@@ -6,6 +6,8 @@ icon: "radar"
 
 Mermail exposes public discovery routes so agents and tools can understand the service before calling protected APIs.
 
+For interactive endpoint testing with an API key (`x-api-key`), use the [API Reference](/api-reference/overview) playground.
+
 ## Human and AI-readable indexes
 
 | Path | Purpose |
@@ -19,7 +21,7 @@ Mermail exposes public discovery routes so agents and tools can understand the s
 
 | Path | Purpose |
 | --- | --- |
-| `/openapi.json` | Public OpenAPI document |
+| `/openapi.json` | Public OpenAPI document (compact) |
 | `/docs/openapi.json` | Same OpenAPI document under docs path |
 | `/.well-known/api-catalog` | API catalog metadata |
 | `/.well-known/oauth-authorization-server` | OAuth authorization server metadata |
@@ -33,7 +35,7 @@ Mermail exposes public discovery routes so agents and tools can understand the s
 | --- | --- |
 | `/.well-known/ucp` | Universal Commerce Protocol metadata |
 | `/.well-known/acp.json` | Agent Commerce Protocol metadata |
-| `/.well-known/mcp/server-card.json` | MCP server card |
+| `/.well-known/mcp/server-card.json` | MCP server card (Streamable HTTP + API key) — see [MCP](/ai/mcp) |
 | `/.well-known/agent-skills/index.json` | Agent skill index |
 
 <Tip>

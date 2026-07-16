@@ -1,37 +1,183 @@
 ---
 title: "API overview"
-description: "Understand the Mermail API resource areas and where to find the OpenAPI spec."
+description: "Authenticate with an API key, see plan limits, and try Mermail endpoints from the docs."
 icon: "code"
 ---
 
-Mermail's app API is served under `/api/v1`. It uses first-party app sessions for console users. Cookie-authenticated mutating requests require CSRF protection.
+Use Mermail’s HTTP API from scripts, agents, Postman, or this docs **Try it** playground.
 
-The deployed app also exposes an OpenAPI document at:
+**Base URL:** `https://console.mermail.app`
 
-```text
-/openapi.json
-```
-
-and:
-
-```text
-/docs/openapi.json
-```
-
-<Info>
-  The current OpenAPI document is intentionally small. Use it as the
-  machine-readable starting point, and treat this page as the human index of
-  implemented resource areas.
-</Info>
-
-## Health check
-
-Use the status endpoint for a basic service check:
+All protected sold-API routes need:
 
 ```bash
-curl https://console.mermail.app/api/status
+x-api-key: sk-proj-YOUR_KEY
 ```
 
-## Payment-aware routes
+Create a key in the Mermail app under **Settings → API Keys**, then paste it into Try it or your client. See [Authentication](/api-reference/authentication).
 
-Mermail includes agentic commerce discovery and payment metadata for some protected actions. See [Discovery](/api-reference/discovery).
+Every sold-API credential call debits **API credits** and counts toward workspace **RPM**. When credits run out you get `402`; when you exceed RPM you get `429`.
+
+<Note>
+  Each API key is bound to **one workspace**. Path and body `workspaceId` values must match that workspace (`403` `workspace_scope_denied` otherwise). `GET /workspaces` returns only the key’s workspace. Workspaces are created automatically for new accounts in the Mermail console — there is no sold-API “create workspace” endpoint.
+</Note>
+
+Each endpoint page in this reference shows **plan badges** (sidebar tag + Plans line):
+
+| Badge | Meaning |
+| --- | --- |
+| `All plans` | Free, Developer, and Enterprise |
+| `Developer+` | Developer and Enterprise only (`403` on Free) |
+
+---
+
+## Plans at a glance
+
+| | Free | Developer | Enterprise |
+| --- | ---: | ---: | ---: |
+| API keys | 1 | 5 | Unlimited |
+| API credits / period | 1,000 | 50,000 | Soft unlimited |
+| API RPM | 60 | 300 | Unlimited |
+| Core API catalog | Yes | Yes | Yes |
+| Developer-gated APIs | No (`403`) | Yes | Yes |
+
+Full workspace limits (inboxes, email volume, storage): [Plans](/resources/plans).
+
+Enterprise shares the same endpoint list as Developer — higher quotas, not extra customer paths.
+
+---
+
+## Quick start
+
+<Steps>
+  <Step title="Create an API key">
+    In Mermail → **Settings → API Keys** → copy `sk-proj-…` once (Free: 1 key, Developer: up to 5).
+  </Step>
+  <Step title="Pick an endpoint">
+    Use the sidebar in this API Reference. Prefer core catalog endpoints on Free; Developer-gated paths need Developer or Enterprise.
+  </Step>
+  <Step title="Authorize and send">
+    Open the page → **Try it** → paste your API key → fill params → send. Or copy a **cURL / Python / JavaScript / PHP / Go / Java / Ruby** snippet from the language dropdown.
+  </Step>
+</Steps>
+
+<Tip>
+  Start with **Usage → Get API credit usage** after you have a key.
+</Tip>
+
+---
+
+## Core API catalog (all plans)
+
+Auth: `x-api-key`. Metered with credits + RPM. Open each group in the sidebar for full schemas and Try it.
+
+### Catalog by area
+
+<AccordionGroup>
+  <Accordion title="Workspaces, members, invites, usage">
+    | Method | Path | Credits |
+    | --- | --- | ---: |
+    | `GET` | `/api/v1/workspaces` | 1 |
+    | `GET` | `/api/v1/workspaces/{workspaceId}` | 1 |
+    | `PUT` | `/api/v1/workspaces/{workspaceId}` | 2 |
+    | `GET` | `/api/v1/workspaces/{workspaceId}/storage` | 1 |
+    | `GET` | `/api/v1/workspaces/{workspaceId}/usage/email` | 1 |
+    | `GET` | `/api/v1/workspaces/{workspaceId}/usage/credits` | 1 |
+    | `GET` | `/api/v1/workspaces/{workspaceId}/members` | 1 |
+    | `PUT` | `/api/v1/workspaces/{workspaceId}/members/{memberId}` | 2 |
+    | `DELETE` | `/api/v1/workspaces/{workspaceId}/members/{memberId}` | 2 |
+    | `POST` | `/api/v1/workspaces/{workspaceId}/invites` | 2 |
+    | `POST` | `/api/v1/workspaces/{workspaceId}/invites/{inviteId}/resend` | 2 |
+  </Accordion>
+
+  <Accordion title="Mailboxes">
+    | Method | Path | Credits |
+    | --- | --- | ---: |
+    | `GET` | `/api/v1/workspaces/{workspaceId}/mailboxes` | 1 |
+    | `GET` | `/api/v1/mailboxes` | 1 |
+    | `POST` | `/api/v1/mailboxes` | 10 |
+    | `GET` | `/api/v1/mailboxes/{mailboxId}` | 1 |
+    | `PUT` | `/api/v1/mailboxes/{mailboxId}` | 2 |
+    | `GET` | `/api/v1/mailboxes/{mailboxId}/storage` | 1 |
+  </Accordion>
+
+  <Accordion title="Emails, folders, search, labels">
+    List / send / reply / forward, drafts, scheduled sends, threads, folders, search, and custom labels under `/api/v1/mailboxes/{mailboxId}/...`.
+
+    Typical costs: send / reply / forward / schedule = **5**; draft regenerate = **15**; most reads = **1**, writes = **2**.
+  </Accordion>
+
+  <Accordion title="AI agent">
+    | Method | Path | Credits |
+    | --- | --- | ---: |
+    | `GET` | `/api/v1/mailboxes/{mailboxId}/agent-conversations` | 1 |
+    | `POST` | `/api/v1/mailboxes/{mailboxId}/agent-conversations` | 2 |
+    | `PATCH` | `/api/v1/mailboxes/{mailboxId}/agent-conversations/{conversationId}` | 2 |
+    | `DELETE` | `/api/v1/mailboxes/{mailboxId}/agent-conversations/{conversationId}` | 2 |
+    | `GET` | `/api/v1/mailboxes/{mailboxId}/agent-conversations/{conversationId}/messages` | 1 |
+    | `POST` | `/api/agent/mailbox` | 25 |
+  </Accordion>
+
+  <Accordion title="Task triage">
+    | Method | Path | Credits |
+    | --- | --- | ---: |
+    | `GET` | `/api/v1/mailboxes/{mailboxId}/task-triagers` | 1 |
+    | `POST` | `/api/v1/mailboxes/{mailboxId}/task-triagers` | 2 |
+    | `GET` | `/api/v1/mailboxes/{mailboxId}/task-triager-runs/recent` | 1 |
+    | `PUT` | `/api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}` | 2 |
+    | `DELETE` | `/api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}` | 2 |
+    | `POST` | `/api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}/default` | 2 |
+    | `POST` | `/api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}/agent-conversation` | 2 |
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Developer-gated APIs (Developer + Enterprise)
+
+Free workspaces receive `403` on these paths. Upgrade to unlock them.
+
+| Area | Paths |
+| --- | --- |
+| Custom domains | `GET/POST /workspaces/{id}/email-domains`, `DELETE …/{domainId}`, `POST …/verify` |
+
+---
+
+## Credits
+
+| Class | Cost |
+| --- | ---: |
+| read | 1 |
+| write | 2 |
+| email_send | 5 |
+| provision | 10 |
+| ai_light | 15 |
+| ai_heavy | 25 |
+
+Free and Developer return `402` (`credits_exhausted`) when the period pool is empty. Enterprise soft-unlimited still records usage. Check remaining balance via `GET /api/v1/workspaces/{workspaceId}/usage/credits`.
+
+## Rate limits
+
+| Plan | Default RPM |
+| --- | ---: |
+| Free | 60 |
+| Developer | 300 |
+| Enterprise | Unlimited |
+
+Over limit → `429`.
+
+## Auth reminder
+
+| Credential | Header | When to use |
+| --- | --- | --- |
+| API key | `x-api-key: sk-proj-…` | Scripts, Postman, and apps |
+
+Details: [Authentication](/api-reference/authentication).
+
+## Spec source
+
+This reference is generated from `openapi/openapi.json`. Regenerate with:
+
+```bash
+node scripts/generate-openapi.mjs
+```

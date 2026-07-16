@@ -1,32 +1,40 @@
 ---
 title: "Authentication"
-description: "Understand Mermail app sessions and request protection."
+description: "Authenticate sold API calls with a Mermail API key via x-api-key."
 icon: "key"
 ---
 
-Mermail uses first-party app sessions for console users. The API creates an app session after the identity flow succeeds, then uses session cookies for later app requests.
+Sold API endpoints require a workspace-scoped API key. Create a key in **Settings → API Keys**, then send it as `x-api-key` from Postman, scripts, or this docs playground. Console cookie sessions do not need this header.
 
-## App session flow
+Each key is bound to **one workspace**. Use that workspace’s id in path/query/body fields. A mismatched `workspaceId` returns `403` `workspace_scope_denied`. Your default workspace is created when you sign in to the Mermail console — not via the sold API.
+
+## Create an API key
 
 <Steps>
-  <Step title="Complete identity sign-in">
-    Sign in through the console identity flow.
+  <Step title="Open Settings → API Keys">
+    Workspace admins can create, list, and revoke keys. Free allows 1 key; Developer up to 5; Enterprise unlimited.
   </Step>
-  <Step title="Create a Mermail session">
-    The app exchanges the identity proof for a Mermail app session.
-  </Step>
-  <Step title="Use session cookies">
-    Later API requests use the app session cookies.
-  </Step>
-  <Step title="Refresh or logout">
-    The client can refresh the session or revoke it during logout.
+  <Step title="Copy the key once">
+    The dialog shows `apiKey` (`sk-proj-…`). Mermail does not show the full key again.
   </Step>
 </Steps>
 
-## Request protection
+## Call with an API key
 
-Cookie-authenticated mutating requests use CSRF protection. This protects app-session routes when the browser automatically sends cookies.
+```bash
+curl https://console.mermail.app/api/v1/workspaces \
+  -H "x-api-key: sk-proj-YOUR_KEY"
+```
 
-## Internal mail forwarding
+In the docs playground, open any protected endpoint, click **Try it**, and paste the key into the API key field. Prefill examples populate path and body fields so you can send immediately. Use the language dropdown to switch and copy snippets for **cURL, Python, JavaScript, PHP, Go, Java, or Ruby**.
 
-Inbound mail forwarding between the worker and the app uses private server-to-server authentication.
+Manage keys in the Mermail app under **Settings → API Keys** (workspace admin). Free allows 1 key; Developer up to 5; Enterprise unlimited.
+
+## Common errors
+
+| Status | Meaning |
+| --- | --- |
+| `401` | Missing, invalid, expired, or revoked key — or calling without `x-api-key` outside the console |
+| `403` | Wrong workspace for this key (`workspace_scope_denied`), missing role, or Developer-gated path on Free |
+| `402` | API credits exhausted (`credits_exhausted`) |
+| `429` | Workspace RPM exceeded |
