@@ -176,7 +176,6 @@ function isDeveloperGatedApiPath(pathname, method = "GET") {
 	if (/\/workspaces\/[^/]+\/storage$/.test(pathname) && m !== "GET") {
 		return true;
 	}
-	if (pathname.includes("/task-triager")) return true;
 	if (pathname.includes("/rag/credentials/")) return true;
 	if (/\/rag\/documents$/.test(pathname) && m === "POST") return true;
 	if (/\/rag\/documents\/[^/]+$/.test(pathname) && m === "DELETE") return true;
@@ -1852,7 +1851,7 @@ add(
 	"get",
 	slimOp({
 		summary: "List task triagers",
-		description: "Lists task triagers. **Developer or Enterprise** required.",
+		description: "Lists task triagers for the mailbox.",
 		tags: ["Task triage"],
 		parameters: triagerParams,
 		xCredits: 1,
@@ -1864,7 +1863,7 @@ add(
 	"post",
 	slimOp({
 		summary: "Create task triager",
-		description: "Creates a task triager. **Developer or Enterprise** required.",
+		description: "Creates a task triager for the mailbox.",
 		tags: ["Task triage"],
 		parameters: triagerParams,
 		xCredits: 2,
@@ -1881,7 +1880,7 @@ add(
 	"get",
 	slimOp({
 		summary: "List recent triager runs",
-		description: "Recent triager execution history. **Developer+** required.",
+		description: "Recent triager execution history for the mailbox.",
 		tags: ["Task triage"],
 		parameters: triagerParams,
 		xCredits: 1,
@@ -1893,7 +1892,7 @@ add(
 	"put",
 	slimOp({
 		summary: "Update task triager",
-		description: "Updates a task triager. **Developer+** required.",
+		description: "Updates a task triager.",
 		tags: ["Task triage"],
 		parameters: [
 			...triagerParams,
@@ -1912,7 +1911,7 @@ add(
 	"delete",
 	slimOp({
 		summary: "Delete task triager",
-		description: "Deletes a task triager. **Developer+** required.",
+		description: "Deletes a task triager.",
 		tags: ["Task triage"],
 		parameters: [
 			...triagerParams,
@@ -1927,7 +1926,7 @@ add(
 	"post",
 	slimOp({
 		summary: "Set default task triager",
-		description: "Marks a triager as the mailbox default. **Developer+**.",
+		description: "Marks a triager as the mailbox default.",
 		tags: ["Task triage"],
 		parameters: [
 			...triagerParams,
@@ -1942,7 +1941,7 @@ add(
 	"post",
 	slimOp({
 		summary: "Attach agent conversation to triager",
-		description: "Links an agent conversation to a triager. **Developer+**.",
+		description: "Links an agent conversation to a triager.",
 		tags: ["Task triage"],
 		parameters: [
 			...triagerParams,
@@ -2415,7 +2414,7 @@ const spec = {
 Authorize with an API key from **Settings → API Keys**:
 
 \`\`\`
-x-api-key: mm_key_…
+x-api-key: sk-proj-…
 \`\`\`
 
 ## Plans
@@ -2454,7 +2453,7 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 		{ name: "Mailboxes", description: "Agent inboxes" },
 		{ name: "Emails", description: "Send, list, search, folders" },
 		{ name: "AI agent", description: "Mailbox agent chat" },
-		{ name: "Task triage", description: "Task triagers (Developer+)" },
+		{ name: "Task triage", description: "Task triagers (all plans)" },
 		{ name: "RAG", description: "Knowledge documents and recall" },
 		{ name: "Integrations", description: "Composio, Telegram, push" },
 		{ name: "Affiliate", description: "Affiliate program" },
@@ -2468,7 +2467,7 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 				in: "header",
 				name: "x-api-key",
 				description:
-					"API key (`mm_key_…`) from Settings → API Keys. Required for sold API calls outside the Mermail console.",
+					"API key (`sk-proj-…`) from Settings → API Keys. Required for sold API calls outside the Mermail console.",
 			},
 		},
 		schemas: {

@@ -3,7 +3,7 @@
   "info": {
     "title": "Mermail API",
     "version": "1.0.0",
-    "description": "Programmatic Mermail API for scripts, agents, and integrations.\n\n## Authentication\n\nAuthorize with an API key from **Settings → API Keys**:\n\n```\nx-api-key: mm_key_…\n```\n\n## Plans\n\nEach endpoint page shows plan badges (**Public**, **All plans**, or **Developer+**). Free can call the core catalog; Developer-gated paths need Developer or Enterprise.\n\n## Try it\n\nEvery endpoint page includes an interactive playground. Click **Try it**, paste your API key into the `x-api-key` field, fill path/query/body fields (prefilled from examples), and send a live request to `https://console.mermail.app`. You can also copy the generated cURL / JavaScript / Python snippet.\n\n## Credits\n\n| Class | Cost |\n| --- | ---: |\n| read | 1 |\n| write | 2 |\n| email_send | 5 |\n| provision | 10 |\n| ai_light | 15 |\n| ai_heavy | 25 |\n",
+    "description": "Programmatic Mermail API for scripts, agents, and integrations.\n\n## Authentication\n\nAuthorize with an API key from **Settings → API Keys**:\n\n```\nx-api-key: sk-proj-…\n```\n\n## Plans\n\nEach endpoint page shows plan badges (**Public**, **All plans**, or **Developer+**). Free can call the core catalog; Developer-gated paths need Developer or Enterprise.\n\n## Try it\n\nEvery endpoint page includes an interactive playground. Click **Try it**, paste your API key into the `x-api-key` field, fill path/query/body fields (prefilled from examples), and send a live request to `https://console.mermail.app`. You can also copy the generated cURL / JavaScript / Python snippet.\n\n## Credits\n\n| Class | Cost |\n| --- | ---: |\n| read | 1 |\n| write | 2 |\n| email_send | 5 |\n| provision | 10 |\n| ai_light | 15 |\n| ai_heavy | 25 |\n",
     "contact": {
       "name": "Mermail",
       "email": "contact@mermail.app",
@@ -47,7 +47,7 @@
     },
     {
       "name": "Task triage",
-      "description": "Task triagers (Developer+)"
+      "description": "Task triagers (all plans)"
     },
     {
       "name": "RAG",
@@ -9312,7 +9312,7 @@
     "/api/v1/mailboxes/{mailboxId}/task-triagers": {
       "get": {
         "summary": "List task triagers",
-        "description": "**Plans:** `Developer` · `Enterprise`\n\nLists task triagers. **Developer or Enterprise** required.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLists task triagers for the mailbox.\n\n**API credits:** 1 (read).",
         "tags": [
           "Task triage"
         ],
@@ -9416,6 +9416,10 @@
         "x-credits": 1,
         "x-badges": [
           {
+            "name": "Free",
+            "color": "green"
+          },
+          {
             "name": "Developer",
             "color": "blue"
           },
@@ -9425,12 +9429,13 @@
           }
         ],
         "x-plan-access": [
+          "free",
           "developer",
           "enterprise"
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+",
+            "tag": "All plans",
             "title": "List task triagers",
             "sidebarTitle": "List task triagers"
           }
@@ -9438,7 +9443,7 @@
       },
       "post": {
         "summary": "Create task triager",
-        "description": "**Plans:** `Developer` · `Enterprise`\n\nCreates a task triager. **Developer or Enterprise** required.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nCreates a task triager for the mailbox.\n\n**API credits:** 2 (write).",
         "tags": [
           "Task triage"
         ],
@@ -9549,6 +9554,10 @@
         "x-credits": 2,
         "x-badges": [
           {
+            "name": "Free",
+            "color": "green"
+          },
+          {
             "name": "Developer",
             "color": "blue"
           },
@@ -9558,12 +9567,13 @@
           }
         ],
         "x-plan-access": [
+          "free",
           "developer",
           "enterprise"
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+",
+            "tag": "All plans",
             "title": "Create task triager",
             "sidebarTitle": "Create task triager"
           }
@@ -9573,7 +9583,7 @@
     "/api/v1/mailboxes/{mailboxId}/task-triager-runs/recent": {
       "get": {
         "summary": "List recent triager runs",
-        "description": "**Plans:** `Developer` · `Enterprise`\n\nRecent triager execution history. **Developer+** required.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nRecent triager execution history for the mailbox.\n\n**API credits:** 1 (read).",
         "tags": [
           "Task triage"
         ],
@@ -9671,6 +9681,10 @@
         "x-credits": 1,
         "x-badges": [
           {
+            "name": "Free",
+            "color": "green"
+          },
+          {
             "name": "Developer",
             "color": "blue"
           },
@@ -9680,12 +9694,13 @@
           }
         ],
         "x-plan-access": [
+          "free",
           "developer",
           "enterprise"
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+",
+            "tag": "All plans",
             "title": "List recent triager runs",
             "sidebarTitle": "List recent triager runs"
           }
@@ -9695,7 +9710,7 @@
     "/api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}": {
       "put": {
         "summary": "Update task triager",
-        "description": "**Plans:** `Developer` · `Enterprise`\n\nUpdates a task triager. **Developer+** required.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nUpdates a task triager.\n\n**API credits:** 2 (write).",
         "tags": [
           "Task triage"
         ],
@@ -9816,6 +9831,10 @@
         "x-credits": 2,
         "x-badges": [
           {
+            "name": "Free",
+            "color": "green"
+          },
+          {
             "name": "Developer",
             "color": "blue"
           },
@@ -9825,12 +9844,13 @@
           }
         ],
         "x-plan-access": [
+          "free",
           "developer",
           "enterprise"
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+",
+            "tag": "All plans",
             "title": "Update task triager",
             "sidebarTitle": "Update task triager"
           }
@@ -9838,7 +9858,7 @@
       },
       "delete": {
         "summary": "Delete task triager",
-        "description": "**Plans:** `Developer` · `Enterprise`\n\nDeletes a task triager. **Developer+** required.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes a task triager.\n\n**API credits:** 2 (write).",
         "tags": [
           "Task triage"
         ],
@@ -9945,6 +9965,10 @@
         "x-credits": 2,
         "x-badges": [
           {
+            "name": "Free",
+            "color": "green"
+          },
+          {
             "name": "Developer",
             "color": "blue"
           },
@@ -9954,12 +9978,13 @@
           }
         ],
         "x-plan-access": [
+          "free",
           "developer",
           "enterprise"
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+",
+            "tag": "All plans",
             "title": "Delete task triager",
             "sidebarTitle": "Delete task triager"
           }
@@ -9969,7 +9994,7 @@
     "/api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}/default": {
       "post": {
         "summary": "Set default task triager",
-        "description": "**Plans:** `Developer` · `Enterprise`\n\nMarks a triager as the mailbox default. **Developer+**.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nMarks a triager as the mailbox default.\n\n**API credits:** 2 (write).",
         "tags": [
           "Task triage"
         ],
@@ -10076,6 +10101,10 @@
         "x-credits": 2,
         "x-badges": [
           {
+            "name": "Free",
+            "color": "green"
+          },
+          {
             "name": "Developer",
             "color": "blue"
           },
@@ -10085,12 +10114,13 @@
           }
         ],
         "x-plan-access": [
+          "free",
           "developer",
           "enterprise"
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+",
+            "tag": "All plans",
             "title": "Set default task triager",
             "sidebarTitle": "Set default task triager"
           }
@@ -10100,7 +10130,7 @@
     "/api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}/agent-conversation": {
       "post": {
         "summary": "Attach agent conversation to triager",
-        "description": "**Plans:** `Developer` · `Enterprise`\n\nLinks an agent conversation to a triager. **Developer+**.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nLinks an agent conversation to a triager.\n\n**API credits:** 2 (write).",
         "tags": [
           "Task triage"
         ],
@@ -10225,6 +10255,10 @@
         "x-credits": 2,
         "x-badges": [
           {
+            "name": "Free",
+            "color": "green"
+          },
+          {
             "name": "Developer",
             "color": "blue"
           },
@@ -10234,12 +10268,13 @@
           }
         ],
         "x-plan-access": [
+          "free",
           "developer",
           "enterprise"
         ],
         "x-mint": {
           "metadata": {
-            "tag": "Developer+",
+            "tag": "All plans",
             "title": "Attach agent conversation to triager",
             "sidebarTitle": "Attach agent conversation to triager"
           }
@@ -13945,7 +13980,7 @@
         "type": "apiKey",
         "in": "header",
         "name": "x-api-key",
-        "description": "API key (`mm_key_…`) from Settings → API Keys. Required for sold API calls outside the Mermail console."
+        "description": "API key (`sk-proj-…`) from Settings → API Keys. Required for sold API calls outside the Mermail console."
       }
     },
     "schemas": {

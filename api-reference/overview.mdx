@@ -11,7 +11,7 @@ Use Mermail’s HTTP API from scripts, agents, Postman, or this docs **Try it** 
 All protected sold-API routes need:
 
 ```bash
-x-api-key: mm_key_YOUR_KEY
+x-api-key: sk-proj-YOUR_KEY
 ```
 
 Create a key in the Mermail app under **Settings → API Keys**, then paste it into Try it or your client. See [Authentication](/api-reference/authentication).
@@ -51,7 +51,7 @@ Enterprise shares the same endpoint list as Developer — higher quotas, not ext
 
 <Steps>
   <Step title="Create an API key">
-    In Mermail → **Settings → API Keys** → copy `mm_key_…` once (Free: 1 key, Developer: up to 5).
+    In Mermail → **Settings → API Keys** → copy `sk-proj-…` once (Free: 1 key, Developer: up to 5).
   </Step>
   <Step title="Pick an endpoint">
     Use the sidebar in this API Reference. Prefer core catalog endpoints on Free; Developer-gated paths need Developer or Enterprise.
@@ -117,6 +117,18 @@ Auth: `x-api-key`. Metered with credits + RPM. Open each group in the sidebar fo
     | `GET` | `/api/v1/mailboxes/{mailboxId}/agent-conversations/{conversationId}/messages` | 1 |
     | `POST` | `/api/agent/mailbox` | 25 |
   </Accordion>
+
+  <Accordion title="Task triage">
+    | Method | Path | Credits |
+    | --- | --- | ---: |
+    | `GET` | `/api/v1/mailboxes/{mailboxId}/task-triagers` | 1 |
+    | `POST` | `/api/v1/mailboxes/{mailboxId}/task-triagers` | 2 |
+    | `GET` | `/api/v1/mailboxes/{mailboxId}/task-triager-runs/recent` | 1 |
+    | `PUT` | `/api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}` | 2 |
+    | `DELETE` | `/api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}` | 2 |
+    | `POST` | `/api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}/default` | 2 |
+    | `POST` | `/api/v1/mailboxes/{mailboxId}/task-triagers/{triagerId}/agent-conversation` | 2 |
+  </Accordion>
 </AccordionGroup>
 
 ---
@@ -129,7 +141,6 @@ Free workspaces receive `403` on these paths. Upgrade to unlock them.
 | --- | --- |
 | Custom domains | `GET/POST /workspaces/{id}/email-domains`, `DELETE …/{domainId}`, `POST …/verify` |
 | Harbor storage write | `PUT …/storage` |
-| Task triage | `…/task-triagers`, `…/task-triager-runs/recent` |
 
 ---
 
@@ -160,7 +171,7 @@ Over limit → `429`.
 
 | Credential | Header | When to use |
 | --- | --- | --- |
-| API key | `x-api-key: mm_key_…` | Scripts, Postman, and apps |
+| API key | `x-api-key: sk-proj-…` | Scripts, Postman, and apps |
 
 Details: [Authentication](/api-reference/authentication).
 

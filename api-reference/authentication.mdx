@@ -15,7 +15,7 @@ Each key is bound to **one workspace**. Use that workspace’s id in path/query/
     Workspace admins can create, list, and revoke keys. Free allows 1 key; Developer up to 5; Enterprise unlimited.
   </Step>
   <Step title="Copy the key once">
-    The dialog shows `apiKey` (`mm_key_…`). Mermail does not show the full key again.
+    The dialog shows `apiKey` (`sk-proj-…`). Mermail does not show the full key again.
   </Step>
 </Steps>
 
@@ -23,7 +23,7 @@ Each key is bound to **one workspace**. Use that workspace’s id in path/query/
 
 ```bash
 curl https://console.mermail.app/api/v1/workspaces \
-  -H "x-api-key: mm_key_YOUR_KEY"
+  -H "x-api-key: sk-proj-YOUR_KEY"
 ```
 
 In the docs playground, open any protected endpoint, click **Try it**, and paste the key into the API key field. Prefill examples populate path and body fields so you can send immediately. Use the language dropdown to switch and copy snippets for **cURL, Python, JavaScript, PHP, Go, Java, or Ruby**.
