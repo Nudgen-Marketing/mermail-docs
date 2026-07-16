@@ -36,11 +36,14 @@
             "pages": ["integrations/composio", "integrations/telegram"]
           },
           {
+            "group": "Security and data",
+            "pages": ["resources/security"]
+          },
+          {
             "group": "Resources",
             "pages": [
               "resources/faq",
               "resources/support",
-              "resources/security",
               "resources/plans"
             ]
           }
