@@ -23,6 +23,16 @@ The server is **stateless**: there is no SSE subscription. Clients that expect l
 curl -sS https://console.mermail.app/.well-known/mcp/server-card.json | jq .
 ```
 
+### Official MCP Registry
+
+Mermail is published as **`app.mermail/mcp`** on the [Official MCP Registry](https://registry.modelcontextprotocol.io/v0/servers?search=app.mermail). Clients and aggregators (PulseMCP, Smithery, Glama, and others) discover remote Streamable HTTP servers from that feed.
+
+| Item | Value |
+| --- | --- |
+| Registry name | `app.mermail/mcp` |
+| Website | [mermail.app/agents](https://mermail.app/agents) |
+| Ownership proof | `https://mermail.app/.well-known/mcp-registry-auth` |
+
 The card includes:
 
 | Field | Meaning |
@@ -62,7 +72,9 @@ Configure an MCP client with Streamable HTTP + header auth. Example shape:
 }
 ```
 
-Exact config keys differ by host (Cursor, Claude Code, custom MCP clients). The important parts are the `/mcp` URL, Streamable HTTP (not SSE), and `x-api-key`.
+Exact config keys differ by host (Cursor, Claude Code, Codex, custom MCP clients). The important parts are the `/mcp` URL, Streamable HTTP (not SSE), and `x-api-key`.
+
+For packaged workflows, install [Mermail Skills](/ai/skills) (`npx skills add Nudgen-Marketing/mermail-skills`) or connect via the registry id `app.mermail/mcp` when your host supports Official Registry install.
 
 ## How tools map to the API
 

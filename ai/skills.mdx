@@ -50,7 +50,25 @@ npx skills add Nudgen-Marketing/mermail-skills --skill mermail-compose-email
     Run `/reload-plugins` after installing or updating, then use `/mcp` to inspect the connection.
   </Tab>
   <Tab title="Cursor">
-    Install the repository from a Cursor team marketplace, or clone it and link it as a local plugin while developing. Reload Cursor, then inspect **Mermail** under MCP tools.
+    **MCP settings (manual)** — export `MERMAIL_API_KEY`, then add:
+
+    ```json
+    {
+      "mcpServers": {
+        "mermail": {
+          "type": "http",
+          "url": "https://console.mermail.app/mcp",
+          "headers": {
+            "x-api-key": "${env:MERMAIL_API_KEY}"
+          }
+        }
+      }
+    }
+    ```
+
+    **Plugin** — add [mermail-skills](https://github.com/Nudgen-Marketing/mermail-skills) to a Cursor team marketplace, or clone and link as a local plugin (`.cursor-plugin`). Reload Cursor and inspect Mermail under MCP tools.
+
+    The hosted server is also listed on the Official MCP Registry as `app.mermail/mcp` for hosts that install from that feed.
   </Tab>
 </Tabs>
 
