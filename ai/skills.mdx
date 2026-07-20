@@ -30,6 +30,24 @@ Install only one focused workflow:
 npx skills add Nudgen-Marketing/mermail-skills --skill mermail-compose-email
 ```
 
+## Install from ClawHub (OpenClaw)
+
+Mermail workflow skills are published on [ClawHub](https://clawhub.ai/) under the **`mermail`** owner. Install with the ClawHub CLI or browse skill pages such as `https://clawhub.ai/mermail/mermail-compose-email`.
+
+```bash
+npm i -g clawhub
+clawhub install mermail/mermail-compose-email
+```
+
+Connect the hosted MCP server separately (skills provide workflows; MCP provides tools):
+
+```bash
+openclaw mcp set mermail '{"url":"https://console.mermail.app/mcp","transport":"streamable-http","headers":{"x-api-key":"'"$MERMAIL_API_KEY"'"}}'
+openclaw mcp doctor mermail --probe
+```
+
+Publisher notes for this repo live in [CLAWHUB.md](https://github.com/Nudgen-Marketing/mermail-skills/blob/main/CLAWHUB.md) on mermail-skills.
+
 ## Install as a platform plugin
 
 <Tabs>
