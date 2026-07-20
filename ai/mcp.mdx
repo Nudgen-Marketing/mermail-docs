@@ -1,10 +1,10 @@
 ---
 title: "MCP"
-description: "Connect AI assistants to Mermail over Streamable HTTP MCP with an API key."
+description: "Connect AI assistants to Mermail over Streamable HTTP MCP with OAuth or an API key."
 icon: "plug"
 ---
 
-Mermail exposes a [Model Context Protocol](https://modelcontextprotocol.io) server that wraps the sold HTTP API. Assistants call the same workspace-scoped endpoints as `x-api-key` clients — including usage, workspaces, mailboxes, email, agent conversations, and task triage.
+Mermail exposes a [Model Context Protocol](https://modelcontextprotocol.io) server that wraps the sold HTTP API. Assistants call the same workspace-scoped endpoints as authenticated clients — including usage, workspaces, mailboxes, email, agent conversations, and task triage.
 
 ## Endpoint
 
@@ -12,10 +12,32 @@ Mermail exposes a [Model Context Protocol](https://modelcontextprotocol.io) serv
 | --- | --- |
 | URL | `https://console.mermail.app/mcp` |
 | Transport | **Streamable HTTP** (JSON-RPC over `POST`) |
-| Auth | `x-api-key: sk-proj-…` (API key only) |
+| Auth | **OAuth 2.1 Bearer** (interactive) or `x-api-key: sk-proj-…` (automation) |
 | Methods | `POST` only — `GET` / `DELETE` return `405` |
 
 The server is **stateless**: there is no SSE subscription. Clients that expect long-lived SSE should use a Streamable HTTP–capable MCP host instead.
+
+## Authentication
+
+### OAuth (browser-parity)
+
+MCP clients that support OAuth discover Mermail via Protected Resource Metadata, open the console authorize page, and receive a Bearer access token after the user signs in with Enoki (same as the web app) and picks a workspace.
+
+| Item | Value |
+| --- | --- |
+| PRM | `https://console.mermail.app/.well-known/oauth-protected-resource` |
+| AS metadata | `https://console.mermail.app/.well-known/oauth-authorization-server` |
+| Scopes | `mcp:tools`, `openid`, `offline_access` |
+
+Unauthenticated calls return `401` with a `WWW-Authenticate` challenge pointing at the PRM document.
+
+### API key (automation / CLI)
+
+1. Create a workspace API key in **Settings → API Keys**. See [Authentication](/api-reference/authentication).
+2. Send it on every MCP `POST` as `x-api-key`.
+3. Cookie / console sessions alone are **rejected** for MCP.
+
+Both auth modes scope tools to one workspace and consume that workspace’s **RPM** and **API credits**.
 
 ## Discover the server
 
@@ -33,31 +55,17 @@ Mermail is published as **`app.mermail/mcp`** on the [Official MCP Registry](htt
 | Website | [mermail.app/agents](https://mermail.app/agents) |
 | Ownership proof | `https://mermail.app/.well-known/mcp-registry-auth` |
 
-The card includes:
-
-| Field | Meaning |
-| --- | --- |
-| `serverInfo` | Name `Mermail MCP`, version |
-| `transport.protocol` | `streamable-http` |
-| `transport.endpoint` | Absolute MCP URL (`…/mcp`) |
-| `authentication` | `api-key` via `x-api-key`, prefix `sk-proj-` |
-| `capabilities.tools.list` | `prepare_destructive_action` plus every catalog tool |
+The card includes OAuth and API-key authentication options, Streamable HTTP transport, and the full tool list.
 
 <Tip>
   Prefer the URL and tool list from the live server card for your host. Do not hardcode a host if you deploy to a custom domain.
 </Tip>
 
-## Authentication and metering
-
-1. Create a workspace API key in **Settings → API Keys**. See [Authentication](/api-reference/authentication).
-2. Send it on every MCP `POST` as `x-api-key`.
-3. Cookie / console sessions are **rejected** (`401` `api_key_required`).
-
-The key’s bound workspace scopes every tool. Calls consume that workspace’s **RPM** and **API credits**, the same as the REST sold API.
-
 ## Connect an assistant
 
-Configure an MCP client with Streamable HTTP + header auth. Example shape:
+**OAuth-capable hosts** should connect to `https://console.mermail.app/mcp` and complete the browser consent flow (no API key in config).
+
+**API-key hosts** use Streamable HTTP + header auth:
 
 ```json
 {
@@ -72,7 +80,7 @@ Configure an MCP client with Streamable HTTP + header auth. Example shape:
 }
 ```
 
-Exact config keys differ by host (Cursor, Claude Code, Codex, custom MCP clients). The important parts are the `/mcp` URL, Streamable HTTP (not SSE), and `x-api-key`.
+Exact config keys differ by host (Cursor, Claude Code, Codex, custom MCP clients). The important parts are the `/mcp` URL and Streamable HTTP (not SSE).
 
 For packaged workflows, install [Mermail Skills](/ai/skills) (`npx skills add Nudgen-Marketing/mermail-skills`) or connect via the registry id `app.mermail/mcp` when your host supports Official Registry install.
 
