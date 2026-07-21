@@ -21,7 +21,7 @@ The server is **stateless**: there is no SSE subscription. Clients that expect l
 
 ### OAuth (browser-parity)
 
-MCP clients that support OAuth discover Mermail via Protected Resource Metadata, open the console authorize page, and receive a Bearer access token after the user signs in with Enoki (same as the web app) and picks a workspace.
+MCP clients that support OAuth discover Mermail via Protected Resource Metadata, open the console authorize page, and receive a Bearer access token after the user signs in with Enoki (same as the web app) and picks a workspace. The consent UI shows a friendly client name (for example ChatGPT or Cursor), not the opaque `mcp_client_…` id.
 
 | Item | Value |
 | --- | --- |
@@ -45,6 +45,8 @@ Both auth modes scope tools to one workspace and consume that workspace’s **RP
 curl -sS https://console.mermail.app/.well-known/mcp/server-card.json | jq .
 ```
 
+The card includes Streamable HTTP transport, **OAuth 2.1 and optional API-key** authentication, `serverInfo.description`, icons at `https://console.mermail.app/brand/icon-primary.png`, and the full tool list.
+
 ### Official MCP Registry
 
 Mermail is published as **`app.mermail/mcp`** on the [Official MCP Registry](https://registry.modelcontextprotocol.io/v0/servers?search=app.mermail). Clients and aggregators (PulseMCP, Smithery, Glama, and others) discover remote Streamable HTTP servers from that feed.
@@ -55,7 +57,7 @@ Mermail is published as **`app.mermail/mcp`** on the [Official MCP Registry](htt
 | Website | [mermail.app/agents](https://mermail.app/agents) |
 | Ownership proof | `https://mermail.app/.well-known/mcp-registry-auth` |
 
-The card includes OAuth and API-key authentication options, Streamable HTTP transport, and the full tool list.
+The card includes OAuth and API-key authentication options, Streamable HTTP transport, icons/description metadata, and the full tool list.
 
 <Tip>
   Prefer the URL and tool list from the live server card for your host. Do not hardcode a host if you deploy to a custom domain.
@@ -63,9 +65,14 @@ The card includes OAuth and API-key authentication options, Streamable HTTP tran
 
 ## Connect an assistant
 
-**OAuth-capable hosts** should connect to `https://console.mermail.app/mcp` and complete the browser consent flow (no API key in config).
+Use the interactive guide at [mermail.app/agents](https://mermail.app/agents) for host-specific steps.
 
-**API-key hosts** use Streamable HTTP + header auth:
+| Host | Auth |
+| --- | --- |
+| Cursor, Claude, ChatGPT | **OAuth** — connect to `https://console.mermail.app/mcp` and complete browser consent (no API key in config) |
+| Codex, OpenClaw | **API key** — Streamable HTTP + `x-api-key` |
+
+**API-key** example:
 
 ```json
 {
@@ -80,7 +87,7 @@ The card includes OAuth and API-key authentication options, Streamable HTTP tran
 }
 ```
 
-Exact config keys differ by host (Cursor, Claude Code, Codex, custom MCP clients). The important parts are the `/mcp` URL and Streamable HTTP (not SSE).
+Exact config keys differ by host. The important parts are the `/mcp` URL and Streamable HTTP (not SSE).
 
 For packaged workflows, install [Mermail Skills](/ai/skills) (`npx skills add Nudgen-Marketing/mermail-skills`) or connect via the registry id `app.mermail/mcp` when your host supports Official Registry install.
 
@@ -95,6 +102,17 @@ Each tool (except `prepare_destructive_action`) maps to one sold API operation:
 | `body` | Optional JSON body for `POST` / `PUT` / `PATCH` |
 | `idempotencyKey` | Optional; sent as `Idempotency-Key` |
 | `confirmationToken` | Required on **destructive** tools (see below) |
+
+Nest Sold API fields under the MCP `body` argument. If agents pass Sold fields flat at the top level (`to`, `subject`, `text`, …), Mermail folds them into `body`.
+
+### Email write payloads
+
+| Tools | Content fields |
+| --- | --- |
+| `send_email`, `reply_to_email`, `forward_email` | `html` and/or `text` (required one of them) plus required `from`. Aliases: string `body` or `content` → `text` (or `html` when the string looks like HTML). |
+| `save_draft`, `schedule_email_send` | String field `body` (HTML or text). Do **not** use `html`/`text` for drafts. Schedule also needs `scheduled_send_at`. |
+
+Validation failures return `code: "validation_failed"` with a `details` array of field paths (for example `body: Either 'html' or 'text' must be provided`) so agents can self-correct. Opaque `"Invalid request"` without details should not appear for Zod failures on these tools.
 
 Server instructions: prefer read-only tools before writes. Responses are JSON text plus object-shaped `structuredContent`. JSON arrays are exposed as `{ "items": [...] }` so the result conforms to the MCP schema. Binary payloads (for example attachments) are capped at **1 MiB**; larger downloads should use the REST attachment endpoint.
 

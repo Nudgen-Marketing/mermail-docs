@@ -11,10 +11,19 @@ The source is available at [Nudgen-Marketing/mermail-skills](https://github.com/
 ## Requirements
 
 - A Mermail workspace on a plan that supports API access
-- A project API key with the `sk-proj-` prefix
-- An Agent Skills-compatible client, or Codex, Claude Code, or Cursor with plugin support
+- An Agent Skills-compatible client, or Codex, Claude Code, Cursor, ChatGPT, or OpenClaw
+- For **API-key hosts** (Codex, OpenClaw) and API-key MCP fallback: a project API key with the `sk-proj-` prefix
 
-Create the key in **Settings → API Keys**. The key is bound to one workspace, and all skill-driven operations use that workspace's RPM and API credits.
+**Cursor**, **Claude**, and **ChatGPT** can use **MCP OAuth** against `https://console.mermail.app/mcp` without putting an API key in MCP config. Create a key in **Settings → API Keys** when your host needs `x-api-key`. Keys are workspace-bound; skill-driven operations use that workspace's RPM and API credits.
+
+## Auth by host
+
+| Host | Preferred auth |
+| --- | --- |
+| Cursor, Claude, ChatGPT | MCP OAuth (browser consent; no key in MCP config) |
+| Codex, OpenClaw | API key via `MERMAIL_API_KEY` → `x-api-key` |
+
+Interactive step-by-step setup: [mermail.app/agents](https://mermail.app/agents).
 
 ## Install portable skills
 
@@ -68,7 +77,9 @@ Publisher notes for this repo live in [CLAWHUB.md](https://github.com/Nudgen-Mar
     Run `/reload-plugins` after installing or updating, then use `/mcp` to inspect the connection.
   </Tab>
   <Tab title="Cursor">
-    **MCP settings (manual)** — export `MERMAIL_API_KEY`, then add:
+    **Prefer MCP OAuth** — add `https://console.mermail.app/mcp` (or use the Cursor deeplink from [mermail.app/agents](https://mermail.app/agents)), then Authenticate. No `x-api-key` header is required.
+
+    **API-key fallback** — export `MERMAIL_API_KEY`, then add:
 
     ```json
     {
@@ -88,23 +99,29 @@ Publisher notes for this repo live in [CLAWHUB.md](https://github.com/Nudgen-Mar
 
     The hosted server is also listed on the Official MCP Registry as `app.mermail/mcp` for hosts that install from that feed.
   </Tab>
+  <Tab title="ChatGPT">
+    Use **ChatGPT Connectors** (Streamable HTTP, OAuth — leave auth empty). Follow the ChatGPT steps on [mermail.app/agents](https://mermail.app/agents): the guide prefers opening the ChatGPT desktop app Settings when installed, with a web Connectors fallback.
+  </Tab>
 </Tabs>
 
 ## Configure authentication
 
-Set the API key in the environment that launches your client:
+**OAuth hosts** (Cursor, Claude, ChatGPT): connect to `https://console.mermail.app/mcp` and complete browser consent. Skip `x-api-key` in MCP config.
+
+**API-key hosts** (Codex, OpenClaw) and API-key fallback: set the key in the environment that launches your client:
 
 ```bash
 export MERMAIL_API_KEY="sk-proj-your-key"
 ```
 
-Never commit the expanded value to a repository, plugin manifest, shell script, or MCP config. The included platform manifests map the environment variable to the `x-api-key` header without embedding the secret:
+Never commit the expanded value to a repository, plugin manifest, shell script, or MCP config. Platform manifests map the environment variable to the `x-api-key` header without embedding the secret:
 
 | Platform | Header mapping |
 | --- | --- |
 | Codex | `env_http_headers: { "x-api-key": "MERMAIL_API_KEY" }` |
-| Claude Code | `headers: { "x-api-key": "${MERMAIL_API_KEY}" }` |
-| Cursor | `headers: { "x-api-key": "${env:MERMAIL_API_KEY}" }` |
+| Claude Code (API-key mode) | `headers: { "x-api-key": "${MERMAIL_API_KEY}" }` |
+| Cursor (API-key fallback) | `headers: { "x-api-key": "${env:MERMAIL_API_KEY}" }` |
+| OpenClaw | `headers: { "x-api-key": "<MERMAIL_API_KEY>" }` |
 
 <Warning>
   Desktop applications only receive environment variables available to their process. Restart an already-open client after setting the key. On macOS or Linux, launch the client from the configured terminal if a shell-only variable is not visible to desktop apps.
@@ -162,10 +179,13 @@ See [MCP destructive actions](/ai/mcp#destructive-actions) for the confirmation 
 
 <AccordionGroup>
   <Accordion title="MERMAIL_API_KEY is not set">
-    Export the variable in the same process environment used to start the client, then restart the client. Do not paste the key into a tracked config file.
+    Export the variable in the same process environment used to start the client, then restart the client. Do not paste the key into a tracked config file. Skip this for OAuth-only Cursor / Claude / ChatGPT setups.
   </Accordion>
   <Accordion title="MCP returns 401">
-    Confirm that the key starts with `sk-proj-`, has not expired or been revoked, and belongs to the intended deployment. Production and staging keys may use different databases.
+    For OAuth: complete Authenticate again (check `WWW-Authenticate` / Protected Resource Metadata). For API keys: confirm the key starts with `sk-proj-`, has not expired or been revoked, and belongs to the intended deployment. Production and staging keys may use different databases.
+  </Accordion>
+  <Accordion title="OAuth loop or cleared credentials in Cursor">
+    Remove the Mermail MCP entry, re-add `https://console.mermail.app/mcp`, and Authenticate again. If consent fails, sign out of Mermail in the browser session first.
   </Accordion>
   <Accordion title="MCP returns 403">
     Check the workspace plan and whether the requested operation is plan-gated. Custom-domain tools require Developer access or higher.
