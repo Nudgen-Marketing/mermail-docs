@@ -91,6 +91,8 @@ Auth: `x-api-key`. Metered with credits + RPM. Open each group in the sidebar fo
   </Accordion>
 
   <Accordion title="Mailboxes">
+    Path param `{mailboxId}` accepts **`public_id` (UUID)**, hosted alias id, or current email. Prefer `public_id` from list responses.
+
     | Method | Path | Credits |
     | --- | --- | ---: |
     | `GET` | `/api/v1/workspaces/{workspaceId}/mailboxes` | 1 |

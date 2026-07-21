@@ -97,7 +97,7 @@ Each tool (except `prepare_destructive_action`) maps to one sold API operation:
 
 | Argument | Use |
 | --- | --- |
-| Path params | Top-level strings (`mailboxId`, `workspaceId`, …) matching the OpenAPI path |
+| Path params | Top-level strings (`mailboxId`, `workspaceId`, …) matching the OpenAPI path. `mailboxId` accepts `public_id` (UUID), hosted alias id, or current email — prefer `public_id` from `list_mailboxes`. |
 | `query` | Optional object of query-string values |
 | `body` | Optional JSON body for `POST` / `PUT` / `PATCH` |
 | `idempotencyKey` | Optional; sent as `Idempotency-Key` |

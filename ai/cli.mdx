@@ -44,10 +44,12 @@ mermail auth check
 
 Commands follow `mermail <resource> <action> [flags]`:
 
+`--mailbox-id` accepts the mailbox `public_id` (UUID), hosted alias id, or current email. Prefer `public_id` from `mermail mailboxes list`.
+
 ```bash
 mermail workspaces list
 mermail mailboxes list --format table
-mermail emails list --mailbox-id agent@mermail.app
+mermail emails list --mailbox-id MAILBOX_PUBLIC_ID
 mermail usage credits --workspace-id WORKSPACE_ID
 ```
 
@@ -57,7 +59,7 @@ Run `mermail --help`, `mermail <resource> --help`, or `mermail <resource> <actio
 
 ```bash
 mermail emails send \
-  --mailbox-id agent@mermail.app \
+  --mailbox-id MAILBOX_PUBLIC_ID \
   --to recipient@example.com \
   --from agent@mermail.app \
   --subject "Hello" \

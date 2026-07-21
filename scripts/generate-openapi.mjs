@@ -59,6 +59,19 @@ function pathParam(name, description, example = "ws_01abc") {
 	};
 }
 
+/** Preferred route id: stable public_id, then hosted alias PK, then current email. */
+const MAILBOX_ID_PARAM_DESCRIPTION =
+	"Mailbox public_id (UUID), hosted alias id, or current email";
+const MAILBOX_ID_PARAM_EXAMPLE = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
+
+function mailboxIdParam() {
+	return pathParam(
+		"mailboxId",
+		MAILBOX_ID_PARAM_DESCRIPTION,
+		MAILBOX_ID_PARAM_EXAMPLE,
+	);
+}
+
 function queryParam(name, opts = {}) {
 	const {
 		description = name,
@@ -314,6 +327,7 @@ const workspaceExample = {
 
 const mailboxExample = {
 	id: "support@mail.acme.com",
+	public_id: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
 	workspace_id: "ws_01abc",
 	email: "support@mail.acme.com",
 	name: "Acme Support",
@@ -1097,10 +1111,10 @@ add(
 	op({
 		summary: "Get mailbox",
 		description:
-			"Returns a single mailbox by id (usually the email address). Does not include `inbox_unread_by_category` (use list endpoints for unread counts).",
+			"Returns a single mailbox by `public_id` (UUID), hosted alias id, or current email. Does not include `inbox_unread_by_category` (use list endpoints for unread counts).",
 		tags: ["Mailboxes"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 		],
 		xCredits: 1,
 		responses: {
@@ -1126,7 +1140,7 @@ add(
 			"Replaces the mailbox `settings` JSON object. Body shape is `{ settings }` only — there is no top-level `name` field on this route. Requires mailbox **admin**.",
 		tags: ["Mailboxes"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 		],
 		xCredits: 2,
 		requestBody: jsonBody(
@@ -1157,7 +1171,7 @@ add(
 			"Returns stored-blob usage for a mailbox (`storage_gb` and `blob_count`). Not a plan quota limit.",
 		tags: ["Mailboxes"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 		],
 		xCredits: 1,
 		successSchema: { $ref: "#/components/schemas/MailboxStorage" },
@@ -1235,7 +1249,7 @@ const sendEmailSchema = {
 };
 
 const listEmailParams = [
-	pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+	mailboxIdParam(),
 	queryParam("folder", { description: "Folder id", example: "INBOX" }),
 	queryParam("thread_id", { description: "Filter by thread id" }),
 	queryParam("category", {
@@ -1306,7 +1320,7 @@ add(
 			"Sends a new outbound email from the mailbox. Provide `html` and/or `text` (at least one required). Subject to send rate limits and API credits. Returns **202** with `{ id, status: \"sent\" }`.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 		],
 		xCredits: 5,
 		requestBody: jsonBody(sendEmailSchema, {
@@ -1337,7 +1351,7 @@ add(
 		description: "Fetches a single email with body and metadata.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 			pathParam("emailId", "Email id", "msg_7f3a2c1b"),
 		],
 		xCredits: 1,
@@ -1363,7 +1377,7 @@ add(
 		description: "Updates flags such as read/starred or moves metadata.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 			pathParam("emailId", "Email id", "msg_7f3a2c1b"),
 		],
 		xCredits: 2,
@@ -1390,7 +1404,7 @@ add(
 			"Trashes an email by default. Pass `permanent=true` to hard-delete (also used for messages already in trash). Returns **204** with an empty body.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 			pathParam("emailId", "Email id", "msg_7f3a2c1b"),
 			queryParam("permanent", {
 				description: "Set to `true` to permanently delete instead of moving to trash",
@@ -1413,7 +1427,7 @@ add(
 			"Deletes or trashes multiple emails by id. With `permanent: true`, hard-deletes; otherwise moves to trash (scheduled drafts are cancelled).",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 		],
 		xCredits: 2,
 		requestBody: jsonBody(
@@ -1448,7 +1462,7 @@ add(
 			"Marks multiple emails read or unread. Marking read on a multi-message thread may update the whole thread.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 		],
 		xCredits: 2,
 		requestBody: jsonBody(
@@ -1478,7 +1492,7 @@ add(
 		description: "Moves multiple emails into a folder. Returns `400` if the folder does not exist.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 		],
 		xCredits: 2,
 		requestBody: jsonBody(
@@ -1509,7 +1523,7 @@ add(
 			"Moves one email into a folder. Returns `{ status: \"moved\" }` or `400` if the folder is missing.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 			pathParam("emailId", "Email id", "msg_7f3a2c1b"),
 		],
 		xCredits: 2,
@@ -1534,7 +1548,7 @@ add(
 			"Sends a reply. Server injects `in_reply_to`, `references`, and `thread_id` from the original message.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 			pathParam("emailId", "Original email id", "msg_7f3a2c1b"),
 		],
 		xCredits: 5,
@@ -1566,7 +1580,7 @@ add(
 		description: "Forwards an existing email to new recipients.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 			pathParam("emailId", "Original email id", "msg_7f3a2c1b"),
 		],
 		xCredits: 5,
@@ -1595,7 +1609,7 @@ add(
 			"Downloads raw attachment bytes. Response `Content-Type` and `Content-Disposition` come from the stored attachment metadata.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 			pathParam("emailId", "Email id", "msg_7f3a2c1b"),
 			pathParam("attachmentId", "Attachment id", "att_01"),
 		],
@@ -1626,7 +1640,7 @@ add(
 			"Creates a draft (or replaces an existing draft when `draft_id` is set). Body is HTML/text in the `body` field — not `html`/`text`. Do not send `scheduled_send_at` here; use `POST /scheduled-sends`. Returns **201**.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 		],
 		xCredits: 2,
 		requestBody: jsonBody(
@@ -1678,7 +1692,7 @@ add(
 			"Uses AI to revise the editable portion of a draft. Requires `draftId`, revision `prompt`, and current draft `body`.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 		],
 		xCredits: 15,
 		requestBody: jsonBody(
@@ -1716,7 +1730,7 @@ add(
 			"Schedules an outbound email for a future time. Uses draft-style fields (`body`, `scheduled_send_at`) rather than send-email `html`/`text`. Returns **201**.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 		],
 		xCredits: 5,
 		requestBody: jsonBody(
@@ -1783,7 +1797,7 @@ add(
 		description: "Permanently deletes all messages currently in trash.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 		],
 		xCredits: 2,
 		successExample: { deletedCount: 12 },
@@ -1799,7 +1813,7 @@ add(
 			"Returns the conversation thread as an **array** of email objects (oldest → newest), including bodies.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 			pathParam("threadId", "Thread id", "thr_9aabb"),
 		],
 		xCredits: 1,
@@ -1819,7 +1833,7 @@ add(
 		description: "Marks all messages in a thread as read.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 			pathParam("threadId", "Thread id", "thr_9aabb"),
 		],
 		xCredits: 2,
@@ -1835,7 +1849,7 @@ add(
 		description: "Lists mailbox folders with unread counts.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 		],
 		xCredits: 1,
 		successExample: [
@@ -1853,7 +1867,7 @@ add(
 		description: "Creates a custom folder. Name is slugified into the folder id.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 		],
 		xCredits: 2,
 		requestBody: jsonBody(
@@ -1883,7 +1897,7 @@ add(
 		description: "Renames a custom folder.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 			pathParam("folderId", "Folder id", "vip-customers"),
 		],
 		xCredits: 2,
@@ -1907,7 +1921,7 @@ add(
 			"Deletes a custom folder. Returns **204** on success, or **400** if the folder is missing or cannot be deleted (e.g. system folders).",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 			pathParam("folderId", "Folder id", "vip-customers"),
 		],
 		xCredits: 2,
@@ -1926,7 +1940,7 @@ add(
 			"Full-text / field search across mailbox messages. Returns `{ emails, totalCount }`.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 			queryParam("query", {
 				description: "Free-text query across subject, body, sender, recipients",
 				example: "order shipping",
@@ -1987,7 +2001,7 @@ add(
 		description: "Lists custom labels for a mailbox (sorted by `sort_order`).",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 		],
 		xCredits: 1,
 		successExample: [customLabelExample],
@@ -2002,7 +2016,7 @@ add(
 			"Creates a custom label. Requires `name` and `rules`. Mailbox **admin** role required.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 		],
 		xCredits: 2,
 		requestBody: jsonBody(
@@ -2039,7 +2053,7 @@ add(
 			"Updates a custom label (`name`, `rules`, and/or `color`). Mailbox **admin** role required.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 			pathParam("labelId", "Label id", "lbl_1"),
 		],
 		xCredits: 2,
@@ -2066,7 +2080,7 @@ add(
 			"Deletes a custom label. Mailbox **admin** role required. Returns **204** with an empty body.",
 		tags: ["Emails"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 			pathParam("labelId", "Label id", "lbl_1"),
 		],
 		xCredits: 2,
@@ -2098,7 +2112,7 @@ add(
 			"Lists AI agent chat conversations for the authenticated user in this mailbox (newest activity first).",
 		tags: ["AI agent"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 		],
 		xCredits: 1,
 		successExample: { conversations: [agentConversationExample] },
@@ -2113,7 +2127,7 @@ add(
 			"Creates a new agent conversation. Pass `title` for a normal chat (defaults to `New chat`), or `threadId` to find/create the conversation linked to an email thread.",
 		tags: ["AI agent"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 		],
 		xCredits: 2,
 		requestBody: jsonBody(
@@ -2151,7 +2165,7 @@ add(
 			"Renames a conversation. `title` is required (1–80 chars). System/triager conversations cannot be renamed (`400`).",
 		tags: ["AI agent"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 			pathParam("conversationId", "Conversation id", "conv_01"),
 		],
 		xCredits: 2,
@@ -2178,7 +2192,7 @@ add(
 			"Deletes an agent conversation. System/triager conversations cannot be deleted (`400`). Returns **204** with an empty body.",
 		tags: ["AI agent"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 			pathParam("conversationId", "Conversation id", "conv_01"),
 		],
 		xCredits: 2,
@@ -2196,7 +2210,7 @@ add(
 			"Lists AI SDK UI messages in a conversation (chronological). Supports cursor pagination.",
 		tags: ["AI agent"],
 		parameters: [
-			pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+			mailboxIdParam(),
 			pathParam("conversationId", "Conversation id", "conv_01"),
 			queryParam("limit", {
 				description: "Page size (1–50, default 50)",
@@ -2295,7 +2309,7 @@ add(
 
 // —— Task triage ——
 const triagerParams = [
-	pathParam("mailboxId", "Mailbox id (email)", "support@mail.acme.com"),
+	mailboxIdParam(),
 ];
 const taskTriagerBodySchema = {
 	type: "object",
@@ -3101,7 +3115,16 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 			Mailbox: {
 				type: "object",
 				properties: {
-					id: { type: "string" },
+					id: {
+						type: "string",
+						description: "Hosted alias primary key (also accepted as mailboxId)",
+					},
+					public_id: {
+						type: "string",
+						format: "uuid",
+						description:
+							"Stable public route id; preferred mailboxId for agents and clients",
+					},
 					workspace_id: { type: "string" },
 					email: { type: "string", format: "email" },
 					name: { type: "string" },
