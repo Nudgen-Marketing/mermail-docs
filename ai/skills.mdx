@@ -21,9 +21,10 @@ The source is available at [Nudgen-Marketing/mermail-skills](https://github.com/
 | Host | Preferred auth |
 | --- | --- |
 | Cursor, Claude, ChatGPT | MCP OAuth (browser consent; no key in MCP config) |
-| Codex, OpenClaw | API key via `MERMAIL_API_KEY` → `x-api-key` |
+| ChatGPT / Codex **Plugins Directory** (when published) | OAuth **Apps Connected** |
+| Codex (GitHub plugin), OpenClaw | API key via `MERMAIL_API_KEY` → `x-api-key` |
 
-Interactive step-by-step setup: [mermail.app/agents](https://mermail.app/agents).
+Interactive step-by-step setup: [mermail.app/agents](https://mermail.app/agents). OpenAI Directory publisher checklist: [CODEX_MARKETPLACE.md](https://github.com/Nudgen-Marketing/mermail-skills/blob/main/CODEX_MARKETPLACE.md).
 
 ## Install portable skills
 
@@ -61,7 +62,12 @@ Publisher notes for this repo live in [CLAWHUB.md](https://github.com/Nudgen-Mar
 
 <Tabs>
   <Tab title="Codex">
+    **Official Plugins Directory** (when published): install **Mermail** from ChatGPT/Codex **Plugins** for OAuth **Apps Connected** + Skills. See [CODEX_MARKETPLACE.md](https://github.com/Nudgen-Marketing/mermail-skills/blob/main/CODEX_MARKETPLACE.md).
+
+    **GitHub marketplace** (API key):
+
     ```bash
+    export MERMAIL_API_KEY="sk-proj-YOUR_KEY"
     codex plugin marketplace add Nudgen-Marketing/mermail-skills
     codex plugin add mermail@mermail
     ```
