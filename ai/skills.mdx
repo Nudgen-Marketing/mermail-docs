@@ -20,10 +20,11 @@ The source is available at [Nudgen-Marketing/mermail-skills](https://github.com/
 
 | Host | Preferred auth |
 | --- | --- |
-| Cursor, Claude, ChatGPT | MCP OAuth (browser consent; no key in MCP config) |
-| Codex, OpenClaw | API key via `MERMAIL_API_KEY` → `x-api-key` |
+| Cursor, Claude, ChatGPT (custom connector) | MCP OAuth (browser consent; no key in MCP config) |
+| ChatGPT / Codex **Plugins Directory** (when published) | OAuth **Apps Connected** + Skills (Linear-style; no API key) |
+| Codex (GitHub plugin), OpenClaw, **CLI** | API key via `MERMAIL_API_KEY` → `x-api-key` |
 
-Interactive step-by-step setup: [mermail.app/agents](https://mermail.app/agents).
+Interactive step-by-step setup: [mermail.app/agents](https://mermail.app/agents). OpenAI Directory publisher checklist: [CODEX_MARKETPLACE.md](https://github.com/Nudgen-Marketing/mermail-skills/blob/main/CODEX_MARKETPLACE.md) · skills ZIP: `npm run build:openai-zip` in mermail-skills.
 
 ## Install portable skills
 
@@ -61,6 +62,10 @@ Publisher notes for this repo live in [CLAWHUB.md](https://github.com/Nudgen-Mar
 
 <Tabs>
   <Tab title="Codex">
+    **Official Plugins Directory** (when published): install **Mermail** from ChatGPT/Codex **Plugins** for OAuth **Apps Connected** + Skills. See [CODEX_MARKETPLACE.md](https://github.com/Nudgen-Marketing/mermail-skills/blob/main/CODEX_MARKETPLACE.md).
+
+    **GitHub marketplace** (API key):
+
     ```bash
     export MERMAIL_API_KEY="sk-proj-YOUR_KEY"
     codex plugin marketplace add Nudgen-Marketing/mermail-skills
@@ -101,7 +106,9 @@ Publisher notes for this repo live in [CLAWHUB.md](https://github.com/Nudgen-Mar
     The hosted server is also listed on the Official MCP Registry as `app.mermail/mcp` for hosts that install from that feed.
   </Tab>
   <Tab title="ChatGPT">
-    Use **ChatGPT Connectors** (Streamable HTTP, OAuth — leave auth empty). Follow the ChatGPT steps on [mermail.app/agents](https://mermail.app/agents): the guide prefers opening the ChatGPT desktop app Settings when installed, with a web Connectors fallback.
+    **Plugins Directory** (when published): install **Mermail** from **Plugins** for **Apps Connected** (OAuth) + Skills — same Linear-style layout.
+
+    **Custom connector** (works today): use **Streamable HTTP** + **OAuth** (leave auth empty). Follow the ChatGPT steps on [mermail.app/agents](https://mermail.app/agents): desktop **Settings** (`codex://settings`) then Connectors, with a web Connectors fallback at `https://chatgpt.com/#settings/Connectors`.
   </Tab>
 </Tabs>
 
