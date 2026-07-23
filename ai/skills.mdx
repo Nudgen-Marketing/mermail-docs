@@ -14,6 +14,12 @@ The source is available at [Nudgen-Marketing/mermail-skills](https://github.com/
   task.
 </Info>
 
+Mermail publishes a standards-compatible Streamable HTTP MCP server and a
+portable Agent Skills package. A client must implement the relevant MCP
+transport, authentication, or Agent Skills format. Mermail does not promise
+identical tool loading, namespaces, or cache behavior across every assistant,
+IDE, and client version.
+
 ## Requirements
 
 - A Mermail workspace on a plan that supports API access
@@ -175,6 +181,13 @@ exact 11-tool subset documented in
 Full-catalog clients should require the known baseline tool names and allow
 future additive tools instead of relying on a permanent total.
 
+Mermail's protocol tool names are bare names such as `list_emails`. Some hosts
+show a qualified reference instead. For example, a Claude connector named
+Mermail can expose `Mermail:list_emails`. Use the exact qualified reference
+shown by that host when its Agent Skills runtime requires one; do not change the
+underlying MCP server name or assume that another client uses the same
+namespace syntax.
+
 Use a different MCP deployment only when testing a controlled environment:
 
 ```bash
@@ -286,8 +299,25 @@ confirmation-token flow.
     approval, validate the initial HTTPS hostname and every redirect. Stop on
     shortened or unexpected destinations.
   </Accordion>
+  <Accordion title="Claude reports Tool Mermail:list_emails not found or Finding tools">
+    This normally indicates deferred tool discovery or a cached connector
+    schema, not that Mermail renamed `list_emails`. Enable Mermail for the
+    current conversation and set **Connectors → Tool access → Always
+    available** when you need it consistently. For verification and inbox
+    reads, remove and re-add the connector with
+    `https://console.mermail.app/mcp?profile=agent-inbox`, complete OAuth, and
+    start a new conversation. Do not use that profile for send workflows.
+
+    After the tool loads, ensure `query` is a native object. For newest-first
+    listing, use `sortColumn: "date"` and `sortDirection: "DESC"` instead of
+    an escaped JSON string or `sort: "date_desc"`. See
+    [MCP troubleshooting](/ai/mcp#tool-not-found-or-finding-tools).
+  </Accordion>
   <Accordion title="The client does not show Mermail tools">
-    Reload the plugin or start a new client session, then inspect `/mcp`. Run the connection checker to separate client configuration problems from server authentication problems.
+    Reload or reconnect the plugin/server, clear cached MCP tool definitions
+    when the client supports it, and start a new session. Then inspect `/mcp`
+    or the client's `tools/list` view. Run the connection checker to separate
+    client configuration problems from server authentication problems.
   </Accordion>
 </AccordionGroup>
 

@@ -205,6 +205,24 @@ Example MCP search arguments:
 }
 ```
 
+Fallback `list_emails` arguments use the same native object shape. Do not
+stringify `query`, and do not combine the sort fields into `sort: "date_desc"`:
+
+```json
+{
+  "mailboxId": "MAILBOX_PUBLIC_ID_OR_EMAIL",
+  "query": {
+    "folder": "inbox",
+    "limit": 10,
+    "sortColumn": "date",
+    "sortDirection": "DESC",
+    "metadata_only": true,
+    "agent_safe_content": true,
+    "require_scan_status": "clean"
+  }
+}
+```
+
 The server-side text filters narrow the result. The client must still normalize
 and compare the selected message's addresses exactly, confirm that its Mermail
 `id` was not in the baseline, and keep its `date` inside the recorded arrival
@@ -390,6 +408,11 @@ get_email
   characters; on `response_too_large`, narrow the filters or page size.
 </Tip>
 
+The focused profile is for mailbox discovery, verification monitoring, and
+message reads. It intentionally omits send, reply, forward, draft, and
+scheduled-send tools. Use a separately authorized connection to the default
+`/mcp` catalog for a send workflow.
+
 ## CLI wait helper
 
 The CLI adds `mermail emails wait` as a bounded workflow helper. It repeatedly
@@ -516,11 +539,18 @@ The hardening controls are additive:
 - Full-profile MCP checkers should require known baseline tool names and allow
   future additive tools instead of requiring an exact total. A client that opts
   into `agent-inbox` should receive the exact 11-tool subset.
+- Mermail uses bare MCP names such as `list_emails`. A host can display a
+  qualified reference such as `Mermail:list_emails`; that namespace belongs to
+  the host and does not rename the protocol tool.
+- Mermail supports standards-compatible MCP and portable Agent Skills clients.
+  Host-specific tool search, namespace, and cache behavior can still vary.
 
 ## Troubleshoot agent inbox workflows
 
 | Symptom | Safe response |
 | --- | --- |
+| `Tool '<namespace>:list_emails' not found` followed by `Finding tools` | Let tool discovery finish once. Then enable/reload the connector for the current conversation and inspect its tool list. For Claude, prefer the 11-tool profile, set Mermail to **Always available**, and remove/re-add the connector plus start a new chat if its schema is stale. See [MCP troubleshooting](/ai/mcp#tool-not-found-or-finding-tools). |
+| The tool loads but rejects `query` | Pass `query` as a JSON object. Use `sortColumn: "date"` and `sortDirection: "DESC"`; do not send an escaped JSON string or `sort: "date_desc"`. |
 | `welcome_onboarding_status` is `pending` | Do not infer delivery failure; this field covers welcome/demo onboarding |
 | The expected message is not visible after two minutes | Keep the total wait bounded, but account for the default triager's five-minute stale hold |
 | Two messages match | Return an ambiguity error or ask the user to identify the expected service; do not choose the newest silently |

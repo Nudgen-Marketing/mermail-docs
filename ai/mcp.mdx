@@ -136,6 +136,12 @@ the URL nor header selects a profile, preserving existing `/mcp` clients. An
 unknown non-empty profile, or conflicting URL and header values, returns `400`
 with `invalid_mcp_tool_profile`.
 
+Use this focused profile for mailbox discovery, verification monitoring, and
+read-only inbox work. It does **not** expose `send_email`, `reply_to_email`,
+`forward_email`, drafts, or scheduled sends. Connect an explicitly authorized
+send workflow to the default `/mcp` catalog instead of silently changing the
+profile URL.
+
 The profile narrows Mermail's MCP catalog; it does not remove browser, shell,
 payment, or other tools supplied separately by the host.
 
@@ -150,6 +156,49 @@ Each tool (except `prepare_destructive_action`) maps to one sold API operation:
 | `body` | Optional JSON body for `POST` / `PUT` / `PATCH` |
 | `idempotencyKey` | Optional; sent as `Idempotency-Key` |
 | `confirmationToken` | Required on **destructive** tools (see below) |
+
+### Tool names and host namespaces
+
+Mermail advertises bare MCP protocol names such as `list_emails`,
+`search_emails`, and `get_email`. A host can qualify those names in its UI or
+agent context. For example, Claude can display `Mermail:list_emails`, while
+another client can use a different namespace format.
+
+The namespace belongs to the host, not to the Mermail MCP contract. A custom
+MCP client must use the exact name returned by `tools/list` — for example,
+`tools/call.params.name: "list_emails"`. Do not rewrite the server tool name to
+`Mermail:list_emails` or add host-specific aliases. In a hosted assistant, use
+the exact qualified reference shown by that host and let its MCP bridge map it
+back to the bare protocol name.
+
+Mermail targets standards-compatible Streamable HTTP MCP clients. Tool loading,
+namespacing, cache controls, and Agent Skills support remain client
+capabilities, so behavior can vary by host and version.
+
+### Native `list_emails` arguments
+
+Pass `query` as a native JSON object. Do not pass an escaped JSON string. Use
+the canonical `sortColumn` and `sortDirection` fields rather than a combined
+`sort` value:
+
+```json
+{
+  "mailboxId": "MAILBOX_PUBLIC_ID_OR_EMAIL",
+  "query": {
+    "folder": "inbox",
+    "limit": 10,
+    "sortColumn": "date",
+    "sortDirection": "DESC",
+    "metadata_only": true
+  }
+}
+```
+
+For the `agent-inbox` profile, Mermail additionally enforces
+`metadata_only=true`, `require_scan_status=clean`, and
+`agent_safe_content=true` on list operations. Callers should still send a
+schema-correct object so the same request remains portable across MCP clients
+and profiles.
 
 Nest Sold API fields under the MCP `body` argument. If agents pass Sold fields flat at the top level (`to`, `subject`, `text`, …), Mermail folds them into `body`.
 
@@ -292,8 +341,40 @@ If the token is missing, expired, reused, or the argument fingerprint does not m
 
 ## Troubleshooting
 
+### Tool not found or `Finding tools`
+
+An error such as `Tool 'Mermail:list_emails' not found` followed by
+`Finding tools` usually means that the host has not loaded the qualified tool
+reference into the current conversation, or is using a cached tool catalog. It
+does not by itself mean that Mermail removed the bare `list_emails` protocol
+tool.
+
+For Claude:
+
+1. Let one `Finding tools` step finish, then retry the read once.
+2. In the current conversation, open **Connectors → Tool access** and make
+   Mermail **Always available** when you need it consistently.
+3. Confirm that Mermail is enabled for that conversation.
+4. For verification or inbox reads, prefer
+   `https://console.mermail.app/mcp?profile=agent-inbox`. Its 11-tool catalog
+   reduces deferred-tool discovery.
+5. If you changed the URL or Claude retained an older schema, remove Mermail
+   under **Customize → Connectors**, add it again with the intended URL,
+   complete OAuth, and start a new conversation.
+
+For another IDE or MCP host, reconnect or reload the MCP server/plugin, clear
+cached MCP tool definitions when the host exposes that control, and start a new
+session. Inspect the host's `tools/list` view before retrying. Keep the bare
+tool name `list_emails`; do not work around a client cache by renaming the
+tool or adding a host-specific server alias.
+
+After discovery succeeds, verify the call arguments independently. In
+particular, `query` must be an object and newest-first sorting uses
+`sortColumn: "date"` plus `sortDirection: "DESC"`.
+
 | Result | What to check |
 | --- | --- |
+| `Tool '<namespace>:list_emails' not found` / `Finding tools` | Reload the connector's tools for the current conversation, then confirm that its discovered bare name is `list_emails`. Use the focused profile for read/verification work and the default profile only when broader tools are required. |
 | `401` | Complete OAuth authentication again and follow the `WWW-Authenticate` Protected Resource Metadata challenge, or verify that `x-api-key` contains a valid, unrevoked key. Console cookies do not authenticate MCP. |
 | `403` | Confirm the credential's workspace scope and role. Developer-gated custom-domain tools return `403` on Free workspaces. |
 | `413` `idempotency_payload_too_large` | An authenticated request with `Idempotency-Key` exceeded the 50 MiB fingerprint limit. Reduce the body before retrying; the operation did not run. |
