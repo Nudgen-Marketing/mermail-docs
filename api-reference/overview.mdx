@@ -19,7 +19,12 @@ Create a key in the Mermail app under **Settings → API Keys**, then paste it i
 Every sold-API credential call debits **API credits** and counts toward workspace **RPM**. When credits run out you get `402`; when you exceed RPM you get `429`.
 
 <Note>
-  Each API key is bound to **one workspace**. Path and body `workspaceId` values must match that workspace (`403` `workspace_scope_denied` otherwise). `GET /workspaces` returns only the key’s workspace. Workspaces are created automatically for new accounts in the Mermail console — there is no sold-API “create workspace” endpoint.
+  Each API key is bound to **one workspace**. Required path `workspaceId`
+  values must identify that workspace. Optional body/query `workspaceId` values
+  can be omitted and are resolved from the key; supplied values must match
+  (`403` `workspace_scope_denied` otherwise). `GET /workspaces` returns only the
+  key's workspace. Workspaces are created automatically for new accounts in the
+  Mermail console — there is no sold-API “create workspace” endpoint.
 </Note>
 
 Each endpoint page in this reference shows **plan badges** (sidebar tag + Plans line):
@@ -146,6 +151,15 @@ Free workspaces receive `403` on these paths. Upgrade to unlock them.
 ---
 
 ## Credits
+
+API credits are workspace usage units. A 10-credit provision operation does not
+mean a `$10` currency charge. A successful mailbox create consumes 10 provision
+credits. Pass `Idempotency-Key` when repeating the same create intent, but do not
+treat it as proof of exactly-once business execution. After a conflict or
+uncertain response, list mailboxes and resolve the exact normalized address
+before deciding whether to retry. Authenticated requests carrying this header
+have a 50 MiB request-fingerprint body limit; larger bodies return `413`
+`idempotency_payload_too_large` before the operation runs.
 
 | Class | Cost |
 | --- | ---: |

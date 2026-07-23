@@ -13,6 +13,64 @@ const root = path.resolve(__dirname, "..");
 /** Sold API auth: x-api-key only (OpenAPI apiKey in header). */
 const apiKeySecurity = [{ apiKeyAuth: [] }];
 
+const AGENT_INBOX_PROFILE_OPERATIONS = [
+	{
+		name: "get_api_credit_usage",
+		method: "GET",
+		path: "/api/v1/workspaces/{workspaceId}/usage/credits",
+	},
+	{
+		name: "list_workspaces",
+		method: "GET",
+		path: "/api/v1/workspaces",
+	},
+	{
+		name: "get_workspace",
+		method: "GET",
+		path: "/api/v1/workspaces/{workspaceId}",
+	},
+	{
+		name: "list_email_domains",
+		method: "GET",
+		path: "/api/v1/workspaces/{workspaceId}/email-domains",
+	},
+	{
+		name: "list_workspace_mailboxes",
+		method: "GET",
+		path: "/api/v1/workspaces/{workspaceId}/mailboxes",
+	},
+	{
+		name: "list_mailboxes",
+		method: "GET",
+		path: "/api/v1/mailboxes",
+	},
+	{
+		name: "create_mailbox",
+		method: "POST",
+		path: "/api/v1/mailboxes",
+	},
+	{
+		name: "get_mailbox",
+		method: "GET",
+		path: "/api/v1/mailboxes/{mailboxId}",
+	},
+	{
+		name: "list_emails",
+		method: "GET",
+		path: "/api/v1/mailboxes/{mailboxId}/emails",
+	},
+	{
+		name: "search_emails",
+		method: "GET",
+		path: "/api/v1/mailboxes/{mailboxId}/search",
+	},
+	{
+		name: "get_email",
+		method: "GET",
+		path: "/api/v1/mailboxes/{mailboxId}/emails/{emailId}",
+	},
+];
+
 const errorSchema = { $ref: "#/components/schemas/Error" };
 const errorContent = (example) => ({
 	content: {
@@ -88,6 +146,18 @@ function queryParam(name, opts = {}) {
 	};
 	if (example !== undefined) p.example = example;
 	return p;
+}
+
+function idempotencyKeyParam() {
+	return {
+		name: "Idempotency-Key",
+		in: "header",
+		required: false,
+		description:
+			"Optional key for a repeated attempt of the same mailbox create. Reuse it only for identical intent. It does not guarantee exactly-once execution; after a conflict or uncertain response, list mailboxes and resolve the exact normalized address before deciding whether to retry. Authenticated requests carrying this header have a 50 MiB request-fingerprint body limit; larger bodies return 413 `idempotency_payload_too_large` before the operation runs.",
+		schema: { type: "string", minLength: 1, maxLength: 255 },
+		example: "mailbox-ensure-v1-7f3a2c1b",
+	};
 }
 
 function jsonBody(schema, example, required = true) {
@@ -343,6 +413,10 @@ const mailboxExample = {
 		agentAutoResponse: { requireApproval: true },
 		fromName: "Acme Support",
 	},
+	disabled_at: null,
+	disabled_reason: null,
+	can_receive: true,
+	receiving_status: "ready",
 	welcome_onboarding_status: "pending",
 };
 
@@ -605,8 +679,7 @@ add(
 						example: "Acme Agents",
 					},
 					timezone: {
-						type: "string",
-						nullable: true,
+						type: ["string", "null"],
 						example: "America/New_York",
 						description: "IANA timezone, or null to clear",
 					},
@@ -998,6 +1071,37 @@ const mailboxListExample = [
 	},
 ];
 
+const mailboxSettingsSchema = {
+	type: "object",
+	additionalProperties: true,
+	properties: {
+		agentInbox: {
+			type: "object",
+			additionalProperties: true,
+			description:
+				"Optional agent-inbox purpose and automation controls. Omit this object to keep standard mailbox behavior.",
+			properties: {
+				mode: {
+					type: "string",
+					enum: ["standard", "verification"],
+					description:
+						"Mailbox purpose. Use `verification` only for a verification-focused inbox.",
+				},
+				automationsEnabled: {
+					type: "boolean",
+					description:
+						"Whether automatic agent workflows can run for this mailbox. Set to false for a verification-only inbox.",
+				},
+				requireCleanScanForAutomation: {
+					type: "boolean",
+					description:
+						"When true, a skipped or unavailable scan suppresses model-backed inbound classification and automation without rejecting delivery. Verification mode enables this behavior implicitly.",
+				},
+			},
+		},
+	},
+};
+
 const createMailboxBody = {
 	type: "object",
 	required: ["email", "name"],
@@ -1015,13 +1119,14 @@ const createMailboxBody = {
 		},
 		workspaceId: {
 			type: "string",
-			description: "Required for `POST /api/v1/mailboxes`",
+			description:
+				"Optional for a workspace-bound API key or MCP OAuth grant. If supplied, it must match the credential workspace.",
 			example: "ws_01abc",
 		},
 		settings: {
-			type: "object",
-			additionalProperties: true,
-			description: "Optional mailbox settings merged over defaults",
+			...mailboxSettingsSchema,
+			description:
+				"Optional mailbox settings merged over defaults. For a verification-only inbox, set `agentInbox` to `{ \"mode\": \"verification\", \"automationsEnabled\": false }`.",
 		},
 	},
 };
@@ -1077,18 +1182,22 @@ add(
 	op({
 		summary: "Create mailbox",
 		description:
-			"Provisions a mailbox. `workspaceId` is required in the body for this route (or is supplied by the API key’s bound workspace). Requires workspace **admin**. Returns **201**. Costs **provision** credits (10).",
+			"Provisions a mailbox. `email` and `name` are required. `workspaceId` is optional for a workspace-bound API key; when supplied, it must match that workspace. Requires workspace **admin**. Returns **201**. A successful create costs 10 **provision credits** from the API-credit balance; these are usage units, not currency. Pass `Idempotency-Key` for a repeated attempt with identical intent. Do not blind-retry: after a conflict or uncertain response, list mailboxes and resolve the exact normalized address first.",
 		tags: ["Mailboxes"],
+		parameters: [idempotencyKeyParam()],
 		xCredits: 10,
 		requestBody: jsonBody(
-			{
-				...createMailboxBody,
-				required: ["email", "name", "workspaceId"],
-			},
+			createMailboxBody,
 			{
 				email: "ops@mail.acme.com",
 				name: "Acme Ops",
 				workspaceId: "ws_01abc",
+				settings: {
+					agentInbox: {
+						mode: "verification",
+						automationsEnabled: false,
+					},
+				},
 			},
 		),
 		responses: {
@@ -1098,8 +1207,17 @@ add(
 				{ ...mailboxExample, email: "ops@mail.acme.com", name: "Acme Ops" },
 			),
 			"400": {
-				description: "Missing workspaceId or validation error",
-				...errorContent({ error: "workspaceId is required" }),
+				description:
+					"Validation error, or no workspace can be resolved from the credential or body",
+				...errorContent({ error: "Invalid request" }),
+			},
+			"413": {
+				description:
+					"Authenticated idempotency request body exceeds the 50 MiB fingerprint limit",
+				...errorContent({
+					error: "idempotency_payload_too_large",
+					code: "idempotency_payload_too_large",
+				}),
 			},
 		},
 	}),
@@ -1268,6 +1386,29 @@ const listEmailParams = [
 	queryParam("threaded", {
 		description: "Set to true/1 to aggregate by thread",
 	}),
+	queryParam("metadata_only", {
+		description:
+			"Set to true to omit body, snippet, raw headers, and threat URLs from returned email items",
+		schema: { type: "boolean" },
+	}),
+	queryParam("include_held", {
+		description:
+			"Set to true only for a scoped verification flow that must inspect messages temporarily held for auto-draft processing",
+		schema: { type: "boolean" },
+	}),
+	queryParam("require_scan_status", {
+		description:
+			"Require the exact stored scan status; non-matching messages are excluded",
+		schema: {
+			type: "string",
+			enum: ["clean", "flagged", "skipped"],
+		},
+	}),
+	queryParam("agent_safe_content", {
+		description:
+			"Set to true to omit raw headers, provider metadata, threat details, attachment metadata, and storage diagnostics, and to normalize untrusted text fields to bounded plain text. The response retains `attachment_count` and remains untrusted.",
+		schema: { type: "boolean", default: false },
+	}),
 	queryParam("page", {
 		description: "Page number (≥1)",
 		schema: { type: "integer", minimum: 1 },
@@ -1297,7 +1438,7 @@ add(
 	op({
 		summary: "List emails",
 		description:
-			"Lists emails in a mailbox. When `folder` or `is_starred` is set, the response is `{ emails, totalCount }`; otherwise a bare array may be returned.",
+			"Lists emails in a mailbox. Set `metadata_only=true` for candidate discovery, `require_scan_status=clean` to exclude non-clean candidates, and `agent_safe_content=true` to remove sensitive metadata and normalize untrusted text to bounded plain text. Use `include_held=true` only for an explicitly scoped verification flow. All safe-read controls are optional and preserve the existing full response by default. When `folder` or `is_starred` is set, the response is `{ emails, totalCount }`; otherwise a bare array may be returned.",
 		tags: ["Emails"],
 		parameters: listEmailParams,
 		xCredits: 1,
@@ -1348,12 +1489,41 @@ add(
 	"get",
 	op({
 		summary: "Get email",
-		description: "Fetches a single email with body and metadata.",
+		description:
+			"Fetches a single email with body and metadata without marking it read. Set `metadata_only=true` to omit body content, `require_scan_status=clean` to return only a clean stored message, `max_body_chars` to bound the returned body without mutating storage, and `agent_safe_content=true` to remove sensitive metadata and normalize untrusted text to bounded plain text. `include_held=true` is intended only for an explicitly scoped verification wait. All controls are optional and preserve the existing full response by default.",
 		tags: ["Emails"],
 		parameters: [
 			mailboxIdParam(),
 			pathParam("emailId", "Email id", "msg_7f3a2c1b"),
-		],
+			queryParam("metadata_only", {
+				description:
+					"Set to true to omit body, snippet, raw headers, and threat URLs",
+				schema: { type: "boolean" },
+			}),
+				queryParam("include_held", {
+					description:
+						"Set to true only for a scoped verification flow that must inspect a message temporarily held for auto-draft processing",
+					schema: { type: "boolean" },
+				}),
+				queryParam("require_scan_status", {
+					description:
+						"Return the message only when its stored scan status exactly matches. A mismatch returns 404.",
+					schema: {
+						type: "string",
+						enum: ["clean", "flagged", "skipped"],
+					},
+				}),
+				queryParam("max_body_chars", {
+					description:
+						"Positive character cap for the returned body without mutating the stored message. The effective server ceiling is 100000 characters.",
+					schema: { type: "integer", minimum: 1 },
+				}),
+				queryParam("agent_safe_content", {
+					description:
+						"Set to true to omit raw headers, provider metadata, threat details, attachment metadata, and storage diagnostics, and to normalize untrusted text fields to bounded plain text. The response retains `attachment_count` and remains untrusted.",
+					schema: { type: "boolean", default: false },
+				}),
+			],
 		xCredits: 1,
 		responses: {
 			"200": jsonResponse(
@@ -1937,7 +2107,7 @@ add(
 	op({
 		summary: "Search emails",
 		description:
-			"Full-text / field search across mailbox messages. Returns `{ emails, totalCount }`.",
+			"Full-text / field search across mailbox messages. `from`, `to`, and `subject` are substring candidate filters; re-check normalized addresses on the selected detail before acting. Returns `{ emails, totalCount }`.",
 		tags: ["Emails"],
 		parameters: [
 			mailboxIdParam(),
@@ -1959,6 +2129,29 @@ add(
 			queryParam("category", { description: "Category filter" }),
 			queryParam("has_attachment", {
 				description: "Truthy to require attachments",
+			}),
+			queryParam("metadata_only", {
+				description:
+					"Set to true to omit body, snippet, raw headers, and threat URLs from candidates",
+				schema: { type: "boolean" },
+			}),
+			queryParam("include_held", {
+				description:
+					"Set to true only for a scoped verification flow that must inspect messages temporarily held for auto-draft processing",
+				schema: { type: "boolean" },
+			}),
+			queryParam("require_scan_status", {
+				description:
+					"Require an exact scan status such as `clean`; non-matching messages are excluded",
+				schema: {
+					type: "string",
+					enum: ["clean", "flagged", "skipped"],
+				},
+			}),
+			queryParam("agent_safe_content", {
+				description:
+					"Set to true to omit raw headers, provider metadata, threat details, attachment metadata, and storage diagnostics, and to normalize untrusted text fields to bounded plain text. The response retains `attachment_count` and remains untrusted.",
+				schema: { type: "boolean", default: false },
 			}),
 			queryParam("page", {
 				schema: { type: "integer" },
@@ -2031,8 +2224,7 @@ add(
 						example: "from:vip@example.com",
 					},
 					color: {
-						type: "string",
-						nullable: true,
+						type: ["string", "null"],
 						example: "#43c9cb",
 						description: "Optional hex color",
 					},
@@ -2063,7 +2255,7 @@ add(
 				properties: {
 					name: { type: "string", maxLength: 80 },
 					rules: { type: "string" },
-					color: { type: "string", nullable: true },
+					color: { type: ["string", "null"] },
 				},
 			},
 			{ name: "VIP+" },
@@ -2265,7 +2457,7 @@ add(
 						items: { type: "object", additionalProperties: true },
 						description: "AI SDK UIMessage array (id, role, parts)",
 					},
-					thread_id: { type: "string", nullable: true },
+					thread_id: { type: ["string", "null"] },
 					trigger: {
 						type: "string",
 						enum: ["submit-message", "regenerate-message"],
@@ -2951,6 +3143,23 @@ add(
 
 const spec = {
 	openapi: "3.1.0",
+	"x-mermail-tool-profiles": {
+		"agent-inbox": {
+			description:
+				"Opt-in least-privilege MCP profile. Hosted clients should connect to `/mcp?profile=agent-inbox`; clients that support fixed headers may instead send `x-mermail-tool-profile: agent-inbox` on every stateless MCP POST. The profile forces metadata-only, clean-scan, agent-safe list/search results; clean-scan, agent-safe get results capped at 12000 body characters; and a 128000-character JSON tool-result ceiling. `/mcp` and an absent selector keep the full catalog.",
+			recommendedUrl: "/mcp?profile=agent-inbox",
+			defaultUrl: "/mcp",
+			header: {
+				name: "x-mermail-tool-profile",
+				value: "agent-inbox",
+			},
+			unknownValueError: {
+				status: 400,
+				code: "invalid_mcp_tool_profile",
+			},
+			operations: AGENT_INBOX_PROFILE_OPERATIONS,
+		},
+	},
 	info: {
 		title: "Mermail API",
 		version: "1.0.0",
@@ -2973,6 +3182,8 @@ Each endpoint page shows plan badges (**Public**, **All plans**, or **Developer+
 Every endpoint page includes an interactive playground. Click **Try it**, paste your API key into the \`x-api-key\` field, fill path/query/body fields (prefilled from examples), and send a live request to \`https://console.mermail.app\`. You can also copy the generated cURL / JavaScript / Python snippet.
 
 ## Credits
+
+Credits are workspace API-usage units, not currency amounts.
 
 | Class | Cost |
 | --- | ---: |
@@ -3034,15 +3245,13 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 					period_start: { type: "string", format: "date-time" },
 					period_end: { type: "string", format: "date-time" },
 					limit: {
-						type: "number",
-						nullable: true,
+						type: ["number", "null"],
 						description: "Null when the plan has unlimited API credits",
 						example: 50000,
 					},
 					used: { type: "number", example: 1240 },
 					remaining: {
-						type: "number",
-						nullable: true,
+						type: ["number", "null"],
 						description: "Null when unlimited",
 						example: 48760,
 					},
@@ -3057,12 +3266,11 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 					period_start: { type: "string", format: "date-time" },
 					period_end: { type: "string", format: "date-time" },
 					quota: {
-						type: "number",
-						nullable: true,
+						type: ["number", "null"],
 						description: "Plan email send quota (recipient count); null if unlimited",
 					},
 					used: { type: "number" },
-					remaining: { type: "number", nullable: true },
+					remaining: { type: ["number", "null"] },
 					legacy_sent_count: {
 						type: "number",
 						description: "Pre-ledger sent recipients included in `used`",
@@ -3091,7 +3299,7 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 					id: { type: "string" },
 					name: { type: "string" },
 					owner_address: { type: "string" },
-					timezone: { type: "string", nullable: true },
+					timezone: { type: ["string", "null"] },
 					role: { type: "string", enum: ["admin", "member"] },
 					mailbox_count: { type: "integer" },
 					storage: { type: "object", additionalProperties: true },
@@ -3128,13 +3336,44 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 					workspace_id: { type: "string" },
 					email: { type: "string", format: "email" },
 					name: { type: "string" },
-					email_domain_id: { type: "string", nullable: true },
-					inbound_provider: { type: "string" },
-					outbound_provider: { type: "string" },
+					email_domain_id: { type: ["string", "null"] },
+					inbound_provider: {
+						type: "string",
+						description: "Provider configured for inbound delivery",
+					},
+					outbound_provider: {
+						type: "string",
+						description: "Provider configured for outbound delivery",
+					},
 					provider_metadata: { type: "object", additionalProperties: true },
-					bucket_id: { type: "string", nullable: true },
-					settings: { type: "object", additionalProperties: true },
-					welcome_onboarding_status: { type: "string" },
+					bucket_id: { type: ["string", "null"] },
+					settings: mailboxSettingsSchema,
+					disabled_at: {
+						type: ["string", "null"],
+						format: "date-time",
+						description:
+							"Non-null when the mailbox is disabled and should not be reused",
+					},
+					disabled_reason: {
+						type: ["string", "null"],
+						description: "Reason the mailbox was disabled, when present",
+					},
+					can_receive: {
+						type: "boolean",
+						description:
+							"Current receiving-readiness boolean derived from mailbox lifecycle, inbound-provider state, and the current Receiving MX verification state for custom domains",
+					},
+					receiving_status: {
+						type: "string",
+						enum: ["ready", "disabled", "unavailable"],
+						description:
+							"Current normalized inbound readiness. Custom-domain mailboxes become unavailable when their Receiving MX verification is not ready.",
+					},
+					welcome_onboarding_status: {
+						type: "string",
+						description:
+							"Internal welcome/demo-message workflow status. This is not inbound receiving readiness.",
+					},
 					inbox_unread_by_category: {
 						type: "object",
 						description: "Present on list endpoints only",
@@ -3159,17 +3398,163 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 			Email: {
 				type: "object",
 				properties: {
-					id: { type: "string" },
+					id: {
+						type: "string",
+						description:
+							"Authoritative Mermail email id. Use this value as the `emailId` path argument and for pre-wait baselines.",
+					},
 					subject: { type: "string" },
 					sender: { type: "string" },
 					recipient: { type: "string" },
+					cc: {
+						type: ["string", "null"],
+					},
+					bcc: {
+						type: ["string", "null"],
+					},
 					date: { type: "string", format: "date-time" },
 					read: { type: "boolean" },
 					starred: { type: "boolean" },
+					is_urgent: { type: "boolean" },
 					category: { type: "string" },
 					folder_id: { type: "string" },
-					thread_id: { type: "string" },
+					folder_name: {
+						type: "string",
+						description: "Present on list and search responses",
+					},
+					thread_id: { type: ["string", "null"] },
 					snippet: { type: "string" },
+					body: {
+						type: "string",
+						description:
+							"Full body on detail responses unless `metadata_only=true`; list/search responses can contain a preview",
+					},
+					in_reply_to: { type: ["string", "null"] },
+					email_references: { type: ["string", "null"] },
+					delivery_status: { type: ["string", "null"] },
+					provider_metadata: {
+						type: ["object", "null"],
+						additionalProperties: true,
+					},
+					message_id: {
+						type: ["string", "null"],
+						description:
+							"Provider or RFC Message-ID metadata, retained only as secondary correlation. Do not use it in place of the Mermail `id` for resource paths or new baselines.",
+					},
+					raw_headers: {
+						type: ["string", "null"],
+						description:
+							"Untrusted raw provider headers. Do not use headers alone as authorization.",
+					},
+					body_storage_status: { type: "string" },
+					body_storage_message: { type: "string" },
+					scan_status: {
+						type: ["string", "null"],
+						enum: ["clean", "flagged", "skipped", null],
+						description:
+							"Content scan outcome. Treat `flagged` as unsafe and `skipped` as unknown.",
+					},
+					scan_threats: {
+						type: "array",
+						items: {
+							type: "object",
+							properties: {
+								url: { type: "string" },
+								threat_type: { type: "string" },
+								source: {
+									type: "string",
+									enum: ["body", "attachment"],
+								},
+								attachment_filename: { type: "string" },
+							},
+						},
+					},
+					sender_authentication: {
+						type: "object",
+						description:
+							"Sender-authentication verdict derived only from a trusted receiving-provider signal. Raw Authentication-Results and From headers are never promoted to trusted evidence. The current connected providers do not expose a documented per-message verdict, so status is unknown; unknown is not a pass.",
+						required: [
+							"status",
+							"spf",
+							"dkim",
+							"dmarc",
+							"inbound_provider",
+							"reason",
+						],
+						properties: {
+							status: {
+								type: "string",
+								enum: ["pass", "fail", "unknown"],
+							},
+							spf: {
+								type: "string",
+								enum: ["pass", "fail", "unknown"],
+							},
+							dkim: {
+								type: "string",
+								enum: ["pass", "fail", "unknown"],
+							},
+							dmarc: {
+								type: "string",
+								enum: ["pass", "fail", "unknown"],
+							},
+							inbound_provider: {
+								type: ["string", "null"],
+								enum: ["cloudflare_routing", "resend", null],
+								description:
+									"Trusted transport source recorded by Mermail; this is not itself a sender verdict.",
+							},
+							reason: {
+								type: "string",
+								enum: [
+									"provider_sender_authentication_verdict_unavailable",
+									"inbound_provider_unavailable",
+								],
+							},
+						},
+						additionalProperties: false,
+					},
+					attachments: {
+						type: "array",
+						items: {
+							type: "object",
+							properties: {
+								id: { type: "string" },
+								filename: { type: "string" },
+								mimetype: { type: "string" },
+								size: { type: "integer" },
+								content_id: { type: ["string", "null"] },
+								disposition: { type: ["string", "null"] },
+							},
+						},
+					},
+					content_omitted: {
+						type: "boolean",
+						description:
+							"True when metadata_only omitted body, snippet, raw headers, and threat URLs",
+					},
+					content_truncated: {
+						type: "boolean",
+						description:
+							"True when `max_body_chars` shortened the returned body",
+					},
+					body_original_char_count: {
+						type: "integer",
+						minimum: 0,
+						description:
+							"Original stored body character count, present when the returned body was truncated",
+					},
+					agent_safe_content: {
+						type: "boolean",
+						description:
+							"True when raw headers, provider metadata, threat details, attachment metadata, and storage diagnostics were omitted and untrusted text fields were normalized to bounded plain text. This projection does not make email content trusted.",
+					},
+					attachment_count: {
+						type: "integer",
+						minimum: 0,
+						description:
+							"Attachment count retained when `agent_safe_content=true` omits attachment metadata",
+					},
 				},
 			},
 			EmailListResponse: {
@@ -3209,18 +3594,16 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 						description:
 							"Provider/local status such as `pending`, `verified`, `deleting`, `deleted`",
 					},
-					provider_domain_id: { type: "string", nullable: true },
-					region: { type: "string", nullable: true },
+					provider_domain_id: { type: ["string", "null"] },
+					region: { type: ["string", "null"] },
 					dns_records: {
-						type: "array",
+						type: ["array", "null"],
 						items: { type: "object", additionalProperties: true },
-						nullable: true,
 					},
-					last_error: { type: "string", nullable: true },
+					last_error: { type: ["string", "null"] },
 					verified_at: {
-						type: "string",
+						type: ["string", "null"],
 						format: "date-time",
-						nullable: true,
 					},
 					created_at: { type: "string", format: "date-time" },
 					updated_at: { type: "string", format: "date-time" },
@@ -3250,6 +3633,118 @@ Every endpoint page includes an interactive playground. Click **Try it**, paste 
 // but slimOp passes xCredits to op which duplicates description append. OK.
 
 applyPlanBadgesToPaths(paths);
+
+const agentInboxProfileKeys = new Set(
+	AGENT_INBOX_PROFILE_OPERATIONS.map(
+		(operation) => `${operation.method} ${operation.path} ${operation.name}`,
+	),
+);
+if (
+	AGENT_INBOX_PROFILE_OPERATIONS.length !== 11 ||
+	agentInboxProfileKeys.size !== 11
+) {
+	throw new Error("The agent-inbox profile must contain exactly 11 unique operations");
+}
+for (const operation of AGENT_INBOX_PROFILE_OPERATIONS) {
+	if (!paths[operation.path]?.[operation.method.toLowerCase()]) {
+		throw new Error(
+			`Agent-inbox profile operation is missing from OpenAPI: ${operation.method} ${operation.path}`,
+		);
+	}
+}
+
+const safeEmailReadContracts = [
+	{
+		path: "/api/v1/mailboxes/{mailboxId}/emails",
+		method: "get",
+		parameters: [
+			"metadata_only",
+			"include_held",
+			"require_scan_status",
+			"agent_safe_content",
+		],
+	},
+	{
+		path: "/api/v1/mailboxes/{mailboxId}/search",
+		method: "get",
+		parameters: [
+			"metadata_only",
+			"include_held",
+			"require_scan_status",
+			"agent_safe_content",
+		],
+	},
+	{
+		path: "/api/v1/mailboxes/{mailboxId}/emails/{emailId}",
+		method: "get",
+		parameters: [
+			"metadata_only",
+			"include_held",
+			"require_scan_status",
+			"max_body_chars",
+			"agent_safe_content",
+		],
+	},
+];
+for (const contract of safeEmailReadContracts) {
+	const operation = paths[contract.path]?.[contract.method];
+	const parameterNames = new Set(
+		operation?.parameters?.map((parameter) => parameter.name) ?? [],
+	);
+	for (const parameter of contract.parameters) {
+		if (!parameterNames.has(parameter)) {
+			throw new Error(
+				`Safe email read parameter is missing from OpenAPI: ${contract.method.toUpperCase()} ${contract.path} ${parameter}`,
+			);
+		}
+	}
+}
+
+if (
+	!mailboxSettingsSchema.properties.agentInbox.properties
+		.requireCleanScanForAutomation
+) {
+	throw new Error(
+		"Mailbox settings must document requireCleanScanForAutomation",
+	);
+}
+for (const field of [
+	"content_truncated",
+	"body_original_char_count",
+	"agent_safe_content",
+	"attachment_count",
+	"sender_authentication",
+]) {
+	if (!spec.components.schemas.Email.properties[field]) {
+		throw new Error(`Email schema is missing safe-read field: ${field}`);
+	}
+}
+const senderAuthenticationSchema =
+	spec.components.schemas.Email.properties.sender_authentication;
+if (
+	!senderAuthenticationSchema.description.includes("unknown is not a pass") ||
+	senderAuthenticationSchema.properties.inbound_provider.description.includes(
+		"sender verdict",
+	) === false
+) {
+	throw new Error(
+		"Email sender_authentication must document provider limitations",
+	);
+}
+if (
+	spec["x-mermail-tool-profiles"]["agent-inbox"].recommendedUrl !==
+	"/mcp?profile=agent-inbox"
+) {
+	throw new Error("Agent-inbox profile must publish its recommended scoped URL");
+}
+if (
+	!paths["/api/v1/mailboxes"].post.responses["413"] ||
+	!idempotencyKeyParam().description.includes(
+		"idempotency_payload_too_large",
+	)
+) {
+	throw new Error("Mailbox create must document the idempotency body ceiling");
+}
 
 const outPath = path.join(root, "openapi", "openapi.json");
 fs.writeFileSync(outPath, `${JSON.stringify(spec, null, 2)}\n`);

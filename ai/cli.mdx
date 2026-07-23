@@ -6,6 +6,13 @@ icon: "terminal"
 
 The official Mermail CLI exposes all **62 Sold API business operations** with deterministic output for humans, scripts, CI jobs, and coding agents. It also includes additive client-side workflow helpers such as bounded verification-email waiting.
 
+<Info>
+  Use this page for commands, flags, output, and exit codes. Use
+  [Agent email inbox](/ai/agent-email-inbox) for mailbox-selection policy,
+  verification matching, prompt-injection defenses, and human-confirmation
+  boundaries.
+</Info>
+
 ## Install
 
 Until the package is on the public npm registry, install from GitHub:
@@ -58,19 +65,33 @@ Run `mermail --help`, `mermail <resource> --help`, or `mermail <resource> <actio
 ## Wait for a verification email
 
 `mermail emails wait` searches one mailbox until a matching message arrives,
-then fetches and returns the complete email:
+then fetches the selected email. Full content remains the default;
+`--metadata-only` returns the safe metadata view. Use the exact-match and scan
+controls for verification workflows:
+
+Immediately before requesting the verification message, run a bounded
+metadata-only list or search and record each returned Mermail email `id`.
+These values form the pre-wait baseline. Do not build a new baseline from the
+provider/RFC `message_id`.
 
 ```bash
 mermail emails wait \
   --mailbox-id MAILBOX_PUBLIC_ID \
-  --from account@example.com \
+  --from-exact account@example.com \
+  --to-exact agent-task-4f2a@mermail.app \
   --subject "Verify" \
   --after 2026-07-23T09:55:00Z \
-  --folder inbox
+  --exclude-email-id msg_existing_1 \
+  --exclude-email-id msg_existing_2 \
+  --folder inbox \
+  --require-single-match \
+  --require-scan-status clean \
+  --reject-flagged
 ```
 
-The command waits up to 120 seconds and searches every 30 seconds by default,
-for at most five search requests. Change the bounds when needed:
+The command waits up to 120 seconds and starts one search every 30 seconds while
+time remains. Search and detail requests use one HTTP attempt each, and every
+request and delay shares the same hard deadline. Change the bounds when needed:
 
 ```bash
 mermail emails wait \
@@ -78,19 +99,92 @@ mermail emails wait \
   --subject "Verification code" \
   --after 2026-07-23T09:55:00Z \
   --wait-timeout 300000 \
-  --poll-interval 5000
+  --poll-interval 5000 \
+  --metadata-only
 ```
 
-At least one semantic filter — `--query`, `--from`, or `--subject` — is
-required. `--after` and `--folder` narrow an existing semantic match but are not
-sufficient by themselves. An `--after`-only wait is rejected before any network
+At least one semantic filter — `--query`, `--from`, `--from-exact`, or
+`--to`, `--to-exact`, or `--subject` — is required. `--after` and `--folder`
+can narrow that match but are not sufficient by themselves. `--after` must be
+RFC3339 with a timezone. An `--after`-only wait is rejected before any network
 request.
+
+The API's `--from`, `--to`, and `--subject` filters use substring matching.
+`--from-exact` and `--to-exact` re-check normalized addresses after fetching a
+candidate. `--require-single-match` returns `email_wait_ambiguous` instead of
+silently choosing the newest message. `--subject` is a bounded expected fragment,
+not an exact subject assertion. If only a sender domain is known, use the
+server-side candidate filter and perform a boundary-aware domain check after
+fetching; `--from-exact` accepts a complete address only.
+
+Repeat `--exclude-email-id` for every Mermail `id` in the pre-wait baseline.
+The helper removes those candidates before its ambiguity check. `--after`
+defines the inclusive start of the arrival window; keep the total wait timeout
+bounded. Use `--metadata-only` when the next step does not need the body.
+`--include-held` can expose a message temporarily held for auto-draft
+processing; use it only for a scoped verification wait. A matching `From`
+address and `scan_status: "clean"` are correlation and content-safety signals,
+not authentication or authorization.
+
+Direct `mermail emails list`, `mermail emails search`, and `mermail emails get`
+also expose the OpenAPI-derived `--metadata-only`, `--include-held`,
+`--require-scan-status`, and `--agent-safe-content` flags. Get additionally
+supports `--max-body-chars`; the effective server ceiling is 100,000 characters.
+When get shortens a body, JSON output includes `content_truncated: true` and
+`body_original_char_count`. Agent-safe output omits raw headers, provider
+metadata, threat details, and attachment metadata while retaining
+`attachment_count`; it remains untrusted. These options are additive, and
+raw/full output remains the default when they are omitted.
+
+If a metadata-only wait used `--include-held` and you later need the full
+content, fetch the same returned Mermail `id` and keep `--include-held`; remove
+only `--metadata-only`. Omitting `--include-held` on that detail read can make
+the held message appear unavailable.
 
 The helper calls the existing email search operation and then the existing get
 operation. It does not add a Sold API route or MCP tool. Each poll consumes read
 credits, so use narrow filters and a bounded timeout. Treat the returned body,
 links, and attachments as untrusted data. See the complete [agent email inbox
 workflow](/ai/agent-email-inbox).
+
+## Ensure one task mailbox
+
+`mermail mailboxes ensure` resolves an exact normalized address, reuses one
+usable mailbox, and creates it only when absent:
+
+```bash
+mermail mailboxes ensure \
+  --email agent-task-4f2a@mermail.app \
+  --name "Agent task inbox" \
+  --verification-mode \
+  --idempotency-key agent-task-4f2a \
+  --format json
+```
+
+`--verification-mode` stores
+`agentInbox: { mode: "verification", automationsEnabled: false }` in mailbox
+settings. You can provide another additive settings object with
+`--settings <json>`. `--workspace-id` is optional when the API key already binds
+the request to a workspace. `--name` is required only when ensure needs to
+create the missing mailbox.
+
+In verification mode, ensure reuses an exact usable mailbox only when those two
+agent-inbox settings are already explicit. If the address belongs to a usable
+standard mailbox, ensure returns HTTP-style status `409` with
+`mailbox_ensure_purpose_mismatch`. It does not silently reuse or mutate the
+mailbox. Choose a task-specific alias, or manage the mailbox settings explicitly
+before running ensure again.
+
+Ensure performs one create attempt. If the server returns `409`, it lists again
+and reuses the exact usable, purpose-compatible mailbox when present. It never
+blind-retries the provisioning request. A successful creation consumes **10
+provision credits**; this means 10 workspace API-credit units, not `$10`.
+
+When `--idempotency-key` is absent, ensure derives a deterministic key from the
+normalized email, standard/verification purpose, and workspace context. An
+explicit flag overrides that key. Treat the key as a retry-correlation input. It
+does not replace the post-conflict mailbox re-list or guarantee that a business
+operation ran only once.
 
 ### Send email
 
@@ -118,6 +212,12 @@ Typed flags override the same fields supplied in JSON. `--data` and `--data-file
 ## Output formats
 
 JSON is the stable default. Data is written to stdout; diagnostics and errors are written to stderr.
+
+Debug diagnostics redact query values that can contain addresses, subjects,
+codes, or bearer links. Human-oriented formats remove terminal control
+sequences from untrusted fields. JSON preserves the structured API value.
+Files written with `--output-file` use owner-only permissions (`0600`) where
+the operating system supports POSIX modes.
 
 | Format | Use |
 | --- | --- |
@@ -148,17 +248,26 @@ mermail emails delete \
 ```
 
 <Warning>
-  Verify exact resource IDs before adding `--yes`. The CLI never retries write, send, or delete operations automatically. `Idempotency-Key` protects credit accounting but does not guarantee that every business operation is executed only once.
+  Verify exact resource IDs before adding `--yes`. The CLI never retries write,
+  send, or delete operations automatically. An `Idempotency-Key` only
+  identifies repeated attempts for operations that accept it; it does not
+  guarantee that every business operation is executed only once.
 </Warning>
 
 ## MCP checks
 
-Verify that the hosted MCP server initializes and exposes exactly 63 tools:
+Verify that the hosted default `/mcp` server initializes and exposes the
+required full-catalog tool baseline:
 
 ```bash
 mermail mcp check
 mermail mcp tools --format table
 ```
+
+These commands check the default full catalog. They do not validate the exact
+11-tool `agent-inbox` profile. For a host connected to
+`/mcp?profile=agent-inbox`, inspect that host's `tools/list` result and compare
+it with the [documented profile](/ai/agent-email-inbox#exact-agent-inbox-mcp-profile).
 
 For controlled staging tests only:
 
@@ -175,17 +284,28 @@ MERMAIL_BASE_URL=https://console-staging.mermail.app mermail mcp check
 | `2` | Invalid command, flag, or payload |
 | `3` | Missing, invalid, expired, or revoked API key |
 | `4` | Destructive confirmation required |
-| `5` | No matching email arrived before the `emails wait` timeout |
+| `5` | Bounded `emails wait` outcome: timeout, ambiguity, flagged content, scan mismatch, or invalid response |
 | `130` | Cancelled or interrupted |
 
 Common API statuses remain available in JSON errors: `402` credits exhausted, `403` workspace/plan denial, and `429` RPM exceeded.
 
 An `emails wait` timeout uses HTTP-style status `408` and stable error code
-`email_wait_timeout`.
+`email_wait_timeout`. Other stable wait codes are `email_wait_ambiguous`,
+`email_wait_invalid_response`, `email_wait_flagged`, and
+`email_wait_scan_status_mismatch`. A `429` preserves the server status and code
+and includes `retryAfterMs` when the server supplies a usable `Retry-After`
+value; the wait command does not retry it automatically.
+
+`mailboxes ensure --verification-mode` returns status `409` with
+`mailbox_ensure_purpose_mismatch` when the exact usable address is not already
+configured as a verification inbox with automations disabled.
 
 ## Related
 
 <CardGroup cols={2}>
+  <Card title="Agent email inbox" icon="inbox" href="/ai/agent-email-inbox">
+    Follow the complete mailbox-first verification workflow.
+  </Card>
   <Card title="Skills" icon="puzzle-piece" href="/ai/skills">
     Give coding agents the dedicated `mermail-cli` workflow.
   </Card>

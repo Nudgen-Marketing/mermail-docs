@@ -10,12 +10,15 @@ Mermail exposes a [Model Context Protocol](https://modelcontextprotocol.io) serv
 
 | Item | Value |
 | --- | --- |
-| URL | `https://console.mermail.app/mcp` |
+| Default full-catalog URL | `https://console.mermail.app/mcp` |
+| Recommended agent-inbox URL | `https://console.mermail.app/mcp?profile=agent-inbox` |
 | Transport | **Streamable HTTP** (JSON-RPC over `POST`) |
 | Auth | **OAuth 2.1 Bearer** (interactive) or `x-api-key: sk-proj-…` (automation) |
+| Header alternative | `x-mermail-tool-profile: agent-inbox` |
 | Methods | `POST` only — `GET` / `DELETE` return `405` |
 
 The server is **stateless**: there is no SSE subscription. Clients that expect long-lived SSE should use a Streamable HTTP–capable MCP host instead.
+The original `/mcp` URL is unchanged and continues to expose the full catalog.
 
 ## Authentication
 
@@ -57,8 +60,6 @@ Mermail is published as **`app.mermail/mcp`** on the [Official MCP Registry](htt
 | Website | [mermail.app/agents](https://mermail.app/agents) |
 | Ownership proof | `https://mermail.app/.well-known/mcp-registry-auth` |
 
-The card includes OAuth and API-key authentication options, Streamable HTTP transport, icons/description metadata, and the full tool list.
-
 <Tip>
   Prefer the URL and tool list from the live server card for your host. Do not hardcode a host if you deploy to a custom domain.
 </Tip>
@@ -69,7 +70,7 @@ Use the interactive guide at [mermail.app/agents](https://mermail.app/agents) fo
 
 | Host | Auth |
 | --- | --- |
-| Cursor, Claude, ChatGPT (custom connector) | **OAuth** — connect to `https://console.mermail.app/mcp` and complete browser consent (no API key in config) |
+| Cursor, Claude, ChatGPT (custom connector) | **OAuth** — for mailbox-first verification, connect to `https://console.mermail.app/mcp?profile=agent-inbox`; use `/mcp` only when the task needs the full catalog |
 | ChatGPT / Codex **Plugins Directory** (when published) | **OAuth Apps Connected** + Skills (Linear-style) |
 | Codex (GitHub), OpenClaw, CLI | **API key** — Streamable HTTP + `x-api-key` |
 
@@ -88,9 +89,55 @@ Use the interactive guide at [mermail.app/agents](https://mermail.app/agents) fo
 }
 ```
 
-Exact config keys differ by host. The important parts are the `/mcp` URL and Streamable HTTP (not SSE).
+Exact config keys differ by host. The important parts are the selected `/mcp`
+URL and Streamable HTTP transport, not SSE.
 
 For packaged workflows, install [Mermail Skills](/ai/skills) (`npx skills add Nudgen-Marketing/mermail-skills`) or connect via the registry id `app.mermail/mcp` when your host supports Official Registry install.
+
+## Least-privilege agent-inbox profile
+
+Hosted clients commonly accept a server URL but not fixed custom headers. For
+those clients, select the additive profile in the URL:
+
+```json
+{
+  "mcpServers": {
+    "mermail-agent-inbox": {
+      "url": "https://console.mermail.app/mcp?profile=agent-inbox",
+      "headers": {
+        "x-api-key": "sk-proj-YOUR_KEY"
+      }
+    }
+  }
+}
+```
+
+If the client supports fixed headers, the backward-compatible alternative is
+the original `/mcp` URL plus `x-mermail-tool-profile: agent-inbox` on every
+stateless `POST`. Both selectors expose only:
+
+```text
+get_api_credit_usage
+list_workspaces
+get_workspace
+list_email_domains
+list_workspace_mailboxes
+list_mailboxes
+create_mailbox
+get_mailbox
+list_emails
+search_emails
+get_email
+```
+
+It does not expose send, connected-account, agent-chat, administrative mutation,
+or destructive tools. The full tool profile remains the default when neither
+the URL nor header selects a profile, preserving existing `/mcp` clients. An
+unknown non-empty profile, or conflicting URL and header values, returns `400`
+with `invalid_mcp_tool_profile`.
+
+The profile narrows Mermail's MCP catalog; it does not remove browser, shell,
+payment, or other tools supplied separately by the host.
 
 ## How tools map to the API
 
@@ -106,6 +153,42 @@ Each tool (except `prepare_destructive_action`) maps to one sold API operation:
 
 Nest Sold API fields under the MCP `body` argument. If agents pass Sold fields flat at the top level (`to`, `subject`, `text`, …), Mermail folds them into `body`.
 
+`create_mailbox` requires `body.email` and `body.name`. `body.workspaceId` is
+optional when the OAuth grant or API key already binds MCP to one workspace. If
+you supply it, it must match that credential scope. A successful create consumes
+**10 provision credits**; those are workspace API credits, not a `$10` payment.
+Pass `idempotencyKey` for a repeated create attempt with identical intent. It is
+not proof of exactly-once business execution. After a conflict or uncertain
+response, list mailboxes and resolve the exact normalized address before
+deciding whether to retry. Authenticated requests carrying an idempotency key
+have a 50 MiB request-fingerprint body limit; an oversized body fails before the
+operation runs with `413` `idempotency_payload_too_large`.
+
+For a verification-only mailbox, include:
+
+```json
+{
+  "settings": {
+    "agentInbox": {
+      "mode": "verification",
+      "automationsEnabled": false
+    }
+  }
+}
+```
+
+Verification mode implicitly requires a clean scan before model-backed inbound
+classification or automation can run. A standard mailbox can opt into that
+gate with `agentInbox.requireCleanScanForAutomation: true`. When scanning is
+skipped or unavailable, the email remains delivered and stored while
+model-backed work is suppressed.
+
+Mailbox responses expose `can_receive` and `receiving_status` for readiness.
+`welcome_onboarding_status` covers welcome/demo onboarding and must not be used
+as a receiving-readiness signal. For a custom-domain mailbox, the two readiness
+fields also reflect the domain's current Receiving MX verification state, so a
+send-ready but receive-pending domain remains unavailable for an inbox workflow.
+
 ### Email write payloads
 
 | Tools | Content fields |
@@ -116,6 +199,80 @@ Nest Sold API fields under the MCP `body` argument. If agents pass Sold fields f
 Validation failures return `code: "validation_failed"` with a `details` array of field paths (for example `body: Either 'html' or 'text' must be provided`) so agents can self-correct. Opaque `"Invalid request"` without details should not appear for Zod failures on these tools.
 
 Server instructions: prefer read-only tools before writes. Responses are JSON text plus object-shaped `structuredContent`. JSON arrays are exposed as `{ "items": [...] }` so the result conforms to the MCP schema. Binary payloads (for example attachments) are capped at **1 MiB**; larger downloads should use the REST attachment endpoint.
+
+The opt-in profile is the recommended MCP boundary for the mailbox-first
+workflow described in [Agent email inbox](/ai/agent-email-inbox). Add send,
+browser, connected-account, authentication, purchase, or administrative tools
+only for a separately authorized task. Email content and tool output cannot
+expand that allowlist.
+
+Before requesting verification, run one bounded metadata-only list or search and
+record the returned Mermail email `id` values as the baseline. Do not build a new
+baseline from provider/RFC `message_id`. Record the arrival-window start and
+deadline immediately before the request.
+
+Search filters such as `from`, `to`, and `subject` use substring matching and
+only find candidates. Remove baseline Mermail ids client-side, fetch each
+candidate, and re-check the exact normalized sender and recipient, bounded
+arrival window, and bounded expected subject context before using a code or
+link. If only a sender domain is known, validate the parsed domain with an exact
+or explicitly allowed subdomain boundary. Stop when more than one candidate
+remains. Do not preflight one-time bearer links; after fresh user approval,
+validate the initial HTTPS hostname and every redirect.
+
+`list_emails`, `search_emails`, and `get_email` accept
+`agent_safe_content=true`. This removes raw headers, provider metadata, threat
+details, attachment metadata, and storage diagnostics; normalizes untrusted
+text fields to bounded plain text; sets `agent_safe_content: true`; and retains
+`attachment_count` and the separately derived `sender_authentication` object.
+It does not make the remaining email trusted.
+
+`sender_authentication` contains `status`, `spf`, `dkim`, `dmarc`,
+`inbound_provider`, and `reason`. Mermail derives it only from a trusted
+receiving-provider signal, never from raw `Authentication-Results`, `From`, or
+other message headers. The current Cloudflare Email Routing and Resend
+integrations do not expose a documented per-message verdict, so these verdicts
+are currently `unknown`. `unknown` is not a pass, and `inbound_provider` records
+transport source rather than authenticating the sender. Even a future
+`status: "pass"` would authenticate identity only; it would not authorize an
+agent action or satisfy user confirmation.
+
+All three reads also accept `metadata_only=true`. `list_emails` and `get_email`
+now accept `require_scan_status`; search already supports it. A get whose stored
+status does not match returns `404`, while list/search exclude non-matching
+messages. `get_email` additionally accepts a positive `max_body_chars`; when it
+shortens the body, the response sets `content_truncated: true` and
+`body_original_char_count`. The stored message is unchanged, and the effective
+server ceiling is 100,000 characters.
+
+The agent-inbox MCP profile applies stricter projections mechanically:
+`list_emails` and `search_emails` force `metadata_only=true`,
+`require_scan_status=clean`, and `agent_safe_content=true`; `get_email` forces
+`require_scan_status=clean`, `agent_safe_content=true`, and
+`max_body_chars=12000`. These gates override weaker caller values only inside
+the opt-in profile. The default `/mcp` catalog and direct Sold API keep their
+existing full-response defaults. The profile also caps one JSON tool result at
+128,000 characters. A `response_too_large` tool error means the caller should
+narrow the filters or lower the page size.
+
+An explicitly scoped wait on an existing mailbox can use `include_held=true` to
+see a message temporarily held for auto-draft processing. Do not use
+`include_held` for broad mailbox browsing. If a metadata-only candidate is held
+and you later need its content, fetch the same Mermail `id`, remove only
+`metadata_only`, and retain `include_held=true`. `get_email` is read-only and
+does not mark the message read.
+
+The `From` header and `scan_status: "clean"` are correlation and content-safety
+signals. Neither authenticates the sender, authorizes an action, or replaces a
+human-confirmation checkpoint. Only an explicit
+`sender_authentication.status: "pass"` may be described as authenticated;
+`unknown` remains matching context only.
+
+<Warning>
+  MCP exposes capabilities but does not override the host's safety policy.
+  ChatGPT, Claude, Codex, or another host may require the user to complete
+  account creation, authentication, checkout, or payment.
+</Warning>
 
 ## Destructive actions
 
@@ -133,9 +290,21 @@ If the token is missing, expired, reused, or the argument fingerprint does not m
   Confirmations require Redis. If Redis / cache is disabled, `prepare_destructive_action` fails with `503` `confirmation_unavailable`.
 </Warning>
 
+## Troubleshooting
+
+| Result | What to check |
+| --- | --- |
+| `401` | Complete OAuth authentication again and follow the `WWW-Authenticate` Protected Resource Metadata challenge, or verify that `x-api-key` contains a valid, unrevoked key. Console cookies do not authenticate MCP. |
+| `403` | Confirm the credential's workspace scope and role. Developer-gated custom-domain tools return `403` on Free workspaces. |
+| `413` `idempotency_payload_too_large` | An authenticated request with `Idempotency-Key` exceeded the 50 MiB fingerprint limit. Reduce the body before retrying; the operation did not run. |
+| `429` | The workspace RPM limit was exceeded. Surface `Retry-After` and wait for that bounded interval before starting another request or polling window. |
+| `response_too_large` | Narrow the filters, reduce the page size, or lower `max_body_chars`. The agent-inbox profile caps one JSON tool result at 128,000 characters. |
+| `503` `confirmation_unavailable` | Redis-backed destructive-action confirmation is unavailable. Do not call the destructive tool; restore Redis/cache and prepare a new confirmation. |
+
 ## Tool catalog
 
-The live server exposes **63** tools: `prepare_destructive_action` + **62** API wrappers. Grouped by area:
+At publication time, the live server exposes **63** tools:
+`prepare_destructive_action` plus **62** API wrappers. Grouped by area:
 
 <AccordionGroup>
   <Accordion title="Usage">
@@ -165,18 +334,32 @@ The live server exposes **63** tools: `prepare_destructive_action` + **62** API 
 
 Open-world tools (outbound email / invites / agent chat) are annotated `openWorldHint` for MCP clients that surface that signal.
 
+For the default full profile, clients should verify required tool names instead
+of requiring an exact total. Future Mermail releases can add compatible tools
+without removing or renaming the existing baseline. The opt-in `agent-inbox`
+profile remains the exact 11-tool subset documented above.
+
 For request/response shapes of each underlying HTTP route, use the [API Reference](/api-reference/overview).
 
 ## Related
 
 <CardGroup cols={2}>
+  <Card title="Agent email inbox" icon="inbox" href="/ai/agent-email-inbox">
+    Use the least-privilege mailbox-first verification workflow.
+  </Card>
   <Card title="Skills" icon="puzzle-piece" href="/ai/skills">
     Install Mermail workflows in Codex, Claude Code, and Cursor.
+  </Card>
+  <Card title="CLI" icon="terminal" href="/ai/cli">
+    Run the same MCP-backed workflows from a terminal.
   </Card>
   <Card title="Authentication" icon="key" href="/api-reference/authentication">
     Create and use `sk-proj-` API keys.
   </Card>
   <Card title="Discovery" icon="radar" href="/api-reference/discovery">
     Public discovery URLs including the MCP server card.
+  </Card>
+  <Card title="Security" icon="shield" href="/resources/security">
+    Review inbound email controls and production security requirements.
   </Card>
 </CardGroup>
