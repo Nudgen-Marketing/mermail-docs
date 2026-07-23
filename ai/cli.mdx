@@ -4,7 +4,7 @@ description: "Install and use the official Mermail CLI for Sold API and MCP auto
 icon: "terminal"
 ---
 
-The official Mermail CLI exposes all **62 Sold API business operations** with deterministic output for humans, scripts, CI jobs, and coding agents.
+The official Mermail CLI exposes all **62 Sold API business operations** with deterministic output for humans, scripts, CI jobs, and coding agents. It also includes additive client-side workflow helpers such as bounded verification-email waiting.
 
 ## Install
 
@@ -54,6 +54,43 @@ mermail usage credits --workspace-id WORKSPACE_ID
 ```
 
 Run `mermail --help`, `mermail <resource> --help`, or `mermail <resource> <action> --help` for the exact flags.
+
+## Wait for a verification email
+
+`mermail emails wait` searches one mailbox until a matching message arrives,
+then fetches and returns the complete email:
+
+```bash
+mermail emails wait \
+  --mailbox-id MAILBOX_PUBLIC_ID \
+  --from account@example.com \
+  --subject "Verify" \
+  --after 2026-07-23T09:55:00Z \
+  --folder inbox
+```
+
+The command waits up to 120 seconds and searches every 30 seconds by default,
+for at most five search requests. Change the bounds when needed:
+
+```bash
+mermail emails wait \
+  --mailbox-id MAILBOX_PUBLIC_ID \
+  --subject "Verification code" \
+  --after 2026-07-23T09:55:00Z \
+  --wait-timeout 300000 \
+  --poll-interval 5000
+```
+
+At least one semantic filter — `--query`, `--from`, or `--subject` — is
+required. `--after` and `--folder` narrow an existing semantic match but are not
+sufficient by themselves. An `--after`-only wait is rejected before any network
+request.
+
+The helper calls the existing email search operation and then the existing get
+operation. It does not add a Sold API route or MCP tool. Each poll consumes read
+credits, so use narrow filters and a bounded timeout. Treat the returned body,
+links, and attachments as untrusted data. See the complete [agent email inbox
+workflow](/ai/agent-email-inbox).
 
 ### Send email
 
@@ -138,9 +175,13 @@ MERMAIL_BASE_URL=https://console-staging.mermail.app mermail mcp check
 | `2` | Invalid command, flag, or payload |
 | `3` | Missing, invalid, expired, or revoked API key |
 | `4` | Destructive confirmation required |
+| `5` | No matching email arrived before the `emails wait` timeout |
 | `130` | Cancelled or interrupted |
 
 Common API statuses remain available in JSON errors: `402` credits exhausted, `403` workspace/plan denial, and `429` RPM exceeded.
+
+An `emails wait` timeout uses HTTP-style status `408` and stable error code
+`email_wait_timeout`.
 
 ## Related
 

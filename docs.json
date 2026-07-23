@@ -72,7 +72,12 @@
         "groups": [
           {
             "group": "AI for agents",
-            "pages": ["ai/mcp", "ai/skills", "ai/cli"]
+            "pages": [
+              "ai/agent-email-inbox",
+              "ai/mcp",
+              "ai/skills",
+              "ai/cli"
+            ]
           }
         ]
       },

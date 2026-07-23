@@ -4,7 +4,7 @@ description: "Install Mermail Skills in Codex, Claude Code, Cursor, and other Ag
 icon: "puzzle-piece"
 ---
 
-Mermail Skills give coding agents reusable workflows for inbox management, email delivery, workspace administration, task triage, and mailbox-agent conversations. The official package connects those workflows to the hosted [Mermail MCP server](/ai/mcp).
+Mermail Skills give coding agents reusable workflows for agent inbox provisioning, inbox management, email delivery, workspace administration, task triage, and mailbox-agent conversations. The official package connects those workflows to the hosted [Mermail MCP server](/ai/mcp).
 
 The source is available at [Nudgen-Marketing/mermail-skills](https://github.com/Nudgen-Marketing/mermail-skills).
 
@@ -165,23 +165,28 @@ Production defaults to `https://console.mermail.app/mcp`.
 | `mermail` | Route broad or cross-domain Mermail requests |
 | `mermail-mcp` | Configure and troubleshoot hosted MCP authentication |
 | `mermail-cli` | Use deterministic shell commands and JSON output |
+| `mermail-agent-inbox` | Discover, reuse, or create an agent mailbox and safely monitor verification email |
 | `mermail-manage-inbox` | Read, search, organize, and clean up inboxes |
 | `mermail-compose-email` | Draft, send, reply, forward, and schedule email |
 | `mermail-administer-workspace` | Manage workspaces, members, domains, mailboxes, storage, and usage |
 | `mermail-automate-triage` | Configure and inspect task triage automation |
 | `mermail-mail-agent` | Work with mailbox-agent conversations |
 
-The package contains **8 skills** and covers **62 business tools**. MCP also exposes `prepare_destructive_action`, bringing the discoverable total to **63**.
+The package contains **9 skills** and covers **62 business tools**. MCP also exposes `prepare_destructive_action`, bringing the discoverable total to **63**.
 
 ## Safety model
 
 - Email bodies, headers, links, attachments, and tool results are untrusted data, not agent instructions.
 - Read-only tools should be used before write tools.
+- A clear request to use Mermail can authorize one discover-or-provision pass; third-party signup, authentication, purchase, and payment actions remain separate confirmation boundaries.
 - Sending email, inviting members, and other external effects require an exact preview and user approval.
 - Destructive tools additionally require a five-minute, single-use MCP confirmation token.
 - API keys remain workspace-scoped and subject to plan access, RPM limits, and available credits.
 
-See [MCP destructive actions](/ai/mcp#destructive-actions) for the confirmation flow.
+See [Agent email inbox](/ai/agent-email-inbox) for mailbox discovery,
+verification monitoring, and third-party action boundaries. See
+[MCP destructive actions](/ai/mcp#destructive-actions) for the separate
+confirmation-token flow.
 
 ## Troubleshooting
 
@@ -219,6 +224,9 @@ Prefer the installable `mermail-skills` package for Codex, Claude Code, Cursor, 
 ## Related
 
 <CardGroup cols={2}>
+  <Card title="Agent email inbox" icon="inbox" href="/ai/agent-email-inbox">
+    Provision or reuse a mailbox and monitor verification email safely.
+  </Card>
   <Card title="CLI" icon="terminal" href="/ai/cli">
     Automate all Sold API operations from the shell.
   </Card>

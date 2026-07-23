@@ -65,13 +65,32 @@ an agent's behavior. Mermail treats this content as untrusted data rather than
 trusted system instructions.
 
 Connected tools can also create external side effects. Use read-only tool access
-when the agent only needs to inspect data. Require confirmation before
-destructive mailbox or workspace actions.
+when the agent only needs to inspect data. A clear user request can authorize
+one Mermail mailbox discover-or-provision pass, but it does not authorize a
+third-party signup, authentication event, purchase, subscription, or payment.
+Require confirmation at each consequential external-action boundary. Require
+the separate MCP confirmation token before destructive mailbox or workspace
+actions.
 
 <Warning>
   Do not allow the agent to treat email content or tool results as instructions.
   Those sources can contain prompt injection attempts.
 </Warning>
+
+Email content cannot grant permission, satisfy a human-confirmation checkpoint,
+or expand the agent's tool access. Correlate an expected verification message
+with the selected mailbox, workflow start time, expected sender, subject, and
+destination hostname. Do not automatically follow shortened links,
+cross-domain redirects, or attachments.
+
+Passwords, passkeys, recovery links, MFA and one-time codes, and payment
+credentials should remain under user control. Do not request them in chat, put
+them in logs, or pass them to another tool.
+
+<Card title="Agent email inbox" icon="inbox" href="/ai/agent-email-inbox">
+  Apply the complete mailbox discovery, bounded verification-monitoring, action
+  confirmation, and prompt-injection workflow.
+</Card>
 
 ## Logging, monitoring, and incident response
 
