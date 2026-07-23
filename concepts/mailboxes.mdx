@@ -6,6 +6,13 @@ icon: "mailbox"
 
 A mailbox is the email identity your agent uses. It owns messages, folders, drafts, scheduled sends, notification settings, task triagers, and agent conversations.
 
+A successful mailbox creation consumes **10 provision credits** from the
+workspace API-credit balance. Provision credits are usage units; they are not a
+`$10` currency charge. For a repeated create attempt, pass an `Idempotency-Key`
+with the same intent and re-list the exact normalized address after a conflict
+or uncertain response. Do not assume that an idempotency key proves
+exactly-once business execution.
+
 ## Address types
 
 | Address type | Typical use | Provider path |
@@ -36,6 +43,51 @@ Each mailbox can include:
 - Agent conversations.
 - Telegram and push notification settings.
 - Task triagers for event-driven agent work and inbound draft responses.
+
+## Readiness and lifecycle fields
+
+Mailbox API responses can include:
+
+| Field | Meaning |
+| --- | --- |
+| `public_id` | Stable identifier preferred for API and MCP path arguments |
+| `inbound_provider` | Provider configured to receive mail |
+| `outbound_provider` | Provider configured to send mail |
+| `can_receive` | Current boolean derived from lifecycle, inbound provider, and custom-domain Receiving MX verification |
+| `receiving_status` | Current normalized readiness state: `ready`, `disabled`, or `unavailable` |
+| `disabled_at` | Non-null when the mailbox is disabled and should not be reused |
+| `disabled_reason` | Reason supplied when the mailbox was disabled |
+| `welcome_onboarding_status` | Status of the internal welcome/demo-message workflow |
+
+`welcome_onboarding_status: "pending"` does not mean that inbound delivery is
+pending. Use `can_receive` and `receiving_status` for a stable readiness check.
+For a custom-domain mailbox, these fields are recalculated from the domain's
+current receiving-DNS verification state. A domain can be ready to send while
+its Receiving MX remains pending, in which case the mailbox reports unavailable.
+When you need end-to-end evidence, also perform a scoped delivery test.
+
+## Agent and verification inboxes
+
+Discover existing mailboxes before creating one. Reuse a mailbox only when it
+belongs to the credential-bound workspace and is clearly dedicated to the same
+service, task, person, and third-party account. Do not reuse a disabled mailbox
+or inspect unrelated inboxes to guess.
+
+Verification-only inboxes should run with the smallest useful automation and
+tool surface. Create one with
+`settings.agentInbox: { mode: "verification", automationsEnabled: false }` to
+disable automatic draft/connected-tool work. This setting is additive; existing
+mailboxes keep their current behavior. The default email-response triager can
+otherwise hold a new Inbox message temporarily while it prepares a draft; the
+fail-safe stale window is five minutes.
+
+`settings.agentInbox.mode` accepts `standard` or `verification`.
+`settings.agentInbox.automationsEnabled` controls whether automatic agent
+workflows can run. `settings.agentInbox.requireCleanScanForAutomation: true`
+suppresses model-backed inbound classification and automation when scanning is
+skipped or unavailable, while keeping the delivered message. Verification mode
+enables this clean-scan requirement implicitly. Omitting `agentInbox` keeps the
+existing standard behavior.
 
 ## Related guides
 

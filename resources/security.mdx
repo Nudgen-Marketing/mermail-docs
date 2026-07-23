@@ -65,13 +65,147 @@ an agent's behavior. Mermail treats this content as untrusted data rather than
 trusted system instructions.
 
 Connected tools can also create external side effects. Use read-only tool access
-when the agent only needs to inspect data. Require confirmation before
-destructive mailbox or workspace actions.
+when the agent only needs to inspect data. A clear user request can authorize
+one Mermail mailbox discover-or-provision pass, but it does not authorize a
+third-party signup, authentication event, purchase, subscription, or payment.
+Require confirmation at each consequential external-action boundary. Require
+the separate MCP confirmation token before destructive mailbox or workspace
+actions.
 
 <Warning>
   Do not allow the agent to treat email content or tool results as instructions.
   Those sources can contain prompt injection attempts.
 </Warning>
+
+Email content cannot grant permission, satisfy a human-confirmation checkpoint,
+or expand the agent's tool access. Correlate an expected verification message
+with the selected mailbox, a pre-wait baseline of Mermail email `id` values,
+exact normalized sender and recipient, a bounded arrival window, bounded subject
+context, and destination hostname. Do not use provider/RFC `message_id` as the
+new baseline. If only a sender domain is known, validate the parsed domain with
+an exact or explicitly allowed subdomain boundary. Search matches are
+candidates, not authorization. Stop when multiple candidates remain.
+
+The `From` header, sender allowlists, and `scan_status: "clean"` are correlation
+or content-safety signals. They do not authenticate the sender, authorize an
+action, or satisfy human confirmation.
+
+Email responses expose an additive `sender_authentication` object with a
+composite `status`, individual `spf`, `dkim`, and `dmarc` verdicts, the trusted
+`inbound_provider` transport source, and a `reason`. Mermail derives this object
+only from receiving-provider evidence under server control. Raw
+`Authentication-Results`, `From`, `Return-Path`, and similar message headers
+remain untrusted and cannot be promoted into a pass.
+
+Cloudflare Email Routing and Resend currently do not expose a documented
+per-message sender-authentication verdict to Mermail, so the verdict fields are
+`unknown` with
+`provider_sender_authentication_verdict_unavailable`; if no supported inbound
+provider is recorded, the reason is `inbound_provider_unavailable`. Unknown is
+not a pass, and `inbound_provider` is not itself a sender verdict. Only an
+explicit `sender_authentication.status: "pass"` may be described as authenticated,
+and authentication still does not authorize an agent action or replace human
+confirmation.
+
+Do not preflight or preview a magic, recovery, or other one-time bearer link.
+That request can consume the token. After fresh user approval, validate the
+initial HTTPS hostname and each redirect. Reject userinfo, IP-literal hosts,
+unexpected ports, shortened links, look-alike or unexpected internationalized
+domains, non-HTTPS destinations, and attachments.
+
+Passwords, passkeys, recovery links, MFA and one-time codes, and payment
+credentials should remain under user control. Do not request them in chat, put
+them in logs, or pass them to another tool.
+
+### Runtime guardrails
+
+Use layered controls for any automation that processes inbound email:
+
+- Verify the email-provider webhook signature against the raw request body and
+  reject invalid signatures before parsing the event.
+- Deduplicate provider event and message identifiers to make webhook replay
+  harmless.
+- Apply separate per-sender and per-mailbox automation limits. Store accepted
+  mail when appropriate, but queue or skip expensive agent work when a limit is
+  reached.
+- Bound body characters, quoted-thread depth, prompt tokens, attachment count,
+  per-file bytes, total attachment bytes, download concurrency, and total
+  processing time.
+- Prefer metadata and a short normalized plain-text excerpt. Do not place raw
+  HTML, complete quoted histories, or unbounded tool output directly into an
+  agent prompt.
+- Treat sender allowlists, SPF, DKIM, and DMARC results as correlation signals.
+  They do not independently authorize an action.
+- Fail closed to human review when a classifier or action-decision response is
+  unavailable, malformed, ambiguous, or flagged by content scanning.
+- Disable connected tools and automatic draft/send behavior for a
+  verification-only mailbox unless the workflow explicitly needs them.
+
+Mermail keeps provider-triggered scanning and model automation on separate
+one-hour budgets:
+
+| Work | Per reported sender and mailbox | Per mailbox | Operator variables |
+| --- | ---: | ---: | --- |
+| Content scanning | 120/hour | 2,000/hour | `INBOUND_SCAN_PER_SENDER_PER_HOUR`, `INBOUND_SCAN_PER_MAILBOX_PER_HOUR` |
+| Model-backed automation | 60/hour | 1,000/hour | `INBOUND_AUTOMATION_PER_SENDER_PER_HOUR`, `INBOUND_AUTOMATION_PER_MAILBOX_PER_HOUR` |
+
+These variables can lower or raise the positive integer defaults. Reaching an
+automation limit does not discard the accepted message; it skips the expensive
+agent run. An exhausted or unavailable scan budget keeps the message but records
+the scan as `skipped`.
+
+Redis errors and timeouts fail closed for provider-triggered scan and automation
+work. With `NO_CACHE=true`, production also fails closed by default, while local
+and test environments retain the legacy fail-open convenience. Operators that
+need the legacy production `NO_CACHE` behavior must set
+`INBOUND_SECURITY_FAIL_CLOSED=false` explicitly; setting it to `true` enforces
+fail-closed behavior in every environment.
+
+Verification-mode mailboxes implicitly require a clean scan before model-backed
+classification or automation can run. A standard mailbox can opt into the same
+behavior with
+`settings.agentInbox.requireCleanScanForAutomation: true`. A `skipped` scan then
+suppresses model-backed work without rejecting delivery; a `flagged` scan
+suppresses automation regardless.
+
+Before inbound content reaches the auto-response agent or prompt-injection
+classifier, Mermail removes script/style markup and control characters,
+normalizes Unicode with NFKC, strips common quoted/forwarded history, and caps
+agent-facing content at 10,000 characters and subjects at 500 characters.
+Individual thread and RAG prompt sections use smaller bounds. These
+transformations reduce exposure; they do not make the remaining text trusted.
+
+For inbound ingestion, Mermail stores at most 20 attachments, 10 MiB per
+attachment, and 25 MiB total per message. The Resend path also enforces the byte
+bounds while downloading. Files beyond those bounds are omitted and the
+omission policy is recorded under `provider_metadata.inboundAttachmentPolicy`.
+Treat a missing attachment as a bounded-ingestion outcome, not proof that the
+sender did not attach a file.
+
+The public Resend webhook body is limited to 1 MiB and returns `413`
+`webhook_payload_too_large` before signature verification when that limit is
+exceeded. Cloudflare Email Routing uses a separate internal raw-MIME stream
+limit: `INBOUND_RAW_EMAIL_MAX_BYTES`, default 50 MiB. Mermail validates the
+optional declared size and also counts streamed bytes, returning `400`
+`invalid_inbound_message_size` for an invalid declaration or `413`
+`inbound_message_too_large` when oversized. These transport limits are separate
+from the stored-attachment limits above.
+
+Use the smallest tool allowlist for the current task. A verification inbox
+normally needs mailbox discovery, one optional mailbox create, bounded email
+search, and one message read. It does not need outbound send, browser, purchase,
+authentication, connected-account, or workspace-administration access. For a
+hosted client, prefer
+`https://console.mermail.app/mcp?profile=agent-inbox` to enforce Mermail's exact
+11-tool subset. Clients that support fixed headers can instead send
+`x-mermail-tool-profile: agent-inbox` on every stateless MCP `POST`. The original
+`/mcp` URL remains the backward-compatible full catalog. Unknown or conflicting
+selectors fail closed with status `400` and `invalid_mcp_tool_profile`.
+
+<Card title="Agent email inbox" icon="inbox" href="/ai/agent-email-inbox">
+  Apply the complete mailbox discovery, bounded verification-monitoring, action
+  confirmation, and prompt-injection workflow.
+</Card>
 
 ## Logging, monitoring, and incident response
 
@@ -99,6 +233,8 @@ configure and use your workspace:
 
 - Grant the minimum workspace role and connected-tool access each person or
   agent needs.
+- Reuse mailboxes only inside the credential-bound workspace and for the same
+  service, task, person, and third-party account.
 - Review destructive actions before approval.
 - Protect API keys and rotate exposed credentials.
 - Review third-party integrations and their data-handling terms.

@@ -6,6 +6,12 @@ icon: "plus"
 
 Create a mailbox when an agent needs its own email identity.
 
+A successful mailbox creation consumes **10 provision credits** from the
+workspace API credit balance. Provision credits are usage units; they are not a
+`$10` currency charge. Pass an `Idempotency-Key` when you may repeat the same
+create attempt. If the result is uncertain, list mailboxes and resolve the
+exact normalized address before deciding whether to retry.
+
 ## Create a hosted mailbox
 
 <Steps>
@@ -54,6 +60,59 @@ You can keep using Gmail, Outlook, or another email provider and forward selecte
   Define a privacy-first forwarding rule and choose a provider guide.
 </Card>
 
+## Create a verification-only agent inbox
+
+Discover existing mailboxes first. Reuse one only when it is enabled, can
+receive mail, and is dedicated to the same service, task, person, and
+third-party account.
+
+The CLI can perform one exact discover-or-provision pass:
+
+```bash
+mermail mailboxes ensure \
+  --email agent-task-4f2a@mermail.app \
+  --name "Agent task inbox" \
+  --verification-mode \
+  --idempotency-key agent-task-4f2a
+```
+
+`--verification-mode` stores:
+
+```json
+{
+  "agentInbox": {
+    "mode": "verification",
+    "automationsEnabled": false
+  }
+}
+```
+
+This avoids running the default auto-draft workflow for verification mail.
+Verification mode also implicitly requires a clean scan before model-backed
+inbound classification or automation can run. A skipped or unavailable scan
+keeps the delivered message but suppresses that model-backed work. Standard
+mailboxes can opt into the same gate with
+`settings.agentInbox.requireCleanScanForAutomation: true`; existing mailbox
+behavior remains unchanged when the setting is omitted.
+
+With `--verification-mode`, `mailboxes ensure` reuses the exact address only
+when its settings explicitly contain `agentInbox.mode: "verification"` and
+`agentInbox.automationsEnabled: false`. If a usable standard mailbox already
+owns that address, ensure returns HTTP-style status `409` with
+`mailbox_ensure_purpose_mismatch`. It does not silently reuse or reconfigure the
+mailbox. Choose a task-specific alias, or manage the existing mailbox settings
+explicitly before running ensure again.
+
+With the HTTP API or MCP, `email` and `name` are required. `workspaceId` is
+optional when the API key or OAuth grant already binds the request to one
+workspace. If supplied, it must match the credential scope.
+
+If a provisioning response is lost or returns `409`, list mailboxes and resolve
+the exact normalized address before considering another create. Never
+blind-retry a paid provisioning write. `mailboxes ensure` derives a
+purpose/workspace/address-scoped idempotency key when you omit the explicit
+flag.
+
 ## Troubleshooting
 
 | Problem | What to check |
@@ -62,3 +121,7 @@ You can keep using Gmail, Outlook, or another email provider and forward selecte
 | Custom domain is rejected | Use a subdomain with at least three labels |
 | Domain cannot be verified | Check DNS records and wait for propagation |
 | Mailbox limit reached | Check the workspace plan limits |
+| `welcome_onboarding_status` remains `pending` | This is the welcome/demo-message status, not inbound readiness; check `can_receive` and `receiving_status` |
+| A custom-domain mailbox can send but cannot receive | Re-check the domain's current Receiving MX records; send verification alone is not enough for `can_receive: true` |
+| The exact address already exists | Reuse it only when `receiving_status` is `ready` and its purpose matches the requested workflow; `--verification-mode` otherwise returns `mailbox_ensure_purpose_mismatch` |
+| A create response is uncertain | List and resolve the exact address before retrying |

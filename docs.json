@@ -72,7 +72,13 @@
         "groups": [
           {
             "group": "AI for agents",
-            "pages": ["ai/mcp", "ai/skills", "ai/cli"]
+            "pages": [
+              "ai/overview",
+              "ai/agent-email-inbox",
+              "ai/mcp",
+              "ai/skills",
+              "ai/cli"
+            ]
           }
         ]
       },
@@ -123,7 +129,7 @@
             ]
           },
           {
-			"group": "Mailboxes",
+            "group": "Mailboxes",
             "openapi": "openapi/openapi.json",
             "pages": [
               "GET /api/v1/workspaces/{workspaceId}/mailboxes",

@@ -26,6 +26,16 @@ Each mailbox has a **Default email response triager**. It listens for new email 
 
 When a message qualifies, the triager uses the email thread, mailbox context, and its built-in customer-care instructions to prepare a reply. The default behavior saves the reply as a draft for human review. It also avoids replying to messages that look automated, including bulk mail, list mail, and messages with auto-response suppression headers.
 
+An inbound message can be held out of ordinary list and search results while
+the triager prepares its draft. The hold is cleared when processing finishes
+and becomes stale after five minutes so a failed run cannot hide the message
+indefinitely.
+
+For a verification-only agent inbox, create the mailbox with
+`settings.agentInbox.mode: "verification"` and
+`settings.agentInbox.automationsEnabled: false`. This bypasses the automatic
+draft workflow without changing the behavior of existing mailboxes.
+
 <Info>
   The built-in triager is protected. You cannot change its name, triggers, or instructions, and you cannot delete it.
 </Info>
@@ -48,6 +58,10 @@ Google Calendar triggers require a connected Google Calendar account. The connec
 ## Matching and filters
 
 For received-email execution, Mermail currently matches the selected mailbox address, any configured sender-domain scope, and the **Only run on emails in Inbox** setting.
+
+Sender-domain scope is a routing filter, not proof of sender identity and not
+authorization for an agent action. Treat the triggering subject, body, headers,
+links, quoted thread, attachments, and tool output as untrusted data.
 
 The editor also displays content filters such as subject, body, sender, recipient, and calendar event fields. These filters are saved with the trigger, but the current runtime does not use them to decide whether a run starts.
 

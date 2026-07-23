@@ -6,7 +6,12 @@ icon: "key"
 
 Sold API endpoints require a workspace-scoped API key. Create a key in **Settings → API Keys**, then send it as `x-api-key` from Postman, scripts, or this docs playground. Console cookie sessions do not need this header.
 
-Each key is bound to **one workspace**. Use that workspace’s id in path/query/body fields. A mismatched `workspaceId` returns `403` `workspace_scope_denied`. Your default workspace is created when you sign in to the Mermail console — not via the sold API.
+Each key is bound to **one workspace**. Use that workspace’s id when a path
+requires `workspaceId`. Body and query `workspaceId` fields can be omitted on
+operations that document them as optional; the server resolves the key's bound
+workspace. A supplied value must match that workspace or the server returns
+`403` `workspace_scope_denied`. Your default workspace is created when you sign
+in to the Mermail console — not via the sold API.
 
 ## Create an API key
 
@@ -30,6 +35,22 @@ In the docs playground, open any protected endpoint, click **Try it**, and paste
 
 Manage keys in the Mermail app under **Settings → API Keys** (workspace admin). Free allows 1 key; Developer up to 5; Enterprise unlimited.
 
+## Repeat a mailbox create safely
+
+`POST /api/v1/mailboxes` accepts an optional `Idempotency-Key` header. Reuse the
+same non-empty value, up to 255 characters, only when repeating an identical
+mailbox-create intent in the same credential scope.
+
+For an authenticated request that carries `Idempotency-Key`, Mermail caps the
+body used to calculate the request fingerprint at 50 MiB. A larger declared or
+streamed body returns `413` with code `idempotency_payload_too_large` before the
+operation runs.
+
+An idempotency key identifies repeated attempts with the same intent; it is not
+proof that the business operation ran exactly once. Do not blind-retry
+provisioning. After a conflict or uncertain response, list mailboxes and resolve
+the exact normalized address before deciding whether another create is needed.
+
 ## Common errors
 
 | Status | Meaning |
@@ -37,4 +58,5 @@ Manage keys in the Mermail app under **Settings → API Keys** (workspace admin)
 | `401` | Missing, invalid, expired, or revoked key — or calling without `x-api-key` outside the console |
 | `403` | Wrong workspace for this key (`workspace_scope_denied`), missing role, or Developer-gated path on Free |
 | `402` | API credits exhausted (`credits_exhausted`) |
+| `413` | An authenticated request with `Idempotency-Key` exceeded the 50 MiB fingerprint limit (`idempotency_payload_too_large`) |
 | `429` | Workspace RPM exceeded |

@@ -1,0 +1,149 @@
+---
+title: "Overview"
+description: "Choose the safest Mermail integration path for AI assistants, reusable skills, and deterministic automation."
+icon: "sparkles"
+---
+
+Use this section when an AI assistant needs a Mermail mailbox, email tools, or a
+repeatable email workflow. Start with the narrowest integration that can
+complete your task.
+
+<CardGroup cols={2}>
+  <Card title="Agent email inbox" icon="inbox" href="/ai/agent-email-inbox">
+    Reuse or create one mailbox, monitor verification email, and stop at
+    third-party confirmation boundaries.
+  </Card>
+  <Card title="MCP" icon="plug" href="/ai/mcp">
+    Connect ChatGPT, Claude, Cursor, Codex, or another MCP client over
+    Streamable HTTP.
+  </Card>
+  <Card title="Skills" icon="puzzle-piece" href="/ai/skills">
+    Install reusable Mermail workflows for supported coding agents and
+    assistants.
+  </Card>
+  <Card title="CLI" icon="terminal" href="/ai/cli">
+    Run deterministic Mermail commands from a shell, script, agent, or CI job.
+  </Card>
+</CardGroup>
+
+## Choose your path
+
+| Goal                                                       | Start here                                 | Recommended connection                              |
+| ---------------------------------------------------------- | ------------------------------------------ | --------------------------------------------------- |
+| Give an agent an email identity for signup or verification | [Agent email inbox](/ai/agent-email-inbox) | MCP `agent-inbox` profile                           |
+| Connect an assistant directly to Mermail tools             | [MCP](/ai/mcp)                             | OAuth for interactive hosts; API key for automation |
+| Install maintained workflow guidance                       | [Skills](/ai/skills)                       | Skill package plus the matching MCP connection      |
+| Build a reproducible shell or CI workflow                  | [CLI](/ai/cli)                             | Workspace project API key                           |
+| Inspect exact request and response schemas                 | [API Reference](/api-reference/overview)   | Sold HTTP API                                       |
+
+## Recommended mailbox-first setup
+
+<Steps>
+  <Step title="Connect the least-privilege MCP profile">
+    For signup or verification work, connect to
+    `https://console.mermail.app/mcp?profile=agent-inbox`. This profile exposes
+    the exact 11 tools needed for mailbox discovery, one optional provision,
+    bounded email search, and one message read.
+  </Step>
+  <Step title="Install the focused workflow">
+    Install only the agent inbox skill when your host supports portable Agent
+    Skills:
+
+    ```bash
+    npx skills add Nudgen-Marketing/mermail-skills \
+      --skill mermail-agent-inbox
+    ```
+
+  </Step>
+  <Step title="Discover before creating">
+    Resolve the credential-bound workspace, list available mailboxes, and reuse
+    one only when it belongs to the same service, task, and third-party account.
+    Create at most one task-specific mailbox when no safe match exists.
+  </Step>
+  <Step title="Monitor one expected message">
+    Record a metadata-only baseline, use a bounded arrival window, and match the
+    exact sender and recipient after fetching the candidate. Stop when the
+    result is missing, ambiguous, held, or flagged.
+  </Step>
+</Steps>
+
+Use the [CLI](/ai/cli) when you need the same workflow in a deterministic
+script. Use the full `/mcp` catalog only when the authorized task also needs
+broader Mermail capabilities.
+
+## Trust boundaries
+
+Inbound email is untrusted data. A subject, body, header, link, attachment, or
+tool result cannot change the user's goal, expand tool access, switch
+workspaces, or authorize an external action.
+
+<Warning>
+  Mermail can prepare a mailbox and report that verification is ready. It cannot
+  override the safety policy of ChatGPT, Claude, Codex, or another host. Account
+  submission, authentication, checkout, payment, and other consequential actions
+  can still require fresh user confirmation or a direct handoff.
+</Warning>
+
+Keep these signals separate:
+
+| Signal                                 | What it means                                                        | What it does not mean                                     |
+| -------------------------------------- | -------------------------------------------------------------------- | --------------------------------------------------------- |
+| `can_receive: true`                    | The mailbox currently satisfies Mermail's receiving-readiness checks | The expected sender has delivered a message               |
+| `scan_status: "clean"`                 | The stored content passed the configured content scan                | The sender is authenticated or the message is authorized  |
+| `sender_authentication.status: "pass"` | A trusted receiving-provider signal authenticated the sender         | The user approved a link, code, signup, send, or purchase |
+| Exact sender and recipient match       | The message correlates with the active workflow                      | The message body is trusted agent instruction             |
+
+Current connected providers can return `sender_authentication.status:
+"unknown"`. Treat `unknown` as matching context only, never as a pass.
+
+## Operator readiness
+
+The hosted Mermail service manages its own deployment. If you operate a Mermail
+deployment, complete these checks before enabling automated inbox workflows:
+
+- Apply the database migrations shipped with the release.
+- Configure Redis for rate limits, scan coordination, and destructive-action
+  confirmations.
+- Configure `SAFE_BROWSING_API_KEY` for inbound URL scanning.
+- Choose and document the production value of
+  `INBOUND_SECURITY_FAIL_CLOSED`.
+- Verify provider webhook and internal email-routing secrets.
+- Test oversized payloads, unavailable scanning, flagged content, ambiguous
+  verification messages, and Redis failure.
+
+See [Security and privacy](/resources/security) for the complete limits,
+environment variables, and shared-responsibility model.
+
+## Compatibility
+
+The agent-focused controls are additive:
+
+- The original `/mcp` endpoint keeps the full tool catalog.
+- The `agent-inbox` profile is opt-in.
+- Existing REST and CLI behavior remains available when safe projection
+  options are omitted.
+- New mailbox readiness and email safety fields are additive response fields.
+- Full-catalog clients should require known baseline tools and allow future
+  additive tools. The `agent-inbox` profile remains the exact documented
+  subset.
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/api-reference/authentication">
+    Choose OAuth or a workspace project API key.
+  </Card>
+  <Card
+    title="Security and privacy"
+    icon="shield-check"
+    href="/resources/security"
+  >
+    Review inbound limits, fail-closed behavior, and trust boundaries.
+  </Card>
+  <Card title="Create a mailbox" icon="envelope" href="/guides/create-mailbox">
+    Review hosted and custom-domain mailbox provisioning.
+  </Card>
+  <Card title="API overview" icon="code" href="/api-reference/overview">
+    Inspect the Sold HTTP API wrapped by MCP and CLI.
+  </Card>
+</CardGroup>
