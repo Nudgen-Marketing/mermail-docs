@@ -1,0 +1,1533 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="author" content="Mermail" />
+  <meta name="description" content="A simple 10-page setup guide for running B2B customer support with Mermail." />
+  <title>Mermail customer support setup guide</title>
+  <style>
+    :root {
+      --bg: #fcfefd;
+      --panel: #ffffff;
+      --soft: #f3f7f5;
+      --cyan: #42d0d0;
+      --cyan-dark: #087f83;
+      --blue: #0072d9;
+      --purple: #7c3aed;
+      --ink: #031016;
+      --copy: #1e2930;
+      --muted: #5c6b76;
+      --line: #dcebea;
+      --success: #16794b;
+      --success-bg: #eaf8f0;
+      --warning: #936000;
+      --warning-bg: #fff8df;
+      --danger: #b42318;
+      --danger-bg: #fff3f1;
+      --shadow: 0 5px 18px rgba(15, 23, 32, 0.07);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #dfe8e6;
+      color: var(--copy);
+      font-family: "Aptos", "Inter", "Manrope", "Segoe UI", Arial, sans-serif;
+      font-size: 10.3pt;
+      line-height: 1.42;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    @page { size: A4 portrait; margin: 0; }
+
+    .page {
+      position: relative;
+      width: 210mm;
+      height: 297mm;
+      margin: 8mm auto;
+      padding: 14mm 15mm 13mm;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background:
+        radial-gradient(circle at 96% 1%, rgba(66, 208, 208, 0.15), transparent 28mm),
+        var(--bg);
+      break-after: page;
+      page-break-after: always;
+    }
+
+    .page:last-child { break-after: auto; page-break-after: auto; }
+
+    @media print {
+      html, body { background: var(--bg); }
+      .page { margin: 0; box-shadow: none; }
+    }
+
+    h1, h2, h3, h4, p { margin-top: 0; }
+    h1, h2, h3, h4, strong { color: var(--ink); }
+    h1 { margin-bottom: 5mm; font-size: 33pt; line-height: 1.02; letter-spacing: -0.04em; }
+    h2 { margin-bottom: 2mm; font-size: 24pt; line-height: 1.06; letter-spacing: -0.03em; }
+    h3 { margin-bottom: 1.5mm; font-size: 13pt; line-height: 1.2; }
+    h4 { margin-bottom: 1mm; font-size: 10.2pt; line-height: 1.2; }
+    p { margin-bottom: 2.4mm; }
+    ul, ol { margin: 1.5mm 0 0; padding-left: 5mm; }
+    li { margin-bottom: 1.2mm; }
+    code {
+      padding: 0.35mm 1mm;
+      border: 0.25mm solid var(--line);
+      border-radius: 1.4mm;
+      background: var(--soft);
+      color: var(--ink);
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 8.3pt;
+    }
+
+    .page-header {
+      min-height: 9mm;
+      margin-bottom: 5mm;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 5mm;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 2.2mm;
+    }
+
+    .brand-mark {
+      width: 7.5mm;
+      height: 7.5mm;
+      display: grid;
+      place-items: center;
+      border-radius: 2.2mm;
+      background: linear-gradient(145deg, #70eeee 4%, #3c91ff 55%, #a987ff);
+      color: var(--ink);
+      font-size: 8.5pt;
+      font-weight: 900;
+    }
+
+    .brand-name {
+      color: var(--ink);
+      font-size: 15.5pt;
+      font-weight: 850;
+      letter-spacing: -0.045em;
+    }
+
+    .section-name {
+      color: var(--cyan-dark);
+      font-size: 8pt;
+      font-weight: 850;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .footer {
+      position: absolute;
+      left: 15mm;
+      right: 15mm;
+      bottom: 7mm;
+      padding-top: 2.5mm;
+      border-top: 0.25mm solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #7b8a92;
+      font-size: 7.5pt;
+    }
+
+    .page-no {
+      min-width: 7mm;
+      height: 5.5mm;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 2mm;
+      background: var(--soft);
+      color: var(--ink);
+      font-weight: 850;
+    }
+
+    .kicker {
+      margin-bottom: 3mm;
+      display: inline-flex;
+      align-items: center;
+      gap: 2mm;
+      color: var(--cyan-dark);
+      font-size: 8.2pt;
+      font-weight: 850;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .kicker::before {
+      content: "";
+      width: 8mm;
+      height: 1mm;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--cyan), var(--blue));
+    }
+
+    .lede {
+      max-width: 160mm;
+      margin-bottom: 5mm;
+      color: var(--muted);
+      font-size: 12.2pt;
+      line-height: 1.42;
+    }
+
+    .small { font-size: 8.5pt; line-height: 1.42; }
+    .tiny { font-size: 7.6pt; line-height: 1.36; }
+    .muted { color: var(--muted); }
+    .mb-0 { margin-bottom: 0; }
+    .mb-1 { margin-bottom: 2mm; }
+    .mb-2 { margin-bottom: 4mm; }
+    .mt-1 { margin-top: 2mm; }
+    .mt-2 { margin-top: 4mm; }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4mm; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3mm; }
+    .grid-5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2.5mm; }
+    .split { display: grid; grid-template-columns: 0.95fr 1.05fr; gap: 5mm; }
+    .split-wide { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 5mm; }
+
+    .card {
+      padding: 3.5mm;
+      border: 0.25mm solid var(--line);
+      border-radius: 3mm;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .card.flat { box-shadow: none; }
+    .card.soft { background: var(--soft); }
+    .card.accent {
+      border-color: rgba(66, 208, 208, 0.55);
+      background: linear-gradient(140deg, rgba(66, 208, 208, 0.11), rgba(255,255,255,0.98));
+    }
+
+    .label {
+      margin-bottom: 2mm;
+      color: var(--cyan-dark);
+      font-size: 7.6pt;
+      font-weight: 850;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    .path {
+      margin-bottom: 3mm;
+      padding: 2.2mm 3mm;
+      border: 0.25mm solid rgba(66, 208, 208, 0.5);
+      border-radius: 2mm;
+      background: rgba(66, 208, 208, 0.08);
+      color: var(--ink);
+      font-size: 8.4pt;
+      font-weight: 750;
+    }
+
+    .path span { color: var(--cyan-dark); }
+
+    .steps {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: simple-steps;
+    }
+
+    .steps > li {
+      position: relative;
+      min-height: 13mm;
+      margin-bottom: 2mm;
+      padding: 2.7mm 3mm 2.7mm 13mm;
+      border: 0.25mm solid var(--line);
+      border-radius: 2.6mm;
+      background: var(--panel);
+      counter-increment: simple-steps;
+    }
+
+    .steps > li::before {
+      content: counter(simple-steps);
+      position: absolute;
+      left: 3mm;
+      top: 3mm;
+      width: 7mm;
+      height: 7mm;
+      display: grid;
+      place-items: center;
+      border-radius: 2.1mm;
+      background: var(--ink);
+      color: white;
+      font-size: 9pt;
+      font-weight: 900;
+    }
+
+    .steps strong { font-size: 10.3pt; }
+
+    .before, .success, .trouble, .warning {
+      padding: 3mm 3.5mm;
+      border-radius: 2.6mm;
+    }
+
+    .before {
+      border: 0.25mm solid var(--line);
+      background: var(--soft);
+    }
+
+    .success {
+      border: 0.25mm solid #b8e3cb;
+      border-left: 1.2mm solid #36b37e;
+      background: var(--success-bg);
+    }
+
+    .trouble {
+      border: 0.25mm solid #f0d58b;
+      border-left: 1.2mm solid #f3b61f;
+      background: var(--warning-bg);
+    }
+
+    .warning {
+      border: 0.25mm solid #f2c0bb;
+      border-left: 1.2mm solid #e85a4f;
+      background: var(--danger-bg);
+    }
+
+    .checklist {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .checklist li {
+      position: relative;
+      margin-bottom: 1.7mm;
+      padding-left: 6mm;
+    }
+
+    .checklist li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      top: 0.2mm;
+      width: 4.5mm;
+      height: 4.5mm;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: rgba(66, 208, 208, 0.18);
+      color: var(--cyan-dark);
+      font-size: 7.3pt;
+      font-weight: 900;
+    }
+
+    .tag {
+      display: inline-block;
+      margin: 0 1mm 1mm 0;
+      padding: 0.7mm 1.8mm;
+      border: 0.25mm solid var(--line);
+      border-radius: 1.6mm;
+      background: var(--soft);
+      color: var(--ink);
+      font-size: 7.3pt;
+      font-weight: 750;
+    }
+
+    .tag.green { border-color: #b8e3cb; background: var(--success-bg); color: var(--success); }
+    .tag.red { border-color: #f2c0bb; background: var(--danger-bg); color: var(--danger); }
+    .tag.cyan { border-color: rgba(66,208,208,.48); background: rgba(66,208,208,.12); }
+    .tag.amber { border-color: #f0d58b; background: var(--warning-bg); color: var(--warning); }
+
+    .ui {
+      overflow: hidden;
+      border: 0.25mm solid var(--line);
+      border-radius: 3mm;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .ui-title {
+      min-height: 9mm;
+      padding: 0 3mm;
+      border-bottom: 0.25mm solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--ink);
+      font-size: 7.7pt;
+      font-weight: 800;
+    }
+
+    .ui-body { padding: 3.5mm; }
+
+    .ui-row {
+      min-height: 9mm;
+      padding: 1.8mm 2.4mm;
+      border-bottom: 0.25mm solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2mm;
+      font-size: 7.5pt;
+    }
+
+    .ui-row:last-child { border-bottom: 0; }
+
+    .field {
+      margin-bottom: 2mm;
+      padding: 2mm 2.5mm;
+      border: 0.25mm solid var(--line);
+      border-radius: 1.8mm;
+      background: var(--soft);
+      color: var(--muted);
+      font-size: 7.5pt;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 6mm;
+      padding: 1.1mm 2.5mm;
+      border-radius: 1.6mm;
+      background: var(--cyan);
+      color: var(--ink);
+      font-size: 7.4pt;
+      font-weight: 850;
+    }
+
+    .screen-note {
+      position: relative;
+      margin-top: 2mm;
+      padding-left: 5mm;
+      color: var(--muted);
+      font-size: 7.6pt;
+    }
+
+    .screen-note::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 1.6mm;
+      width: 3mm;
+      height: 0.8mm;
+      background: var(--cyan);
+    }
+
+    .mini-table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 2.4mm;
+      background: var(--panel);
+    }
+
+    .mini-table th, .mini-table td {
+      padding: 2mm 2.5mm;
+      border-bottom: 0.25mm solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 7.7pt;
+    }
+
+    .mini-table th {
+      background: var(--soft);
+      color: var(--ink);
+      font-size: 7.2pt;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .mini-table tr:last-child td { border-bottom: 0; }
+
+    .journey {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 2.5mm;
+    }
+
+    .journey-card {
+      position: relative;
+      min-height: 44mm;
+      padding: 3mm;
+      border: 0.25mm solid var(--line);
+      border-top: 1mm solid var(--cyan);
+      border-radius: 2.8mm;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .journey-card:not(:last-child)::after {
+      content: "›";
+      position: absolute;
+      right: -4mm;
+      top: 15mm;
+      z-index: 2;
+      color: var(--cyan-dark);
+      font-size: 17pt;
+      font-weight: 800;
+    }
+
+    .journey-number {
+      width: 8mm;
+      height: 8mm;
+      margin-bottom: 2mm;
+      display: grid;
+      place-items: center;
+      border-radius: 2.2mm;
+      background: var(--soft);
+      color: var(--cyan-dark);
+      font-size: 9pt;
+      font-weight: 900;
+    }
+
+    .cover {
+      padding: 17mm 16mm 14mm;
+      background:
+        radial-gradient(circle at 88% 12%, rgba(124, 58, 237, 0.16), transparent 48mm),
+        radial-gradient(circle at 6% 92%, rgba(66, 208, 208, 0.24), transparent 64mm),
+        linear-gradient(150deg, #fcfefd 2%, #ebfbfa 56%, #f5f1ff 100%);
+    }
+
+    .cover h1 {
+      max-width: 112mm;
+      margin: 4mm 0 4mm;
+      font-size: 38pt;
+      line-height: 0.98;
+    }
+    .cover h1 span { color: var(--cyan-dark); }
+    .cover .lede { max-width: 105mm; margin-bottom: 4mm; font-size: 13.2pt; }
+
+    .cover-orbit {
+      position: absolute;
+      top: 22mm;
+      right: -33mm;
+      width: 105mm;
+      height: 105mm;
+      border: 0.5mm solid rgba(66,208,208,.3);
+      border-radius: 50%;
+    }
+
+    .cover-orbit::before {
+      content: "";
+      position: absolute;
+      inset: 13mm;
+      border: 0.5mm solid rgba(60,145,255,.24);
+      border-radius: 50%;
+    }
+
+    .cover-orbit::after {
+      content: "";
+      position: absolute;
+      top: 13mm;
+      left: 10mm;
+      width: 12mm;
+      height: 12mm;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #70eeee, #3c91ff 55%, #a987ff);
+      box-shadow: 0 0 0 4mm rgba(66,208,208,.11);
+    }
+
+    .cover-hero {
+      min-height: 126mm;
+      display: grid;
+      grid-template-columns: 1.14fr 0.86fr;
+      align-items: center;
+      gap: 8mm;
+    }
+
+    .cover-copy { position: relative; z-index: 2; }
+
+    .promise-chip {
+      width: fit-content;
+      margin-bottom: 4mm;
+      padding: 2mm 3mm;
+      display: inline-flex;
+      align-items: center;
+      gap: 2mm;
+      border: 0.25mm solid rgba(8, 127, 131, 0.25);
+      border-radius: 999px;
+      background: rgba(255,255,255,.78);
+      color: var(--cyan-dark);
+      font-size: 8.1pt;
+      font-weight: 850;
+      letter-spacing: .04em;
+      box-shadow: 0 3mm 8mm rgba(3,16,22,.05);
+    }
+
+    .promise-chip::before {
+      content: "✓";
+      width: 5mm;
+      height: 5mm;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--cyan);
+      color: var(--ink);
+      font-size: 7.5pt;
+      font-weight: 950;
+    }
+
+    .cover-points {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2mm;
+    }
+
+    .cover-point {
+      padding: 1.8mm 2.6mm;
+      border: 0.25mm solid rgba(255,255,255,.8);
+      border-radius: 2mm;
+      background: rgba(255,255,255,.68);
+      color: var(--ink);
+      font-size: 8pt;
+      font-weight: 760;
+    }
+
+    .impact-block {
+      position: relative;
+      z-index: 3;
+      margin: 0 0 6mm;
+    }
+
+    .impact-heading {
+      margin-bottom: 2.4mm;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4mm;
+    }
+
+    .impact-heading .label { margin-bottom: 0; }
+
+    .target-note {
+      color: var(--muted);
+      font-size: 6.7pt;
+      font-weight: 700;
+    }
+
+    .impact-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr 1fr;
+      gap: 3mm;
+    }
+
+    .impact-card {
+      min-height: 31mm;
+      padding: 3.4mm;
+      border: 0.25mm solid rgba(8,127,131,.18);
+      border-radius: 3mm;
+      background: rgba(255,255,255,.9);
+      box-shadow: 0 4mm 12mm rgba(3,16,22,.07);
+    }
+
+    .impact-card.primary {
+      color: #eaffff;
+      border-color: #102126;
+      background: linear-gradient(135deg, #102126, #123f43);
+    }
+
+    .metric {
+      margin-bottom: 1.5mm;
+      color: var(--ink);
+      font-size: 18pt;
+      font-weight: 950;
+      line-height: 1;
+      letter-spacing: -.035em;
+    }
+
+    .impact-card.primary .metric,
+    .impact-card.primary strong { color: #ffffff; }
+
+    .metric .old {
+      color: #9fb4b5;
+      font-size: 11pt;
+      text-decoration: line-through;
+      text-decoration-thickness: .45mm;
+    }
+
+    .metric .arrow { margin: 0 1mm; color: var(--cyan); }
+    .metric .accent { color: var(--cyan-dark); }
+
+    .impact-card p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 7.6pt;
+      line-height: 1.35;
+    }
+
+    .impact-card.primary p { color: #c6dddd; }
+
+    .mail-stage {
+      position: relative;
+      min-height: 119mm;
+      display: grid;
+      place-items: center;
+    }
+
+    .mail-glow {
+      position: absolute;
+      width: 72mm;
+      height: 72mm;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(66,208,208,.30), rgba(124,58,237,.08) 52%, transparent 72%);
+      filter: blur(.2mm);
+    }
+
+    .mail-card {
+      position: absolute;
+      width: 65mm;
+      padding: 4mm;
+      border: 0.25mm solid rgba(255,255,255,.8);
+      border-radius: 4mm;
+      background: rgba(255,255,255,.93);
+      box-shadow: 0 7mm 18mm rgba(3,16,22,.13);
+    }
+
+    .mail-card.incoming {
+      top: 14mm;
+      right: 7mm;
+      transform: rotate(3.5deg);
+    }
+
+    .mail-card.draft {
+      top: 51mm;
+      left: 0;
+      z-index: 2;
+      transform: rotate(-2deg);
+      border-color: rgba(66,208,208,.55);
+    }
+
+    .mail-card.review {
+      right: 1mm;
+      bottom: 8mm;
+      width: 52mm;
+      padding: 3mm;
+      z-index: 3;
+      transform: rotate(1.5deg);
+      background: #102126;
+      color: #e9fbfa;
+    }
+
+    .mail-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2mm;
+      margin-bottom: 2.5mm;
+      color: var(--muted);
+      font-size: 7pt;
+      font-weight: 750;
+    }
+
+    .mail-dot {
+      width: 6mm;
+      height: 6mm;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 1.8mm;
+      background: linear-gradient(145deg, #70eeee, #3c91ff 55%, #a987ff);
+      color: var(--ink);
+      font-size: 7pt;
+      font-weight: 900;
+    }
+
+    .mail-card h3 { margin-bottom: 2mm; font-size: 11.5pt; }
+    .mail-line {
+      height: 1.7mm;
+      margin-top: 1.4mm;
+      border-radius: 999px;
+      background: #dce8e7;
+    }
+    .mail-line.short { width: 68%; }
+
+    .draft-tag {
+      width: fit-content;
+      margin-bottom: 2mm;
+      padding: 1mm 2mm;
+      border-radius: 999px;
+      background: rgba(66,208,208,.16);
+      color: var(--cyan-dark);
+      font-size: 6.8pt;
+      font-weight: 900;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .review-row {
+      display: flex;
+      align-items: center;
+      gap: 2mm;
+      font-size: 8pt;
+      font-weight: 800;
+    }
+
+    .review-check {
+      width: 6mm;
+      height: 6mm;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--cyan);
+      color: var(--ink);
+      font-weight: 950;
+    }
+
+    .cover-bottom {
+      margin-top: auto;
+      margin-bottom: 4mm;
+    }
+
+    .quick-map {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 2.5mm;
+    }
+
+    .quick-item {
+      position: relative;
+      min-height: 34mm;
+      padding: 3mm;
+      border: 0.25mm solid rgba(8,127,131,.18);
+      border-top: 1mm solid var(--cyan);
+      border-radius: 2.6mm;
+      background: rgba(255,255,255,.86);
+      box-shadow: 0 3mm 10mm rgba(3,16,22,.05);
+    }
+
+    .quick-item .num {
+      margin-bottom: 1.5mm;
+      color: var(--cyan-dark);
+      font-size: 8pt;
+      font-weight: 900;
+    }
+
+    .quick-item:not(:last-child)::after {
+      content: "›";
+      position: absolute;
+      top: 11mm;
+      right: -4mm;
+      z-index: 3;
+      color: var(--cyan-dark);
+      font-size: 17pt;
+      font-weight: 900;
+    }
+
+    .rule-box {
+      padding: 3mm;
+      border-radius: 2.5mm;
+      background: #102126;
+      color: #ebfbfb;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 7.4pt;
+      line-height: 1.45;
+      white-space: pre-line;
+    }
+
+    .rules-page .before { padding: 2.3mm 3mm; }
+    .rules-page .steps > li {
+      min-height: 11mm;
+      margin-bottom: 1.4mm;
+      padding: 2.1mm 2.5mm 2.1mm 12mm;
+    }
+    .rules-page .steps > li::before {
+      top: 2.3mm;
+      width: 6.5mm;
+      height: 6.5mm;
+    }
+    .rules-page .rule-box { padding: 2.4mm; font-size: 7.1pt; }
+    .rules-page .grid-2.mt-2 { margin-top: 3mm; }
+    .rules-page .success,
+    .rules-page .trouble { padding: 2.4mm 3mm; }
+  </style>
+</head>
+<body>
+
+  <!-- Page 1 -->
+  <section class="page cover">
+    <div class="cover-orbit" aria-hidden="true"></div>
+    <header class="page-header">
+      <div class="brand"><span class="brand-mark">m</span><span class="brand-name">mermail</span></div>
+      <span class="section-name">Customer support setup</span>
+    </header>
+
+    <div class="cover-hero">
+      <div class="cover-copy">
+        <div class="promise-chip">A practical guide for admins and agents</div>
+        <div class="kicker">The AI-assisted support advantage</div>
+        <h1>Design support for <span>minutes, not days.</span></h1>
+        <p class="lede">Route the right email, prepare grounded first drafts, and let one focused owner control the customer experience.</p>
+        <div class="cover-points">
+          <span class="cover-point">5-step setup</span>
+          <span class="cover-point">AI-assisted workflow</span>
+          <span class="cover-point">Human stays in control</span>
+        </div>
+      </div>
+
+      <div class="mail-stage" aria-label="Customer email becomes a draft for human review">
+        <div class="mail-glow" aria-hidden="true"></div>
+        <div class="mail-card incoming">
+          <div class="mail-meta"><span class="mail-dot">↗</span><span>NEW REQUEST</span></div>
+          <h3>Where is our bulk order?</h3>
+          <div class="mail-line"></div>
+          <div class="mail-line short"></div>
+        </div>
+        <div class="mail-card draft">
+          <div class="draft-tag">Mermail draft ready</div>
+          <h3>Hi Jordan, I checked order…</h3>
+          <div class="mail-line"></div>
+          <div class="mail-line"></div>
+          <div class="mail-line short"></div>
+        </div>
+        <div class="mail-card review">
+          <div class="review-row"><span class="review-check">✓</span><span>Human reviews before send</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="impact-block">
+      <div class="impact-heading">
+        <div class="label">A high-leverage support model can target</div>
+        <div class="target-note">Illustrative targets · measure against your own baseline</div>
+      </div>
+      <div class="impact-grid">
+        <div class="impact-card primary">
+          <div class="metric"><span class="old">Days</span><span class="arrow">→</span>Minutes</div>
+          <p><strong>Routine first-draft preparation</strong> when forwarding, triage, and knowledge are ready.</p>
+        </div>
+        <div class="impact-card">
+          <div class="metric"><span class="accent">1</span> focused owner</div>
+          <p>Oversees intake, knowledge, exceptions, and final reply decisions.</p>
+        </div>
+        <div class="impact-card">
+          <div class="metric"><span class="accent">100%</span> reviewed</div>
+          <p>Every AI-assisted draft passes through a human before it is sent.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="cover-bottom">
+      <div class="label">Your five-step path to go live</div>
+      <div class="quick-map">
+        <div class="quick-item"><div class="num">01</div><h4>Forward email</h4><p class="tiny mb-0">Gmail or Outlook</p></div>
+        <div class="quick-item"><div class="num">02</div><h4>Add domain</h4><p class="tiny mb-0">Verify DNS records</p></div>
+        <div class="quick-item"><div class="num">03</div><h4>Test triage</h4><p class="tiny mb-0">Review prepared drafts</p></div>
+        <div class="quick-item"><div class="num">04</div><h4>Add rules</h4><p class="tiny mb-0">Labels and urgency</p></div>
+        <div class="quick-item"><div class="num">05</div><h4>Add knowledge</h4><p class="tiny mb-0">Policies and guides</p></div>
+      </div>
+    </div>
+
+    <footer class="footer"><span>Mermail · Customer support setup guide</span><span class="page-no">1</span></footer>
+  </section>
+
+  <!-- Page 2 -->
+  <section class="page">
+    <header class="page-header">
+      <div class="brand"><span class="brand-mark">m</span><span class="brand-name">mermail</span></div>
+      <span class="section-name">Before you begin</span>
+    </header>
+
+    <div class="kicker">Prepare once</div>
+    <h2>Gather access and safe test data</h2>
+    <p class="lede">You can complete the setup faster when the right people and test accounts are ready.</p>
+
+    <div class="split">
+      <div>
+        <div class="before mb-2">
+          <div class="label">Goal</div>
+          <h3>Prepare everything needed for the five setup jobs.</h3>
+          <p class="small mb-0">Do not use real customer secrets, payment details, or confidential attachments during testing.</p>
+        </div>
+
+        <div class="label">Before you begin</div>
+        <ul class="checklist">
+          <li><strong>Mermail admin access</strong> for mailbox, domain, and support-rule configuration.</li>
+          <li><strong>A Mermail mailbox address</strong> that can receive a forwarding confirmation.</li>
+          <li><strong>Gmail or Outlook settings access</strong>, plus administrator approval if external forwarding is blocked.</li>
+          <li><strong>DNS access</strong> and a Developer or Enterprise workspace for a custom domain.</li>
+          <li><strong>Three approved knowledge files</strong> such as shipping, returns, and invoice guidance.</li>
+        </ul>
+
+        <div class="success mt-2">
+          <div class="label">Check it worked</div>
+          <p class="mb-0"><strong>You are ready when</strong> you can open the Mermail inbox, email-provider settings, workspace settings, and DNS dashboard.</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="label">Steps</div>
+        <ol class="steps">
+          <li><strong>Choose your support address.</strong><br><span class="small muted">Example: existing <code>support@example.com</code> or new <code>support@mail.example.com</code>.</span></li>
+          <li><strong>Choose your forwarding boundary.</strong><br><span class="small muted">Start with messages sent to the support address—not the entire personal inbox.</span></li>
+          <li><strong>Create two safe test messages.</strong><br><span class="small muted">One should match the forwarding rule. One should be excluded.</span></li>
+          <li><strong>Prepare one urgent example.</strong><br><span class="small muted">Example: “Our production order is blocked today.”</span></li>
+          <li><strong>Prepare one normal example.</strong><br><span class="small muted">Example: “Please send another invoice copy.”</span></li>
+        </ol>
+
+        <div class="trouble mt-2">
+          <div class="label">Troubleshooting</div>
+          <p class="small mb-0"><strong>Missing admin access?</strong> Ask an existing workspace admin, email administrator, or DNS owner before continuing. Do not work around organization security policy.</p>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer"><span>Mermail · Before you begin</span><span class="page-no">2</span></footer>
+  </section>
+
+  <!-- Page 3 -->
+  <section class="page">
+    <header class="page-header">
+      <div class="brand"><span class="brand-mark">m</span><span class="brand-name">mermail</span></div>
+      <span class="section-name">Auto-forward Gmail</span>
+    </header>
+
+    <div class="kicker">Setup job 1A</div>
+    <h2>Forward selected Gmail messages</h2>
+    <p class="lede">Use a Gmail filter so Mermail receives support mail without receiving the whole inbox.</p>
+
+    <div class="path"><span>Gmail path</span> · Settings → See all settings → Forwarding and POP/IMAP</div>
+
+    <div class="split">
+      <div>
+        <div class="before mb-2">
+          <div class="label">Before you begin</div>
+          <p class="mb-0">Have the Mermail mailbox address ready. Ask your Google Workspace admin whether external forwarding is allowed.</p>
+        </div>
+
+        <div class="label">Steps</div>
+        <ol class="steps">
+          <li><strong>Add a forwarding address.</strong><br><span class="small muted">Enter the Mermail mailbox and confirm the Gmail prompts.</span></li>
+          <li><strong>Approve the request.</strong><br><span class="small muted">Open the verification message in Mermail and follow the confirmation link.</span></li>
+          <li><strong>Keep account-wide forwarding disabled.</strong><br><span class="small muted">A selective filter can still use the verified address.</span></li>
+          <li><strong>Create a positive filter.</strong><br><span class="small muted">Use Gmail search options, for example <code>to:support@example.com</code>.</span></li>
+          <li><strong>Choose Forward it.</strong><br><span class="small muted">Select the Mermail address, save the filter, and send two new tests.</span></li>
+        </ol>
+      </div>
+
+      <div>
+        <div class="ui">
+          <div class="ui-title"><span>Gmail · Create a filter</span><span>support@example.com</span></div>
+          <div class="ui-body">
+            <div class="field"><strong>To</strong><br>support@example.com</div>
+            <div class="field"><strong>Doesn’t have</strong><br>payroll OR password reset</div>
+            <div class="ui-row"><span>Forward it to</span><span class="tag cyan">support@mermail.app</span></div>
+            <div class="ui-row"><span>Apply the label</span><span class="tag">Mermail support</span></div>
+            <div class="mt-2"><span class="button">Create filter</span></div>
+          </div>
+        </div>
+        <p class="screen-note">Prefer a short positive rule over account-wide forwarding with many exceptions.</p>
+
+        <div class="success mt-2">
+          <div class="label">Check it worked</div>
+          <ul class="checklist small">
+            <li>The matching new message appears in Mermail.</li>
+            <li>The excluded message stays only in Gmail.</li>
+            <li>The original sender and subject are readable.</li>
+          </ul>
+        </div>
+
+        <div class="trouble mt-2">
+          <div class="label">Troubleshooting</div>
+          <p class="small mb-1"><strong>Address unavailable:</strong> complete the verification link in Mermail.</p>
+          <p class="small mb-0"><strong>Everything forwards:</strong> disable account-wide forwarding and keep only the selective filter.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="warning mt-2">
+      <strong>Human takeover:</strong> if someone replies directly from Gmail, Mermail permanently stops AI processing for that entire thread. Continue the thread in Gmail after takeover.
+    </div>
+
+    <footer class="footer"><span>Mermail · Gmail forwarding</span><span class="page-no">3</span></footer>
+  </section>
+
+  <!-- Page 4 -->
+  <section class="page">
+    <header class="page-header">
+      <div class="brand"><span class="brand-mark">m</span><span class="brand-name">mermail</span></div>
+      <span class="section-name">Auto-forward Outlook</span>
+    </header>
+
+    <div class="kicker">Setup job 1B</div>
+    <h2>Redirect selected Outlook messages</h2>
+    <p class="lede">Use an Outlook rule with <strong>Redirect to</strong> so Mermail sees the original customer as the sender.</p>
+
+    <div class="path"><span>Outlook path</span> · Settings → Mail → Rules → Add new rule</div>
+
+    <div class="split">
+      <div>
+        <div class="before mb-2">
+          <div class="label">Before you begin</div>
+          <p class="mb-0">Have the Mermail address ready. Microsoft 365 administrators may block automatic forwarding outside the organization.</p>
+        </div>
+
+        <div class="label">Steps</div>
+        <ol class="steps">
+          <li><strong>Create a named rule.</strong><br><span class="small muted">Example: “Redirect support mail to Mermail.”</span></li>
+          <li><strong>Add a narrow condition.</strong><br><span class="small muted">Use recipient, sender, subject, or another supported field.</span></li>
+          <li><strong>Add sensitive-mail exceptions.</strong><br><span class="small muted">Keep payroll, password resets, legal, and private mail outside the rule.</span></li>
+          <li><strong>Select Redirect to.</strong><br><span class="small muted">Enter the Mermail mailbox. Redirect preserves the original sender identity.</span></li>
+          <li><strong>Save and test.</strong><br><span class="small muted">Send one matching and one excluded new message.</span></li>
+        </ol>
+      </div>
+
+      <div>
+        <div class="ui">
+          <div class="ui-title"><span>Outlook · Add new rule</span><span>Save</span></div>
+          <div class="ui-body">
+            <div class="field"><strong>Rule name</strong><br>Redirect support mail to Mermail</div>
+            <div class="field"><strong>Condition</strong><br>Sent to support@example.com</div>
+            <div class="field"><strong>Action</strong><br>Redirect to support@mermail.app</div>
+            <div class="field"><strong>Exception</strong><br>Subject includes “password reset”</div>
+            <span class="button">Save rule</span>
+          </div>
+        </div>
+        <p class="screen-note"><strong>Redirect</strong> usually fits support better than <strong>Forward</strong> because it preserves the customer sender.</p>
+
+        <div class="success mt-2">
+          <div class="label">Check it worked</div>
+          <ul class="checklist small">
+            <li>The matching new message reaches Mermail.</li>
+            <li>The excluded message does not reach Mermail.</li>
+            <li>Mermail shows the original customer sender.</li>
+          </ul>
+        </div>
+
+        <div class="trouble mt-2">
+          <div class="label">Troubleshooting</div>
+          <p class="small mb-1"><strong>No delivery:</strong> ask your Microsoft 365 admin whether outbound automatic forwarding is blocked.</p>
+          <p class="small mb-0"><strong>Wrong sender:</strong> use <strong>Redirect to</strong> instead of <strong>Forward to</strong>.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="warning mt-2">
+      <strong>Human takeover:</strong> replying directly from Outlook permanently hands the entire thread to a human and stops later Mermail AI processing.
+    </div>
+
+    <div class="small muted mt-1">Other providers: use the Mermail forwarding guides for iCloud Mail, Proton Mail, Yahoo Mail, and Lark Mail.</div>
+
+    <footer class="footer"><span>Mermail · Outlook forwarding</span><span class="page-no">4</span></footer>
+  </section>
+
+  <!-- Page 5 -->
+  <section class="page">
+    <header class="page-header">
+      <div class="brand"><span class="brand-mark">m</span><span class="brand-name">mermail</span></div>
+      <span class="section-name">Custom email domain</span>
+    </header>
+
+    <div class="kicker">Setup job 2A</div>
+    <h2>Add and verify your subdomain</h2>
+    <p class="lede">Use a dedicated subdomain so Mermail does not replace the MX records for your organization’s existing root email.</p>
+
+    <div class="path"><span>Mermail path</span> · Workspace Settings → Domains → Add domain</div>
+
+    <div class="split-wide">
+      <div>
+        <div class="before mb-2">
+          <div class="label">Before you begin</div>
+          <div class="grid-3">
+            <div><span class="tag cyan">Developer+</span><p class="tiny mb-0">Plan includes custom domains.</p></div>
+            <div><span class="tag cyan">Admin</span><p class="tiny mb-0">Workspace admin access.</p></div>
+            <div><span class="tag cyan">DNS</span><p class="tiny mb-0">Permission to publish records.</p></div>
+          </div>
+        </div>
+
+        <div class="label">Steps</div>
+        <ol class="steps">
+          <li><strong>Choose a dedicated subdomain.</strong><br><span class="small muted">Use <code>mail.example.com</code> or <code>support.mail.example.com</code>. Do not use <code>example.com</code>.</span></li>
+          <li><strong>Add the complete subdomain.</strong><br><span class="small muted">Mermail provisions the domain and returns the required DNS records.</span></li>
+          <li><strong>Publish every returned record.</strong><br><span class="small muted">Copy type, name, value, and MX priority exactly. Do not guess SPF, DKIM, MX, or DMARC values.</span></li>
+          <li><strong>Wait for DNS propagation.</strong><br><span class="small muted">Check that your DNS provider did not append the parent domain twice.</span></li>
+          <li><strong>Click Verify in Mermail.</strong><br><span class="small muted">Retry safely after correcting a record or waiting for propagation.</span></li>
+        </ol>
+      </div>
+
+      <div>
+        <div class="ui">
+          <div class="ui-title"><span>Domains</span><span class="button">Add domain</span></div>
+          <div class="ui-body">
+            <div class="field"><strong>Domain</strong><br>mail.example.com</div>
+            <div class="ui-row"><span>Status</span><span class="tag amber">pending</span></div>
+            <div class="ui-row"><span>TXT · resend._domainkey</span><span>Copy</span></div>
+            <div class="ui-row"><span>MX · send</span><span>Copy</span></div>
+            <div class="ui-row"><span>TXT · send</span><span>Copy</span></div>
+            <div class="mt-2"><span class="button">Verify</span></div>
+          </div>
+        </div>
+        <p class="screen-note">The exact records shown by Mermail are the source of truth.</p>
+
+        <div class="success mt-2">
+          <div class="label">Check it worked</div>
+          <p class="mb-0">The domain status is <span class="tag green">verified</span> and Mermail shows a verification time.</p>
+        </div>
+
+        <div class="trouble mt-2">
+          <div class="label">Troubleshooting</div>
+          <p class="small mb-1"><strong>Rejected domain:</strong> use a subdomain with at least three labels.</p>
+          <p class="small mb-1"><strong>Still pending:</strong> compare every DNS field, wait for propagation, then verify again.</p>
+          <p class="small mb-0"><strong>Name duplicated:</strong> use the relative host format expected by your DNS provider.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="warning mt-2"><strong>Do not use a bare root domain.</strong> Mermail rejects it, and replacing root-domain MX records could disrupt existing company email.</div>
+
+    <footer class="footer"><span>Mermail · Custom domain</span><span class="page-no">5</span></footer>
+  </section>
+
+  <!-- Page 6 -->
+  <section class="page">
+    <header class="page-header">
+      <div class="brand"><span class="brand-mark">m</span><span class="brand-name">mermail</span></div>
+      <span class="section-name">Custom-domain mailbox</span>
+    </header>
+
+    <div class="kicker">Setup job 2B</div>
+    <h2>Create and test the support mailbox</h2>
+    <p class="lede">After the domain is verified, create a customer-facing mailbox and test delivery in both directions.</p>
+
+    <div class="path"><span>Mermail path</span> · Mailboxes → New mailbox → Select verified domain</div>
+
+    <div class="split">
+      <div>
+        <div class="before mb-2">
+          <div class="label">Before you begin</div>
+          <p class="mb-0">The custom domain must show <span class="tag green">verified</span>. Choose a clear username such as <code>support</code>.</p>
+        </div>
+
+        <div class="label">Steps</div>
+        <ol class="steps">
+          <li><strong>Open New mailbox.</strong><br><span class="small muted">Select the workspace that owns the verified domain.</span></li>
+          <li><strong>Select the custom domain.</strong><br><span class="small muted">Choose <code>mail.example.com</code> from the available domains.</span></li>
+          <li><strong>Enter the username and name.</strong><br><span class="small muted">Example: <code>support@mail.example.com</code> and “Customer Support.”</span></li>
+          <li><strong>Send an inbound test.</strong><br><span class="small muted">From an outside account, email the new address and confirm it appears in Mermail.</span></li>
+          <li><strong>Send an outbound reply.</strong><br><span class="small muted">Confirm the recipient, sender address, display name, subject, and thread.</span></li>
+        </ol>
+      </div>
+
+      <div>
+        <div class="ui">
+          <div class="ui-title"><span>Create mailbox</span><span>Workspace: Northstar</span></div>
+          <div class="ui-body">
+            <div class="field"><strong>Mailbox name</strong><br>Customer Support</div>
+            <div class="field"><strong>Username</strong><br>support</div>
+            <div class="field"><strong>Domain</strong><br>mail.example.com <span class="tag green">verified</span></div>
+            <div class="card soft flat">
+              <div class="label">Complete address</div>
+              <strong>support@mail.example.com</strong>
+            </div>
+            <div class="mt-2"><span class="button">Create mailbox</span></div>
+          </div>
+        </div>
+        <p class="screen-note">A verified domain becomes selectable when you create the mailbox.</p>
+
+        <div class="success mt-2">
+          <div class="label">Check it worked</div>
+          <ul class="checklist small">
+            <li>Inbound test appears in the Inbox.</li>
+            <li>Outbound reply arrives at the external account.</li>
+            <li>Sender is the custom-domain address.</li>
+            <li>Reply remains in the same thread.</li>
+          </ul>
+        </div>
+
+        <div class="trouble mt-2">
+          <div class="label">Troubleshooting</div>
+          <p class="small mb-1"><strong>Domain missing:</strong> confirm its status is verified in the same workspace.</p>
+          <p class="small mb-0"><strong>Cannot receive:</strong> recheck domain DNS status and the mailbox receiving state.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="warning mt-2"><strong>Do not publish the address yet</strong> if either inbound delivery or the outbound reply test fails.</div>
+
+    <footer class="footer"><span>Mermail · Custom-domain mailbox</span><span class="page-no">6</span></footer>
+  </section>
+
+  <!-- Page 7 -->
+  <section class="page">
+    <header class="page-header">
+      <div class="brand"><span class="brand-mark">m</span><span class="brand-name">mermail</span></div>
+      <span class="section-name">Task triage</span>
+    </header>
+
+    <div class="kicker">Setup job 3</div>
+    <h2>Test the default email triager</h2>
+    <p class="lede">Every mailbox has a protected triager that prepares inbound customer replies as drafts for human review.</p>
+
+    <div class="path"><span>Mermail path</span> · Mailbox sidebar → Task triager → Default email response triager</div>
+
+    <div class="split">
+      <div>
+        <div class="before mb-2">
+          <div class="label">Before you begin</div>
+          <p class="mb-0">Use a safe external account to send a new customer-style message into the mailbox Inbox.</p>
+        </div>
+
+        <div class="label">Steps</div>
+        <ol class="steps">
+          <li><strong>Open Task triager.</strong><br><span class="small muted">Find <strong>Default email response triager</strong>. It is created automatically.</span></li>
+          <li><strong>Send a new inbound test.</strong><br><span class="small muted">Ask a clear support question, such as an order-status request.</span></li>
+          <li><strong>Wait for the prepared draft.</strong><br><span class="small muted">The triager uses the thread, mailbox context, and built-in customer-care instructions.</span></li>
+          <li><strong>Open the draft and Agent.</strong><br><span class="small muted">Review the linked triager conversation and the generated reply.</span></li>
+          <li><strong>Edit before sending.</strong><br><span class="small muted">Verify customer identity, order facts, promises, dates, links, and attachments.</span></li>
+        </ol>
+      </div>
+
+      <div>
+        <div class="ui">
+          <div class="ui-title"><span>Task triager</span><span class="tag cyan">Default</span></div>
+          <div class="ui-body">
+            <div class="card accent flat">
+              <div class="grid-2">
+                <div><div class="label">Name</div><strong>Default email response triager</strong></div>
+                <div><div class="label">Status</div><span class="tag green">Protected</span></div>
+              </div>
+              <div class="mt-2"><span class="tag">New email received</span><span class="tag">Inbox only</span></div>
+              <div class="mt-2"><span class="button">Open Agent</span></div>
+            </div>
+            <div class="ui-row"><span>New email received</span><span class="tag green">Completed</span></div>
+            <div class="ui-row"><span>Reply saved</span><span class="tag amber">Draft review</span></div>
+          </div>
+        </div>
+        <p class="screen-note">The default triager saves a draft. It does not send that draft automatically.</p>
+
+        <div class="success mt-2">
+          <div class="label">Check it worked</div>
+          <ul class="checklist small">
+            <li>The inbound message appears in Inbox.</li>
+            <li>A linked reply appears in Drafts.</li>
+            <li>The triager Agent conversation shows the outcome.</li>
+            <li>No reply is sent until a person approves it.</li>
+          </ul>
+        </div>
+
+        <div class="trouble mt-2">
+          <div class="label">Troubleshooting</div>
+          <p class="small mb-1"><strong>No draft:</strong> confirm the message is new, in Inbox, and not bulk or automated mail.</p>
+          <p class="small mb-0"><strong>Wrong facts:</strong> correct the draft and improve trusted Knowledge instead of sending it unchanged.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="warning mt-2">
+      <strong>Current limitation:</strong> a custom instruction-only mail triager does not run those instructions on received or sent mail. Use the protected default triager for inbound reply drafts. Custom instructions run for supported Google Calendar triagers.
+    </div>
+
+    <footer class="footer"><span>Mermail · Task triage</span><span class="page-no">7</span></footer>
+  </section>
+
+  <!-- Page 8 -->
+  <section class="page rules-page">
+    <header class="page-header">
+      <div class="brand"><span class="brand-mark">m</span><span class="brand-name">mermail</span></div>
+      <span class="section-name">Support agent rules</span>
+    </header>
+
+    <div class="kicker">Setup job 4</div>
+    <h2>Add labels and precise urgency rules</h2>
+    <p class="lede">Use current console rules to organize requests and highlight messages that truly need attention today.</p>
+
+    <div class="path"><span>Mermail path</span> · Mailbox Settings → Custom labels and Urgent email detection</div>
+
+    <div class="grid-2">
+      <div class="card flat">
+        <div class="label">A. Custom labels</div>
+        <div class="before mb-2">
+          <strong>Goal:</strong> make each label change how the team handles the message.
+        </div>
+        <ol class="steps">
+          <li><strong>Open Manage labels.</strong><br><span class="small muted">Select <strong>Add label</strong>.</span></li>
+          <li><strong>Name one support decision.</strong><br><span class="small muted">Examples: Order status, Invoice, Damaged shipment, VIP.</span></li>
+          <li><strong>Write a specific rule.</strong><br><span class="small muted">Example: “Damage, shortage, missing cartons, or unusable goods.”</span></li>
+          <li><strong>Save and enable detection.</strong><br><span class="small muted">New inbound mail will be checked against the rules.</span></li>
+        </ol>
+        <div class="rule-box mt-2">Label: Damaged shipment
+Rule: Customer reports damage, shortage, missing cartons, or goods that cannot be used.</div>
+      </div>
+
+      <div class="card flat">
+        <div class="label">B. Urgent email detection</div>
+        <div class="before mb-2">
+          <strong>Goal:</strong> reserve urgent badges and stronger alerts for work that needs attention today.
+        </div>
+        <ol class="steps">
+          <li><strong>Enable urgent detection.</strong><br><span class="small muted">Built-in defaults apply when the custom field is empty.</span></li>
+          <li><strong>Add custom rules only when needed.</strong><br><span class="small muted">Custom rules fully replace the built-in defaults.</span></li>
+          <li><strong>Name concrete signals.</strong><br><span class="small muted">Use sender, domain, subject, deadline, outage, or operational impact.</span></li>
+          <li><strong>Save and test two messages.</strong><br><span class="small muted">One should be urgent and one should remain normal.</span></li>
+        </ol>
+        <div class="rule-box mt-2">Urgent:
+- Production is blocked today.
+- A payment failure blocks order release.
+- A VIP customer has a same-day deadline.
+
+Not urgent:
+- Routine invoice-copy requests.
+- General catalog questions.</div>
+      </div>
+    </div>
+
+    <div class="grid-2 mt-2">
+      <div class="success">
+        <div class="label">Check it worked</div>
+        <p class="small mb-0">The damaged-order test receives the correct label and urgent badge. The routine invoice-copy test is labeled but not urgent.</p>
+      </div>
+      <div class="trouble">
+        <div class="label">Troubleshooting</div>
+        <p class="small mb-0"><strong>Too many matches:</strong> replace broad words like “important” with concrete senders, subjects, deadlines, and business impact.</p>
+      </div>
+    </div>
+
+    <div class="warning mt-2"><strong>Rules organize and prioritize.</strong> They do not assign an owner, start an SLA timer, or authorize a refund, replacement, credit, or shipment change.</div>
+
+    <footer class="footer"><span>Mermail · Support rules</span><span class="page-no">8</span></footer>
+  </section>
+
+  <!-- Page 9 -->
+  <section class="page">
+    <header class="page-header">
+      <div class="brand"><span class="brand-mark">m</span><span class="brand-name">mermail</span></div>
+      <span class="section-name">RAG Knowledge</span>
+    </header>
+
+    <div class="kicker">Setup job 5</div>
+    <h2>Connect and test trusted Knowledge</h2>
+    <p class="lede">Upload approved policies and guides so the Agent can retrieve relevant context when helping with a customer conversation.</p>
+
+    <div class="path"><span>Mermail path</span> · Open Assistant → Knowledge</div>
+
+    <div class="split">
+      <div>
+        <div class="before mb-2">
+          <div class="label">Before you begin</div>
+          <p class="mb-1">Prepare current, approved documents with an owner and effective date.</p>
+          <span class="tag cyan">.txt</span><span class="tag cyan">.md</span><span class="tag cyan">.markdown</span><span class="tag cyan">text-based .pdf</span><span class="tag amber">15 MB maximum</span>
+        </div>
+
+        <div class="label">Steps</div>
+        <ol class="steps">
+          <li><strong>Open the Knowledge tab.</strong><br><span class="small muted">The panel checks or prepares your secure knowledge connection.</span></li>
+          <li><strong>Connect or reconnect when prompted.</strong><br><span class="small muted">Wait until the status is active before uploading.</span></li>
+          <li><strong>Upload one focused document.</strong><br><span class="small muted">Start with a shipping, returns, invoice, or wholesale policy.</span></li>
+          <li><strong>Confirm the indexed document.</strong><br><span class="small muted">Open the document details and check that useful text was extracted.</span></li>
+          <li><strong>Ask the Agent a test question.</strong><br><span class="small muted">Compare the answer with the source document before using it with customers.</span></li>
+        </ol>
+      </div>
+
+      <div>
+        <div class="ui">
+          <div class="ui-title"><span>Agent, Knowledge & Integrations</span><span>×</span></div>
+          <div class="ui-body">
+            <div class="grid-3 mb-2">
+              <span class="tag">Agent</span><span class="tag cyan">Knowledge</span><span class="tag">Integrations</span>
+            </div>
+            <div class="ui-row"><span><strong>Indexed knowledge</strong></span><span class="tag green">active</span></div>
+            <div style="margin:3mm 0; padding:5mm; border:.5mm dashed rgba(66,208,208,.55); border-radius:2.4mm; text-align:center; background:rgba(66,208,208,.06);">
+              <strong>Upload documents</strong><br><span class="tiny muted">Drop a supported file here</span>
+            </div>
+            <div class="ui-row"><span>Shipping-policy.pdf</span><span class="tag green">Indexed</span></div>
+            <div class="ui-row"><span>Returns-guide.md</span><span class="tag green">Indexed</span></div>
+            <div class="ui-row"><span>Invoice-help.txt</span><span class="tag green">Indexed</span></div>
+          </div>
+        </div>
+        <p class="screen-note">Use one authoritative topic per file. Replace obsolete guidance promptly.</p>
+
+        <div class="success mt-2">
+          <div class="label">Check it worked</div>
+          <ul class="checklist small">
+            <li>Connection status is active.</li>
+            <li>The file appears in Indexed knowledge.</li>
+            <li>Document details contain readable text.</li>
+            <li>The Agent retrieves the correct policy answer.</li>
+          </ul>
+        </div>
+
+        <div class="trouble mt-2">
+          <div class="label">Troubleshooting</div>
+          <p class="small mb-1"><strong>Unsupported:</strong> convert the file to text, Markdown, or a text-based PDF.</p>
+          <p class="small mb-1"><strong>Too large:</strong> reduce it below 15 MB or split it by topic.</p>
+          <p class="small mb-0"><strong>Empty PDF text:</strong> use a searchable PDF rather than a scan made only of images.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="warning mt-2"><strong>Never upload secrets or raw customer exports.</strong> Live order, stock, payment, and account facts still require verification in a trusted business system.</div>
+
+    <footer class="footer"><span>Mermail · RAG Knowledge</span><span class="page-no">9</span></footer>
+  </section>
+
+  <!-- Page 10 -->
+  <section class="page">
+    <header class="page-header">
+      <div class="brand"><span class="brand-mark">m</span><span class="brand-name">mermail</span></div>
+      <span class="section-name">Go live</span>
+    </header>
+
+    <div class="kicker">Final check</div>
+    <h2>Test the complete support workflow</h2>
+    <p class="lede">Publish the support address only after each setup job passes its simple success check.</p>
+
+    <div class="journey mb-2">
+      <div class="journey-card"><div class="journey-number">1</div><h4>Forward</h4><p class="tiny mb-0">Matching mail arrives. Excluded mail stays out.</p></div>
+      <div class="journey-card"><div class="journey-number">2</div><h4>Domain</h4><p class="tiny mb-0">Status is verified. Inbound and outbound work.</p></div>
+      <div class="journey-card"><div class="journey-number">3</div><h4>Triage</h4><p class="tiny mb-0">A reviewable draft appears and is not auto-sent.</p></div>
+      <div class="journey-card"><div class="journey-number">4</div><h4>Rules</h4><p class="tiny mb-0">Labels and urgency distinguish two tests.</p></div>
+      <div class="journey-card"><div class="journey-number">5</div><h4>Knowledge</h4><p class="tiny mb-0">The Agent retrieves the approved answer.</p></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card flat">
+        <div class="label">Go-live checklist</div>
+        <ul class="checklist">
+          <li>Selective Gmail or Outlook rule is enabled.</li>
+          <li>Matching and excluded messages behave correctly.</li>
+          <li>Custom domain is verified, when used.</li>
+          <li>Inbound and outbound custom-domain tests pass.</li>
+          <li>Default triager creates a draft for review.</li>
+          <li>A person verifies and approves every reply.</li>
+          <li>Custom labels match the intended requests.</li>
+          <li>Only same-day critical messages become urgent.</li>
+          <li>Knowledge files are current and searchable.</li>
+          <li>Team knows that provider replies cause human takeover.</li>
+        </ul>
+      </div>
+
+      <div class="card flat">
+        <div class="label">Fast troubleshooting</div>
+        <table class="mini-table">
+          <thead><tr><th>Problem</th><th>First check</th></tr></thead>
+          <tbody>
+            <tr><td>Forwarding confirmation missing</td><td>Mermail Inbox and spam; destination address.</td></tr>
+            <tr><td>Outlook rule does nothing</td><td>Organization external-forwarding policy.</td></tr>
+            <tr><td>Domain remains pending</td><td>DNS type, name, value, priority, and propagation.</td></tr>
+            <tr><td>Domain not selectable</td><td>Verified status and correct workspace.</td></tr>
+            <tr><td>No triager draft</td><td>New message is in Inbox and not automated mail.</td></tr>
+            <tr><td>Too many urgent messages</td><td>Replace broad custom rules with precise criteria.</td></tr>
+            <tr><td>Knowledge upload fails</td><td>Supported type, searchable text, and size below 15 MB.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="success mt-2">
+      <div class="label">Ready to launch</div>
+      <h3>Fast where the facts are clear. Human where the decision matters.</h3>
+      <p class="mb-0">Mermail can organize messages, retrieve context, and prepare language. Your support team owns identity checks, business decisions, commitments, and the final send.</p>
+    </div>
+
+    <div class="warning mt-2">
+      <strong>Pause launch</strong> if forwarding exposes unintended mail, the domain cannot send or receive, drafts contain unverified facts, or the team has not agreed on human review.
+    </div>
+
+    <footer class="footer"><span>Mermail · Go-live checklist</span><span class="page-no">10</span></footer>
+  </section>
+
+</body>
+</html>
