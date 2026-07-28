@@ -247,6 +247,11 @@ mermail emails delete \
   --yes
 ```
 
+Regular drafts are always hard-deleted (same as in-app Discard) and do not move
+to Trash, even when you omit `--permanent`. Use `--permanent` for inbox/sent
+messages you want to hard-delete instead of trashing, and for messages already
+in Trash. Scheduled drafts cancel in place unless `--permanent` is set.
+
 <Warning>
   Verify exact resource IDs before adding `--yes`. The CLI never retries write,
   send, or delete operations automatically. An `Idempotency-Key` only

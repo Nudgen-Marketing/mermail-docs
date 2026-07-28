@@ -325,6 +325,14 @@ human-confirmation checkpoint. Only an explicit
 
 ## Destructive actions
 
+`delete_email` / `bulk_delete_emails`: regular drafts are always hard-deleted
+(DB + blob storage) and never move to Trash — matching in-app Discard. Other
+messages trash by default unless you pass `permanent=true` (or
+`body.permanent: true` for bulk delete). Scheduled drafts cancel in place unless
+permanent delete is forced. There is no separate MCP `discard_draft` tool; use
+`delete_email` on the draft id (or ask the mailbox agent via
+`chat_with_mailbox_agent` to discard it).
+
 Destructive tools (delete workspace/member/domain/email/folder/label/conversation/triager, bulk delete, empty trash, …) require a short-lived confirmation token:
 
 1. Call `prepare_destructive_action` with:
