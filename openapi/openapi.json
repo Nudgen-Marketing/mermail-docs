@@ -5048,7 +5048,7 @@
       },
       "delete": {
         "summary": "Delete email",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nTrashes an email by default. Pass `permanent=true` to hard-delete (also used for messages already in trash). Returns **204** with an empty body.\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes one email. Regular drafts are always hard-deleted (DB + blob storage) and are never moved to Trash — same as the in-app Discard button. Other messages move to Trash by default; pass `permanent=true` to hard-delete them (also used for messages already in Trash). Scheduled drafts are cancelled in place unless `permanent=true`. Returns **204** with an empty body.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -5082,7 +5082,7 @@
             "name": "permanent",
             "in": "query",
             "required": false,
-            "description": "Set to `true` to permanently delete instead of moving to trash",
+            "description": "Set to `true` to permanently delete instead of moving to trash. Regular drafts are hard-deleted even when this is omitted.",
             "schema": {
               "type": "string"
             },
@@ -5193,7 +5193,7 @@
     "/api/v1/mailboxes/{mailboxId}/emails/bulk-delete": {
       "post": {
         "summary": "Bulk delete emails",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes or trashes multiple emails by id. With `permanent: true`, hard-deletes; otherwise moves to trash (scheduled drafts are cancelled).\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nDeletes or trashes multiple emails by id. Regular drafts are always hard-deleted and never moved to Trash. With `permanent: true`, hard-deletes non-draft messages too; otherwise non-drafts move to Trash. Scheduled drafts are cancelled in place unless `permanent: true`.\n\n**API credits:** 2 (write).",
         "tags": [
           "Emails"
         ],
@@ -5314,7 +5314,7 @@
                   },
                   "permanent": {
                     "type": "boolean",
-                    "description": "Hard-delete when true"
+                    "description": "Hard-delete when true. Regular drafts are always hard-deleted even when false/omitted."
                   }
                 }
               },
