@@ -23,6 +23,34 @@ locates verification email should not receive send, browser, authentication,
 purchase, payment, or administrative capabilities. Require fresh user
 confirmation before adding a capability with an external effect.
 
+## Drafting and recipients
+
+When you ask the mailbox agent to draft or send mail, recipient handling matches
+the product composer as closely as possible.
+
+### Reply and Reply All
+
+- The agent targets the **latest inbound** message in the thread (same idea as
+  the Reply / Reply All buttons).
+- **Reply:** To comes from that message's headers (Reply-To or From). Original
+  Cc/Bcc are not copied. Auto-forwarded original To may still be added to Cc
+  when delivery headers show a forward into the mailbox.
+- **Reply All:** To is the sender; other To and Cc addresses from that message
+  (plus any auto-forward Cc) go on Cc. Bcc is not carried over.
+- If you name specific To/Cc/Bcc addresses in chat, those override the inherited
+  lists. You can pass one address, a comma-separated list, or multiple addresses.
+
+### New compose
+
+- **To is required.** If you only provide Cc and/or Bcc and do not say who the
+  email is To, the agent should ask for the primary To before saving or sending.
+- The agent should not invent a To address or move Cc/Bcc into To unless you
+  explicitly say those addresses are the To recipients.
+
+MCP compose tools (`save_draft`, `send_email`, `reply_to_email`) are separate:
+they require explicit recipients on each call and do not expose Reply All
+inheritance. See [MCP](/ai/mcp) and the compose skill guidance.
+
 ## Agent conversations
 
 Mermail stores mailbox agent conversations separately from email threads. You can create, rename, delete, and list conversations for a mailbox.
