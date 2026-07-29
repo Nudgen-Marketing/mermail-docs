@@ -104,13 +104,12 @@
     .brand-mark {
       width: 7.5mm;
       height: 7.5mm;
-      display: grid;
-      place-items: center;
-      border-radius: 2.2mm;
-      background: linear-gradient(145deg, #70eeee 4%, #3c91ff 55%, #a987ff);
-      color: var(--ink);
-      font-size: 8.5pt;
-      font-weight: 900;
+      display: inline-block;
+      flex: 0 0 7.5mm;
+      background: url("file:///Users/mac/Projects/mermail/public/brand/icon.png") center / contain no-repeat;
+      color: transparent;
+      font-size: 0;
+      overflow: hidden;
     }
 
     .brand-name {
@@ -140,6 +139,12 @@
       justify-content: space-between;
       color: #7b8a92;
       font-size: 7.5pt;
+    }
+
+    .footer a {
+      color: var(--cyan-dark);
+      font-weight: 800;
+      text-decoration: none;
     }
 
     .page-no {
@@ -588,6 +593,24 @@
       font-weight: 760;
     }
 
+    .cover-site {
+      width: fit-content;
+      margin-top: 3mm;
+      padding: 2.2mm 3.2mm;
+      display: inline-flex;
+      align-items: center;
+      gap: 2mm;
+      border-radius: 2.4mm;
+      background: var(--ink);
+      color: #ffffff;
+      font-size: 8.5pt;
+      font-weight: 850;
+      text-decoration: none;
+      box-shadow: 0 3mm 9mm rgba(3,16,22,.12);
+    }
+
+    .cover-site span { color: var(--cyan); }
+
     .impact-block {
       position: relative;
       z-index: 3;
@@ -866,6 +889,7 @@
           <span class="cover-point">AI-assisted workflow</span>
           <span class="cover-point">Human stays in control</span>
         </div>
+        <a class="cover-site" href="https://mermail.app/" target="_blank" rel="noopener">Explore Mermail <span>→ mermail.app</span></a>
       </div>
 
       <div class="mail-stage" aria-label="Customer email becomes a draft for human review">
@@ -921,7 +945,7 @@
       </div>
     </div>
 
-    <footer class="footer"><span>Mermail · Customer support setup guide</span><span class="page-no">1</span></footer>
+    <footer class="footer"><span>Mermail · Customer support setup guide · <a href="https://mermail.app/">mermail.app</a></span><span class="page-no">1</span></footer>
   </section>
 
   <!-- Page 2 -->
@@ -975,7 +999,7 @@
       </div>
     </div>
 
-    <footer class="footer"><span>Mermail · Before you begin</span><span class="page-no">2</span></footer>
+    <footer class="footer"><span>Mermail · Before you begin · <a href="https://mermail.app/">mermail.app</a></span><span class="page-no">2</span></footer>
   </section>
 
   <!-- Page 3 -->
@@ -1042,7 +1066,7 @@
       <strong>Human takeover:</strong> if someone replies directly from Gmail, Mermail permanently stops AI processing for that entire thread. Continue the thread in Gmail after takeover.
     </div>
 
-    <footer class="footer"><span>Mermail · Gmail forwarding</span><span class="page-no">3</span></footer>
+    <footer class="footer"><span>Mermail · Gmail forwarding · <a href="https://mermail.app/">mermail.app</a></span><span class="page-no">3</span></footer>
   </section>
 
   <!-- Page 4 -->
@@ -1111,7 +1135,7 @@
 
     <div class="small muted mt-1">Other providers: use the Mermail forwarding guides for iCloud Mail, Proton Mail, Yahoo Mail, and Lark Mail.</div>
 
-    <footer class="footer"><span>Mermail · Outlook forwarding</span><span class="page-no">4</span></footer>
+    <footer class="footer"><span>Mermail · Outlook forwarding · <a href="https://mermail.app/">mermail.app</a></span><span class="page-no">4</span></footer>
   </section>
 
   <!-- Page 5 -->
@@ -1178,7 +1202,7 @@
 
     <div class="warning mt-2"><strong>Do not use a bare root domain.</strong> Mermail rejects it, and replacing root-domain MX records could disrupt existing company email.</div>
 
-    <footer class="footer"><span>Mermail · Custom domain</span><span class="page-no">5</span></footer>
+    <footer class="footer"><span>Mermail · Custom domain · <a href="https://mermail.app/">mermail.app</a></span><span class="page-no">5</span></footer>
   </section>
 
   <!-- Page 6 -->
@@ -1247,7 +1271,7 @@
 
     <div class="warning mt-2"><strong>Do not publish the address yet</strong> if either inbound delivery or the outbound reply test fails.</div>
 
-    <footer class="footer"><span>Mermail · Custom-domain mailbox</span><span class="page-no">6</span></footer>
+    <footer class="footer"><span>Mermail · Custom-domain mailbox · <a href="https://mermail.app/">mermail.app</a></span><span class="page-no">6</span></footer>
   </section>
 
   <!-- Page 7 -->
@@ -1320,7 +1344,7 @@
       <strong>Current limitation:</strong> a custom instruction-only mail triager does not run those instructions on received or sent mail. Use the protected default triager for inbound reply drafts. Custom instructions run for supported Google Calendar triagers.
     </div>
 
-    <footer class="footer"><span>Mermail · Task triage</span><span class="page-no">7</span></footer>
+    <footer class="footer"><span>Mermail · Task triage · <a href="https://mermail.app/">mermail.app</a></span><span class="page-no">7</span></footer>
   </section>
 
   <!-- Page 8 -->
@@ -1387,7 +1411,7 @@ Not urgent:
 
     <div class="warning mt-2"><strong>Rules organize and prioritize.</strong> They do not assign an owner, start an SLA timer, or authorize a refund, replacement, credit, or shipment change.</div>
 
-    <footer class="footer"><span>Mermail · Support rules</span><span class="page-no">8</span></footer>
+    <footer class="footer"><span>Mermail · Support rules · <a href="https://mermail.app/">mermail.app</a></span><span class="page-no">8</span></footer>
   </section>
 
   <!-- Page 9 -->
@@ -1460,7 +1484,7 @@ Not urgent:
 
     <div class="warning mt-2"><strong>Never upload secrets or raw customer exports.</strong> Live order, stock, payment, and account facts still require verification in a trusted business system.</div>
 
-    <footer class="footer"><span>Mermail · RAG Knowledge</span><span class="page-no">9</span></footer>
+    <footer class="footer"><span>Mermail · RAG Knowledge · <a href="https://mermail.app/">mermail.app</a></span><span class="page-no">9</span></footer>
   </section>
 
   <!-- Page 10 -->
@@ -1526,7 +1550,7 @@ Not urgent:
       <strong>Pause launch</strong> if forwarding exposes unintended mail, the domain cannot send or receive, drafts contain unverified facts, or the team has not agreed on human review.
     </div>
 
-    <footer class="footer"><span>Mermail · Go-live checklist</span><span class="page-no">10</span></footer>
+    <footer class="footer"><span>Mermail · Go-live checklist · <a href="https://mermail.app/">mermail.app</a></span><span class="page-no">10</span></footer>
   </section>
 
 </body>
