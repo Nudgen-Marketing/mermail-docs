@@ -2977,10 +2977,11 @@ add(
 	"get",
 	slimOp({
 		summary: "List Composio toolkits",
-		description: "Lists available Composio toolkits. **Developer+** required.",
+		description:
+			"Lists available Composio toolkits for the authenticated Mermail user (session, MCP OAuth, or API key).",
 		tags: ["Integrations"],
 		xCredits: 1,
-		successExample: [{ slug: "gmail", name: "Gmail" }],
+		successExample: [{ slug: "apollo", name: "Apollo" }],
 	}),
 );
 add(
@@ -2988,10 +2989,24 @@ add(
 	"post",
 	slimOp({
 		summary: "Connect Composio toolkit",
-		description: "Starts OAuth connect for a toolkit. **Developer+**.",
+		description:
+			"Starts hosted OAuth or API-key connect for a toolkit. Returns redirectUrl for browser auth.",
 		tags: ["Integrations"],
-		parameters: [pathParam("slug", "Toolkit slug", "gmail")],
+		parameters: [pathParam("slug", "Toolkit slug", "apollo")],
 		xCredits: 10,
+		requestBody: jsonBody(
+			{
+				type: "object",
+				properties: {
+					callbackUrl: { type: "string" },
+					authMethod: { type: "string", enum: ["oauth", "api_key"] },
+					apiKey: { type: "string" },
+				},
+				additionalProperties: false,
+			},
+			{},
+			false,
+		),
 		successDescription: "Connect URL / status",
 	}),
 );
@@ -3000,9 +3015,9 @@ add(
 	"delete",
 	slimOp({
 		summary: "Disconnect Composio toolkit",
-		description: "Removes a toolkit connection. **Developer+**.",
+		description: "Removes a toolkit connection for the authenticated Mermail user.",
 		tags: ["Integrations"],
-		parameters: [pathParam("slug", "Toolkit slug", "gmail")],
+		parameters: [pathParam("slug", "Toolkit slug", "apollo")],
 		xCredits: 2,
 		successDescription: "Disconnected",
 	}),
@@ -3012,7 +3027,7 @@ add(
 	"get",
 	slimOp({
 		summary: "List Composio connections",
-		description: "Lists active Composio connections. **Developer+**.",
+		description: "Lists Composio connections for the authenticated Mermail user.",
 		tags: ["Integrations"],
 		xCredits: 1,
 		successExample: [],
@@ -3023,10 +3038,66 @@ add(
 	"post",
 	slimOp({
 		summary: "Sync Composio connections",
-		description: "Refreshes connection state from Composio. **Developer+**.",
+		description: "Refreshes connection state from Composio into Mermail.",
 		tags: ["Integrations"],
 		xCredits: 2,
 		successDescription: "Synced",
+	}),
+);
+add(
+	"/api/v1/integrations/composio/tools",
+	"get",
+	slimOp({
+		summary: "Search Composio tools",
+		description:
+			"Search third-party Composio tool actions. Query params: search, toolkit, limit. Gmail/Outlook tools are omitted.",
+		tags: ["Integrations"],
+		xCredits: 1,
+		successExample: {
+			configured: true,
+			tools: [{ slug: "APOLLO_PEOPLE_SEARCH", toolkitSlug: "apollo", risk: "read" }],
+		},
+	}),
+);
+add(
+	"/api/v1/integrations/composio/tools/{slug}",
+	"get",
+	slimOp({
+		summary: "Get Composio tool schema",
+		description: "Returns input schema and policy metadata for one Composio tool slug.",
+		tags: ["Integrations"],
+		parameters: [pathParam("slug", "Tool slug", "APOLLO_PEOPLE_SEARCH")],
+		xCredits: 1,
+		successExample: {
+			configured: true,
+			tool: { slug: "APOLLO_PEOPLE_SEARCH", connected: true, allowed: true },
+		},
+	}),
+);
+add(
+	"/api/v1/integrations/composio/tools/execute",
+	"post",
+	slimOp({
+		summary: "Execute Composio tool",
+		description:
+			"Executes a connected Composio tool for the authenticated Mermail user. Requires an ACTIVE toolkit connection.",
+		tags: ["Integrations"],
+		xCredits: 2,
+		requestBody: jsonBody(
+			{
+				type: "object",
+				required: ["slug"],
+				properties: {
+					slug: { type: "string" },
+					arguments: { type: "object", additionalProperties: true },
+					connectedAccountId: { type: "string" },
+				},
+				additionalProperties: false,
+			},
+			{ slug: "APOLLO_PEOPLE_SEARCH", arguments: {} },
+			true,
+		),
+		successDescription: "Execution result",
 	}),
 );
 add(
@@ -3034,7 +3105,7 @@ add(
 	"get",
 	slimOp({
 		summary: "Get Composio calendar account",
-		description: "Returns calendar account binding. **Developer+**.",
+		description: "Returns Google Calendar connection status and account email when available.",
 		tags: ["Integrations"],
 		xCredits: 1,
 		successExample: { connected: false },
