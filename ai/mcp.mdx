@@ -392,8 +392,8 @@ particular, `query` must be an object and newest-first sorting uses
 
 ## Tool catalog
 
-At publication time, the live server exposes **63** tools:
-`prepare_destructive_action` plus **62** API wrappers. Grouped by area:
+At publication time, the live server exposes **72** tools:
+`prepare_destructive_action` plus **71** API wrappers. Grouped by area:
 
 <AccordionGroup>
   <Accordion title="Usage">
@@ -415,6 +415,11 @@ At publication time, the live server exposes **63** tools:
   </Accordion>
   <Accordion title="AI agent & task triage">
     `list_agent_conversations`, `create_agent_conversation`, `rename_agent_conversation`, `delete_agent_conversation`, `list_agent_messages`, `chat_with_mailbox_agent`, `list_task_triagers`, `create_task_triager`, `list_recent_triager_runs`, `update_task_triager`, `delete_task_triager`, `set_default_task_triager`, `get_or_create_triager_conversation`
+  </Accordion>
+  <Accordion title="Composio integrations">
+    `list_composio_toolkits`, `connect_composio_toolkit`, `disconnect_composio_toolkit`, `list_composio_connections`, `sync_composio_connections`, `search_composio_tools`, `get_composio_tool_schema`, `execute_composio_tool`, `get_composio_calendar_account`
+
+    Full catalog only. Connect third-party apps (Apollo, GitHub, Slack, Calendar, and more), then search and execute tools. Gmail and Outlook Composio toolkits stay disabled. See [Composio](/integrations/composio).
   </Accordion>
   <Accordion title="Safety">
     `prepare_destructive_action` — issues confirmation tokens for destructive tools

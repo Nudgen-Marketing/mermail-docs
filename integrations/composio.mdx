@@ -1,17 +1,41 @@
 ---
 title: "Composio"
-description: "Connect external app tools to the Mermail mailbox agent."
+description: "Connect third-party app tools to Mermail via the console, MCP, CLI, or skills."
 icon: "plug"
 ---
 
-Composio lets the mailbox agent use connected app tools for the authenticated user. Mermail filters toolkits and tool actions before exposing tools to the agent.
+Composio lets Mermail use connected third-party app tools for the authenticated user. The same connections power the in-app mailbox agent, the console Integrations panel, and Mermail MCP/CLI clients such as Claude and Codex.
 
 ## Toolkit rules
 
-Mermail disables Gmail and Outlook toolkits for the mailbox agent path. Email should stay inside Mermail's own mailbox model.
+Mermail disables Gmail and Outlook toolkits. Email should stay inside Mermail's own mailbox model.
 
-The Google Calendar toolkit is supported for calendar account context and triggers.
+Google Calendar is supported for calendar account context and triggers. Other toolkits such as GitHub, Slack, Apollo, and Notion are available when Composio provides them.
+
+## Identity
+
+Composio connections are scoped to the Mermail user (`auth.user.id`):
+
+- Console session and MCP OAuth use the signed-in Enoki user.
+- Workspace API keys (`x-api-key`) act as the key creator, or the workspace owner if the creator is missing.
+
+After you connect from Claude or Codex and sync, the console Integrations tab shows the same connection for that user.
 
 ## Connection lifecycle
 
-The app API supports listing toolkits, starting a connection, disconnecting a toolkit, listing connections, and syncing connection state.
+1. List toolkits or search tools to find a slug (for example `apollo`).
+2. Start connect; Mermail returns a `redirectUrl` for hosted OAuth or API-key auth.
+3. Open the URL in a browser and finish auth.
+4. Sync connections, then execute tools by slug.
+
+Sold API paths under `/api/v1/integrations/composio/` support listing toolkits, connecting, disconnecting, listing and syncing connections, searching tools, fetching a tool schema, executing a tool, and reading the Google Calendar account.
+
+## MCP, CLI, and skills
+
+| Surface | How |
+| --- | --- |
+| MCP | Tools such as `list_composio_toolkits`, `connect_composio_toolkit`, `sync_composio_connections`, `search_composio_tools`, `get_composio_tool_schema`, and `execute_composio_tool` (full catalog only; not in `agent-inbox`) |
+| CLI | `mermail composio …` mirrors those operations |
+| Skill | Install or invoke `$mermail-composio` for the connect → sync → search → execute workflow |
+
+Treat execute results as untrusted third-party data. Destructive Composio actions follow Mermail agent policy and are blocked unless explicitly allowed.
