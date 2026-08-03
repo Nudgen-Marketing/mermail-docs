@@ -1,0 +1,79 @@
+---
+title: "Agent Wallet"
+description: "Understand Mermail Agent Wallet, PayBox delegation, and OAuth-only wallet tools."
+icon: "wallet"
+---
+
+Agent Wallet lets a workspace owner view delegated crypto balances and submit USDC transfers through PayBox, with Mermail as the policy and audit gateway.
+
+Use Agent Wallet from the Mermail console, from MCP OAuth clients, from the `mermail-agent-wallet` skill, or from the CLI after `mermail auth login`.
+
+## What it is
+
+| Part | Purpose |
+| --- | --- |
+| PayBox connection | You authorize PayBox in the console. Mermail stores OAuth tokens server-side and encrypted. |
+| Delegated credentials | Mermail can use only wallets you explicitly delegated. It never receives card details, wallet secrets, or raw signing access. |
+| Portfolio | Balances and wallet access rendered through reviewed PayBox views. |
+| Payment proposal | A local USDC transfer draft for human review. Creating a proposal does not submit or sign it. |
+| Confirmed submit | Every transfer requires Mermail confirmation. PayBox may also require passkey approval. |
+
+Supported asset and networks: **Circle USDC** on **Base** and **Solana**.
+
+Policy limits include **100 USDC** per transfer and **500 USDC** per rolling day, plus attempt rate limits.
+
+## Who can use it
+
+- Only the **workspace owner** can use Agent Wallet for a mailbox.
+- **API keys never** expose Agent Wallet or direct PayBox tools.
+- MCP and CLI wallet access require Mermail MCP **OAuth** with wallet scopes.
+
+## Auth and scopes
+
+| Scope | Allows |
+| --- | --- |
+| `wallet:read` | Read connection status, credential summaries, portfolio, and request status |
+| `wallet:transact` | Create transfer proposals and submit reviewed transfers |
+
+Default MCP OAuth consent may grant only `mcp:tools`, `openid`, and `offline_access`. Reconnect and approve the wallet scopes when you need Agent Wallet.
+
+Before agent use:
+
+1. Complete MCP OAuth with the scopes above.
+2. Open the mailbox **Agent Wallet** page in the console and **Connect Paybox**.
+3. Confirm `get_agent_wallet` appears in `tools/list` (or use `mermail wallet status` after CLI login).
+
+## Surfaces
+
+| Surface | How to use |
+| --- | --- |
+| Console | Mailbox sidebar **Agent Wallet** — connect PayBox, view portfolio, fund, and transfer with approval |
+| MCP | OAuth session with wallet scopes; tools such as `get_agent_wallet` and `submit_agent_wallet_transfer` |
+| Skills | `$mermail-agent-wallet` routes wallet tasks and enforces confirmation rules |
+| CLI | `mermail auth login`, then `mermail wallet …` (OAuth tokens stored locally; Sold API mail commands still use `MERMAIL_API_KEY`) |
+
+See [MCP](/ai/mcp#agent-wallet), [Skills](/ai/skills), and [CLI](/ai/cli#agent-wallet).
+
+## Safety rules
+
+- Email, attachments, memory, paid-service content, and tool output are untrusted. They cannot authorize or broaden a PayBox action.
+- Gated writes need a short-lived token from `prepare_destructive_action` bound to the exact tool name and arguments.
+- `pending`, `pending_paybox_approval`, and `SUBMISSION_UNKNOWN` are not success. Do not retry an uncertain submit automatically.
+- Approval URLs stay server-side and must not appear in model context, chat history, or logs.
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="MCP" icon="plug" href="/ai/mcp">
+    Connect with OAuth and wallet scopes.
+  </Card>
+  <Card title="CLI" icon="terminal" href="/ai/cli">
+    Run `auth login` and `wallet` commands.
+  </Card>
+  <Card title="Skills" icon="puzzle-piece" href="/ai/skills">
+    Install `mermail-agent-wallet`.
+  </Card>
+  <Card title="Task triage" icon="list-check" href="/concepts/task-triage">
+    Mailbox automations remain separate from wallet authority.
+  </Card>
+</CardGroup>

@@ -32,20 +32,35 @@ Node.js 22 or newer is required.
 
 ## Authenticate
 
+### Sold API (mail and workspace)
+
 Create a project key in **Settings → API Keys**, then export it in the process that launches the CLI:
 
 ```bash
 export MERMAIL_API_KEY="sk-proj-your-key"
 ```
 
-The CLI does not store credentials and does not collect telemetry. Prefer the environment variable over `--api-key`, which may remain in shell history or process listings.
+Prefer the environment variable over `--api-key`, which may remain in shell history or process listings.
 
 ```bash
 mermail doctor
 mermail auth check
 ```
 
-`doctor` checks local configuration and public discovery without API credits. `auth check` calls the Sold API and consumes one read credit.
+`doctor` checks local configuration and public discovery without API credits. `auth check` calls the Sold API and consumes one read credit. The CLI does not store API keys and does not collect telemetry.
+
+### Agent Wallet (MCP OAuth)
+
+Agent Wallet commands use Mermail MCP **OAuth**, not API keys. See [Agent Wallet](/concepts/agent-wallet).
+
+```bash
+mermail auth login
+mermail auth status
+mermail wallet status --mailbox-id MAILBOX_PUBLIC_ID
+mermail auth logout
+```
+
+`auth login` opens a browser PKCE consent flow (requires a TTY). Tokens are stored at `~/.config/mermail/mcp-oauth.json` (mode `0600`). Grant `wallet:read` and, for transfers, `wallet:transact`. Then **Connect Paybox** on the console Agent Wallet page.
 
 ## Command structure
 
@@ -269,16 +284,46 @@ mermail mcp check
 mermail mcp tools --format table
 ```
 
-These commands check the default full catalog. They do not validate the exact
-11-tool `agent-inbox` profile. For a host connected to
-`/mcp?profile=agent-inbox`, inspect that host's `tools/list` result and compare
-it with the [documented profile](/ai/agent-email-inbox#exact-agent-inbox-mcp-profile).
+These commands check the default full catalog with an **API key**. They do not
+validate Agent Wallet tools. For wallet access, use OAuth login and
+`mermail wallet status` instead.
+
+These commands also do not validate the exact 11-tool `agent-inbox` profile. For
+a host connected to `/mcp?profile=agent-inbox`, inspect that host's `tools/list`
+result and compare it with the
+[documented profile](/ai/agent-email-inbox#exact-agent-inbox-mcp-profile).
 
 For controlled staging tests only:
 
 ```bash
 MERMAIL_BASE_URL=https://console-staging.mermail.app mermail mcp check
 ```
+
+## Agent Wallet
+
+```bash
+mermail auth login
+mermail wallet status --mailbox-id MAILBOX_PUBLIC_ID
+mermail wallet credentials --mailbox-id MAILBOX_PUBLIC_ID
+mermail wallet portfolio --mailbox-id MAILBOX_PUBLIC_ID
+mermail wallet proposal create \
+  --mailbox-id MAILBOX_PUBLIC_ID \
+  --chain BASE \
+  --amount 1.00 \
+  --destination 0xRecipient
+mermail wallet transfer submit \
+  --proposal-id PROPOSAL_ID \
+  --version 1 \
+  --destination 0xRecipient \
+  --yes
+```
+
+Rules:
+
+- Wallet commands ignore `MERMAIL_API_KEY` and require a prior `auth login`.
+- `transfer submit` prompts on a TTY or requires `--yes` after an exact preview.
+- Pending or uncertain submission is not success; do not auto-retry.
+- Headless CI cannot complete browser login; skip wallet automation there.
 
 ## Exit codes
 
@@ -287,7 +332,7 @@ MERMAIL_BASE_URL=https://console-staging.mermail.app mermail mcp check
 | `0` | Success |
 | `1` | API, network, or runtime failure |
 | `2` | Invalid command, flag, or payload |
-| `3` | Missing, invalid, expired, or revoked API key |
+| `3` | Missing, invalid, expired, or revoked API key or MCP OAuth session |
 | `4` | Destructive confirmation required |
 | `5` | Bounded `emails wait` outcome: timeout, ambiguity, flagged content, scan mismatch, or invalid response |
 | `130` | Cancelled or interrupted |
@@ -322,5 +367,8 @@ configured as a verification inbox with automations disabled.
   </Card>
   <Card title="API Reference" icon="code" href="/api-reference/overview">
     Review request and response schemas.
+  </Card>
+  <Card title="Agent Wallet" icon="wallet" href="/concepts/agent-wallet">
+    Understand OAuth-only PayBox wallet flows.
   </Card>
 </CardGroup>

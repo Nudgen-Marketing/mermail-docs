@@ -30,9 +30,22 @@ MCP clients that support OAuth discover Mermail via Protected Resource Metadata,
 | --- | --- |
 | PRM | `https://console.mermail.app/.well-known/oauth-protected-resource` |
 | AS metadata | `https://console.mermail.app/.well-known/oauth-authorization-server` |
-| Scopes | `mcp:tools`, `openid`, `offline_access` |
+| Scopes | `mcp:tools`, `openid`, `offline_access`, plus optional `wallet:read` and `wallet:transact` |
 
 Unauthenticated calls return `401` with a `WWW-Authenticate` challenge pointing at the PRM document.
+
+### Agent Wallet scopes
+
+Agent Wallet and reviewed PayBox tools appear only on **OAuth** sessions. API-key catalogs never include them.
+
+| Scope | Purpose |
+| --- | --- |
+| `wallet:read` | `get_agent_wallet`, credential summaries, portfolio, and request status |
+| `wallet:transact` | Transfer proposals, `submit_agent_wallet_transfer`, and gated `paybox_*` writes |
+
+Default consent may omit wallet scopes. Reconnect OAuth, approve `wallet:read` / `wallet:transact`, then **Connect Paybox** on the mailbox [Agent Wallet](/concepts/agent-wallet) page in the console. Only the workspace owner can use Agent Wallet.
+
+Wallet submit and gated PayBox writes still require `prepare_destructive_action`. Email content cannot authorize a payment. Pending or `SUBMISSION_UNKNOWN` is not success.
 
 ### API key (automation / CLI)
 
@@ -392,8 +405,10 @@ particular, `query` must be an object and newest-first sorting uses
 
 ## Tool catalog
 
-At publication time, the live server exposes **72** tools:
-`prepare_destructive_action` plus **71** API wrappers. Grouped by area:
+At publication time, an **API-key** session exposes **72** tools:
+`prepare_destructive_action` plus **71** Sold API wrappers. **OAuth** sessions
+with wallet scopes can expose additional Agent Wallet / PayBox tools on top of
+that baseline. Grouped by area:
 
 <AccordionGroup>
   <Accordion title="Usage">
@@ -421,8 +436,13 @@ At publication time, the live server exposes **72** tools:
 
     Full catalog only. Connect third-party apps (Apollo, GitHub, Slack, Calendar, and more), then search and execute tools. Gmail and Outlook Composio toolkits stay disabled. See [Composio](/integrations/composio).
   </Accordion>
+  <Accordion title="Agent Wallet (OAuth + wallet scopes only)">
+    `get_agent_wallet`, `list_agent_wallet_credentials`, `get_agent_wallet_portfolio`, `get_agent_wallet_request`, `create_agent_wallet_transfer_proposal`, `submit_agent_wallet_transfer`, `get_paybox_invocation`, plus reviewed `paybox_*` tools when PayBox is connected
+
+    Not available to API keys. Requires `wallet:read` and/or `wallet:transact`. See [Agent Wallet](/concepts/agent-wallet).
+  </Accordion>
   <Accordion title="Safety">
-    `prepare_destructive_action` — issues confirmation tokens for destructive tools
+    `prepare_destructive_action` — issues confirmation tokens for destructive tools, including `submit_agent_wallet_transfer`
   </Accordion>
 </AccordionGroup>
 
