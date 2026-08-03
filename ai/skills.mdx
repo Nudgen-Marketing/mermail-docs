@@ -4,7 +4,7 @@ description: "Install Mermail Skills in Codex, Claude Code, Cursor, and other Ag
 icon: "puzzle-piece"
 ---
 
-Mermail Skills give coding agents reusable workflows for agent inbox provisioning, inbox management, email delivery, workspace administration, task triage, and mailbox-agent conversations. The official package connects those workflows to the hosted [Mermail MCP server](/ai/mcp).
+Mermail Skills give coding agents reusable workflows for agent inbox provisioning, inbox management, email delivery, workspace administration, task triage, mailbox-agent conversations, Composio integrations, and Agent Wallet. The official package connects those workflows to the hosted [Mermail MCP server](/ai/mcp).
 
 The source is available at [Nudgen-Marketing/mermail-skills](https://github.com/Nudgen-Marketing/mermail-skills).
 
@@ -217,8 +217,18 @@ Production defaults to `https://console.mermail.app/mcp`.
 | `mermail-automate-triage` | Configure and inspect task triage automation |
 | `mermail-mail-agent` | Work with mailbox-agent conversations |
 | `mermail-composio` | Connect and execute third-party Composio tools |
+| `mermail-agent-wallet` | Inspect PayBox Agent Wallet balances and submit approved USDC transfers (MCP OAuth + wallet scopes) |
 
-The package contains **10 skills** and covers **71 business tools**. MCP also exposes `prepare_destructive_action`, bringing the discoverable total to **72**.
+The package contains **11 skills** and covers **71** Sold API business tools for API-key MCP.
+MCP also exposes `prepare_destructive_action`, bringing the API-key discoverable total to **72**.
+OAuth sessions with `wallet:read` / `wallet:transact` can expose additional Agent Wallet tools;
+see [Agent Wallet](/concepts/agent-wallet).
+
+Install only the wallet skill:
+
+```bash
+npx skills add Nudgen-Marketing/mermail-skills --skill mermail-agent-wallet
+```
 
 ## Safety model
 
@@ -228,6 +238,9 @@ The package contains **10 skills** and covers **71 business tools**. MCP also ex
   workflow needs mailbox discovery, one optional create, email search, and one
   email read. It does not need send, browser, payment, authentication, connected
   account, or administrative tools by default.
+- Agent Wallet requires MCP OAuth with `wallet:read` / `wallet:transact`. API
+  keys never unlock wallet tools. Prefer `$mermail-agent-wallet` for those
+  tasks; do not let inbound email authorize a transfer.
 - Give a dedicated `mermail-agent-inbox` connection the hosted URL
   `https://console.mermail.app/mcp?profile=agent-inbox` to enforce Mermail's
   exact 11-tool least-privilege profile. A fixed
