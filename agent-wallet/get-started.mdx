@@ -1,0 +1,167 @@
+---
+title: "Set up and use Agent Wallet"
+description: "Connect PayBox, view delegated balances, fund a wallet, and approve a USDC transfer."
+icon: "rocket"
+---
+
+This guide takes you from an empty Agent Wallet page to a connected wallet you
+can view, fund, and use with your AI agent.
+
+## Before you begin
+
+You need:
+
+- A Mermail workspace and mailbox.
+- The **workspace owner** role. Other workspace members cannot connect or use
+  Agent Wallet.
+- A PayBox account with a wallet you can delegate.
+
+## Connect PayBox
+
+<Steps>
+  <Step title="Open your mailbox">
+    Sign in at [console.mermail.app](https://console.mermail.app), then select
+    the mailbox that should use the wallet.
+  </Step>
+  <Step title="Open Agent Wallet">
+    Select **Agent Wallet** in the mailbox sidebar.
+  </Step>
+  <Step title="Start the connection">
+    In **PayBox connection**, select **Connect**. Mermail sends you to PayBox
+    through a secure OAuth flow.
+  </Step>
+  <Step title="Authorize PayBox">
+    Sign in to PayBox and review the wallets and permissions you want to
+    delegate. Approve the connection to return to Mermail.
+  </Step>
+  <Step title="Confirm the connection">
+    Check that **PayBox connection** shows **ACTIVE**. Your delegated wallets
+    and balances appear under **Portfolio** and sync automatically.
+  </Step>
+</Steps>
+
+<Info>
+  Mermail stores PayBox OAuth tokens encrypted on the server. It does not expose
+  those tokens, private keys, or wallet secrets to your AI agent.
+</Info>
+
+## Fund a delegated wallet
+
+The console can open a supported funding checkout for an eligible delegated
+Base wallet.
+
+<Steps>
+  <Step title="Select Funding">
+    On the **Agent Wallet** page, select **Funding**.
+  </Step>
+  <Step title="Review the handoff">
+    Confirm that you want to open the PayBox checkout. The checkout opens in a
+    separate secured window or tab.
+  </Step>
+  <Step title="Complete checkout">
+    Follow the provider's steps to choose an amount and complete the purchase.
+    The provider, currently MoonPay, handles the checkout and its eligibility
+    requirements.
+  </Step>
+  <Step title="Check your portfolio">
+    Return to Mermail and wait for the provider to finish processing. Agent
+    Wallet refreshes balances automatically.
+  </Step>
+</Steps>
+
+<Tip>
+  If **Funding** is unavailable, check that PayBox delegated an active Base
+  wallet and that the secure portfolio view loaded successfully.
+</Tip>
+
+### Funding from an AI host or the CLI
+
+MoonPay checkout URLs stay **browser-only**. MCP never returns them to the model
+and shows them as `[redacted]`. AI hosts should instead open the safe Mermail
+console deep link, which opens **Funding** automatically:
+
+```text
+https://console.mermail.app/mailbox/{public_id}/agent-wallet?fund=1&amount={n}
+```
+
+`get_agent_wallet` and `paybox_get_buy_link` also return `funding_handoff`.
+Prefer `get_agent_wallet` so `console_url` is bound to the correct mailbox. If
+`needs_mailbox` is true, call `get_agent_wallet` with `mailboxId`; Mermail never
+guesses a mailbox. Open `console_url` in a browser to complete MoonPay, then
+refresh balances with `get_agent_wallet` or `get_agent_wallet_portfolio`.
+
+From the CLI, `mermail wallet fund-url --mailbox-id {public_id} --amount 1`
+prints the deep link without calling MoonPay.
+
+## Make a transfer with your agent
+
+Agent Wallet supports Circle USDC transfers on Base and Solana. Your agent can
+prepare the transfer, but it cannot approve the transfer for you.
+
+<Steps>
+  <Step title="Ask for a transfer">
+    In Agent Chat or a connected wallet-capable assistant, state the amount,
+    network, and complete destination. For example:
+
+    ```text
+    Prepare a transfer of 5 USDC on Base to 0xRecipientAddress.
+    ```
+  </Step>
+  <Step title="Review the proposal">
+    Verify the USDC amount, network, and full destination address. A proposal
+    is a draft and does not move funds.
+  </Step>
+  <Step title="Approve or reject">
+    Approve only when every detail matches your request. Reject the action if
+    any detail is missing or unexpected.
+  </Step>
+  <Step title="Complete PayBox approval">
+    If PayBox requests passkey approval, complete it in the PayBox flow.
+  </Step>
+  <Step title="Verify the result">
+    Wait for a confirmed success or transaction hash. `pending`,
+    `pending_paybox_approval`, and `SUBMISSION_UNKNOWN` are not success.
+  </Step>
+</Steps>
+
+<Warning>
+  Do not retry an uncertain transfer automatically. Check the request status and
+  destination wallet first to avoid sending the same payment twice.
+</Warning>
+
+## Disconnect PayBox
+
+To remove wallet access, open **Agent Wallet** and select **Disconnect** in the
+**PayBox connection** section. Your Mermail mailbox remains active, but Agent
+Wallet can no longer read delegated balances or prepare PayBox actions until
+you reconnect.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The connection was cancelled or expired">
+    Return to **Agent Wallet**, select **Connect**, and complete the PayBox flow
+    in the same browser session.
+  </Accordion>
+  <Accordion title="My balance has not updated">
+    Allow the funding provider time to finish processing, then reload the Agent
+    Wallet page. Do not treat an open or pending checkout as a completed
+    deposit.
+  </Accordion>
+  <Accordion title="My AI client cannot see wallet tools">
+    Reconnect the client with Mermail MCP OAuth and grant `wallet:read`. Add
+    `wallet:transact` only when the client should prepare or submit transfers.
+    API keys cannot expose wallet tools.
+  </Accordion>
+  <Accordion title="A transfer is still pending">
+    Check the request again instead of submitting a new transfer. If the status
+    is uncertain, verify with PayBox and the destination network before taking
+    another action.
+  </Accordion>
+</AccordionGroup>
+
+## Next step
+
+<Card title="Connect Agent Wallet to your AI" icon="sparkles" href="/agent-wallet/use-with-ai">
+  Choose Agent Chat, MCP, an Agent Skill, or the CLI.
+</Card>

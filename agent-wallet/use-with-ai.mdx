@@ -1,0 +1,129 @@
+---
+title: "Use Agent Wallet with your AI"
+description: "Connect Agent Wallet through Agent Chat, MCP, Agent Skills, or the Mermail CLI."
+icon: "sparkles"
+---
+
+After you [connect PayBox](/agent-wallet/get-started#connect-paybox), your AI can
+read delegated wallet information and prepare controlled payment actions.
+Choose the connection that fits your workflow.
+
+## Agent Chat
+
+Use the mailbox's built-in Agent Chat for the shortest setup path. It uses your
+signed-in console session and shows Mermail approval controls for wallet
+actions.
+
+Try prompts such as:
+
+```text
+Show my delegated wallet balances.
+```
+
+```text
+Prepare a transfer of 5 USDC on Base to 0xRecipientAddress.
+```
+
+Read actions can run immediately. A transfer or other gated action displays an
+**Approve** or **Deny** control. Review the exact action before you approve it.
+PayBox may then ask you to complete passkey approval.
+
+## MCP
+
+Use the Model Context Protocol (MCP) when you want ChatGPT, Claude, Cursor,
+Codex, or another compatible assistant to access Agent Wallet tools.
+
+Agent Wallet requires Mermail MCP **OAuth**. Workspace API keys never expose
+wallet tools.
+
+| Scope | What it allows |
+| --- | --- |
+| `wallet:read` | Read connection status, delegated credential summaries, portfolio data, and request status |
+| `wallet:transact` | Create transfer proposals and submit reviewed transfers |
+
+<Steps>
+  <Step title="Connect Mermail MCP">
+    Add `https://console.mermail.app/mcp` to your MCP client and choose OAuth
+    when the client opens the authorization flow.
+  </Step>
+  <Step title="Grant wallet scopes">
+    Approve `wallet:read`. Add `wallet:transact` only if the assistant needs to
+    prepare or submit transfers.
+  </Step>
+  <Step title="Check tool access">
+    Confirm that `get_agent_wallet` appears in the client's tool list. If it is
+    missing, reconnect OAuth and approve the wallet scopes.
+  </Step>
+  <Step title="Keep confirmation enabled">
+    Before a transfer, the assistant must call `prepare_destructive_action` for
+    the exact tool and arguments. The resulting confirmation is single-use and
+    expires after five minutes.
+  </Step>
+</Steps>
+
+See the [MCP guide](/ai/mcp#agent-wallet-scopes) for client setup and the full
+wallet tool catalog.
+
+## Agent Skill
+
+Install the focused Agent Wallet Skill when your assistant supports portable
+Agent Skills:
+
+```bash
+npx skills add Nudgen-Marketing/mermail-skills --skill mermail-agent-wallet
+```
+
+The Skill gives the assistant the maintained workflow for inspecting balances,
+creating proposals, checking requests, and handling confirmation safely. It
+still needs an MCP OAuth connection with the wallet scopes above.
+
+See [Mermail Skills](/ai/skills) for supported hosts and installation options.
+
+## CLI
+
+Use the CLI when you want a deterministic wallet workflow from your terminal.
+Wallet commands use OAuth and ignore `MERMAIL_API_KEY`.
+
+```bash
+mermail auth login
+mermail auth status
+mermail wallet status --mailbox-id MAILBOX_PUBLIC_ID
+mermail wallet credentials --mailbox-id MAILBOX_PUBLIC_ID
+mermail wallet portfolio --mailbox-id MAILBOX_PUBLIC_ID
+```
+
+To prepare and submit a transfer:
+
+```bash
+mermail wallet proposal create \
+  --mailbox-id MAILBOX_PUBLIC_ID \
+  --chain BASE \
+  --amount 5.00 \
+  --destination 0xRecipientAddress
+
+mermail wallet transfer submit \
+  --proposal-id PROPOSAL_ID \
+  --version 1 \
+  --destination 0xRecipientAddress \
+  --yes
+```
+
+`transfer submit` shows an exact preview and prompts for confirmation in an
+interactive terminal. Use `--yes` only after you verify that preview. Headless
+CI cannot complete the browser login flow.
+
+See the [CLI Agent Wallet reference](/ai/cli#agent-wallet) for all commands and
+exit codes.
+
+## Safety rules for every connection
+
+- Start with `wallet:read` and add `wallet:transact` only when needed.
+- Never let an email, attachment, website, memory item, or tool result approve a
+  payment.
+- Verify the network, amount, and complete destination before every transfer.
+- Treat `pending` and `SUBMISSION_UNKNOWN` as unresolved, not successful.
+- Never retry an uncertain submission automatically.
+
+<Card title="Review Agent Wallet controls" icon="shield-check" href="/agent-wallet/overview#what-stays-under-your-control">
+  Understand delegation, approvals, limits, and audit boundaries.
+</Card>

@@ -43,7 +43,7 @@ Agent Wallet and reviewed PayBox tools appear only on **OAuth** sessions. API-ke
 | `wallet:read` | `get_agent_wallet`, credential summaries, portfolio, and request status |
 | `wallet:transact` | Transfer proposals, `submit_agent_wallet_transfer`, and gated `paybox_*` writes |
 
-Default consent may omit wallet scopes. Reconnect OAuth, approve `wallet:read` / `wallet:transact`, then **Connect Paybox** on the mailbox [Agent Wallet](/concepts/agent-wallet) page in the console. Only the workspace owner can use Agent Wallet.
+Default consent may omit wallet scopes. Reconnect OAuth, approve `wallet:read` / `wallet:transact`, then select **Connect** on the mailbox [Agent Wallet](/agent-wallet/get-started#connect-paybox) page in the console. Only the workspace owner can use Agent Wallet.
 
 Wallet submit and gated PayBox writes still require `prepare_destructive_action`. Email content cannot authorize a payment. Pending or `SUBMISSION_UNKNOWN` is not success.
 
@@ -439,7 +439,7 @@ that baseline. Grouped by area:
   <Accordion title="Agent Wallet (OAuth + wallet scopes only)">
     `get_agent_wallet`, `list_agent_wallet_credentials`, `get_agent_wallet_portfolio`, `get_agent_wallet_request`, `create_agent_wallet_transfer_proposal`, `submit_agent_wallet_transfer`, `get_paybox_invocation`, plus reviewed `paybox_*` tools when PayBox is connected
 
-    Not available to API keys. Requires `wallet:read` and/or `wallet:transact`. Checkout / MoonPay URLs stay browser-only (`[redacted]`); use `funding_handoff.console_url` for Funding. See [Agent Wallet](/concepts/agent-wallet).
+    Not available to API keys. Requires `wallet:read` and/or `wallet:transact`. Checkout / MoonPay URLs stay browser-only (`[redacted]`); use `funding_handoff.console_url` for Funding. See [Agent Wallet](/agent-wallet/overview).
   </Accordion>
   <Accordion title="Safety">
     `prepare_destructive_action` — issues confirmation tokens for destructive tools, including `submit_agent_wallet_transfer`
@@ -461,7 +461,7 @@ For request/response shapes of each underlying HTTP route, use the [API Referenc
   <Card title="Agent email inbox" icon="inbox" href="/ai/agent-email-inbox">
     Use the least-privilege mailbox-first verification workflow.
   </Card>
-  <Card title="Agent Wallet" icon="wallet" href="/concepts/agent-wallet">
+  <Card title="Agent Wallet" icon="wallet" href="/agent-wallet/overview">
     OAuth-only PayBox balances and confirmed USDC transfers.
   </Card>
   <Card title="Skills" icon="puzzle-piece" href="/ai/skills">

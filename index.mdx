@@ -1,32 +1,65 @@
 ---
-title: "Welcome"
-description: "Learn how Mermail gives AI agents their own email inboxes."
-icon: "inbox"
+title: "Overview"
+description: "Your AI can now sign up and pay with its own inbox and a user-controlled Agent Wallet."
+icon: "sparkles"
 ---
 
-Mermail gives AI agents their own email inboxes. Each mailbox can receive email, send replies, search conversations, store message bodies and attachments outside the database, and give the agent a controlled workspace for acting on email.
+**Your AI can now sign up and pay.**
 
-The product is built for agent-owned inboxes, not for training an AI on a personal mailbox. Mermail separates mailbox metadata from full message bodies and attachments, with workspace-owned storage access protected before use.
+Mermail gives your agent a private email and a user-controlled Agent Wallet, so
+it can sign up for services, receive verification codes, pay online, and keep
+every receipt. One MCP connection gives your agent the tools to complete the
+workflow from inbox to payment.
+
+<Info>
+  You stay in control. Your agent can prepare email and payment actions, but
+  sending email and moving funds require your approval.
+</Info>
+
+## Give your agent a way to act
 
 <Columns cols={2}>
-  <Card title="Create a mailbox" icon="plus" href="/guides/create-mailbox">
-    Claim a hosted `@mermail.app` mailbox or create a mailbox on a verified
-    custom subdomain.
+  <Card title="Its own inbox" icon="inbox" href="/guides/create-mailbox">
+    Give your agent a dedicated address for registrations, verification codes,
+    receipts, and ongoing conversations.
   </Card>
-  <Card title="Use the AI agent" icon="sparkles" href="/concepts/ai-agent">
-    Search, summarize, draft replies, and connect external tools with explicit
-    tool safety rules.
+  <Card title="A user-controlled Agent Wallet" icon="wallet" href="/agent-wallet/overview">
+    Let your agent view delegated balances and prepare USDC payments without
+    exposing private keys or raw signing access.
   </Card>
-  <Card title="AI integrations" icon="plug" href="/ai/mcp">
-    Connect assistants with MCP and Agent Skills workflows.
+  <Card title="One MCP connection" icon="plug" href="/ai/mcp">
+    Connect ChatGPT, Claude, Cursor, Codex, or another compatible assistant to
+    Mermail's email and wallet tools.
   </Card>
-  <Card title="Explore the API" icon="code" href="/api-reference/overview">
-    Review the app API resource areas and public discovery surfaces.
+  <Card title="APIs and automation" icon="code" href="/api-reference/overview">
+    Build mailbox workflows with the API, CLI, Agent Skills, and task triage.
   </Card>
 </Columns>
 
-## What to read next
+## How Mermail fits into a workflow
 
-<Card title="Quickstart" icon="rocket" href="/quickstart">
-  Follow the shortest path from an account to a working mailbox.
-</Card>
+<Steps>
+  <Step title="Create an agent inbox">
+    Create a hosted Mermail address or use a verified custom domain. Your agent
+    can receive email, search conversations, and prepare replies.
+  </Step>
+  <Step title="Connect your AI">
+    Connect Mermail through MCP, install a focused Agent Skill, or use the CLI
+    for a repeatable workflow.
+  </Step>
+  <Step title="Add controlled payments">
+    Connect PayBox to Agent Wallet when your agent needs to fund a wallet or pay
+    in USDC. You review each transfer before funds move.
+  </Step>
+</Steps>
+
+## Start here
+
+<Columns cols={2}>
+  <Card title="Create your first mailbox" icon="rocket" href="/quickstart">
+    Go from a Mermail account to a working agent inbox.
+  </Card>
+  <Card title="Set up Agent Wallet" icon="wallet" href="/agent-wallet/get-started">
+    Connect PayBox, view delegated balances, and fund your agent's wallet.
+  </Card>
+</Columns>

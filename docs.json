@@ -24,8 +24,7 @@
               "concepts/mailboxes",
               "concepts/workspaces",
               "concepts/ai-agent",
-              "concepts/task-triage",
-              "concepts/agent-wallet"
+              "concepts/task-triage"
             ]
           },
           {
@@ -79,6 +78,20 @@
               "ai/mcp",
               "ai/skills",
               "ai/cli"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Agent Wallet",
+        "icon": "wallet",
+        "groups": [
+          {
+            "group": "Agent Wallet",
+            "pages": [
+              "agent-wallet/overview",
+              "agent-wallet/get-started",
+              "agent-wallet/use-with-ai"
             ]
           }
         ]
@@ -237,6 +250,12 @@
   "contextual": {
     "options": []
   },
+  "redirects": [
+    {
+      "source": "/concepts/agent-wallet",
+      "destination": "/agent-wallet/overview"
+    }
+  ],
   "api": {
     "playground": {
       "display": "interactive"

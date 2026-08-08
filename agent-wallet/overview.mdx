@@ -1,0 +1,83 @@
+---
+title: "Agent Wallet overview"
+description: "Give your AI agent a controlled way to view balances, fund a wallet, and pay in USDC."
+icon: "wallet"
+---
+
+Agent Wallet is the user-controlled payment layer for your AI agent. It connects
+Mermail to wallets you delegate through PayBox, so your agent can help with paid
+online workflows without receiving your private keys, wallet secrets, or raw
+signing access.
+
+Use Agent Wallet to keep email identity and payment context together. Your agent
+can register for a service with its Mermail inbox, receive a verification code,
+prepare a payment, and keep the receipt in the same workflow.
+
+## What you can do
+
+<Columns cols={2}>
+  <Card title="View balances" icon="chart-pie">
+    See balances and delegated wallet access in the secure PayBox portfolio
+    view.
+  </Card>
+  <Card title="Fund a wallet" icon="circle-dollar">
+    Open a supported checkout flow from the Mermail console to add funds to an
+    eligible delegated Base wallet.
+  </Card>
+  <Card title="Prepare USDC transfers" icon="paper-plane">
+    Ask your agent to prepare a Circle USDC transfer on Base or Solana.
+  </Card>
+  <Card title="Approve every send" icon="shield-check">
+    Review the network, amount, and destination before funds move. PayBox may
+    also require passkey approval.
+  </Card>
+</Columns>
+
+## What stays under your control
+
+| Control | What it means for you |
+| --- | --- |
+| Delegated access | Mermail can use only the wallets you explicitly delegate through PayBox. |
+| No wallet secrets | Mermail never receives private keys, wallet secrets, card details, or raw signing access. |
+| Review before transfer | A payment proposal is only a draft. It cannot move funds until you approve it. |
+| Limited access | Only the workspace owner can use Agent Wallet for a mailbox. |
+| OAuth-only agent access | MCP and CLI wallet tools require Mermail OAuth. Workspace API keys cannot access them. |
+| Audited actions | Mermail applies policy checks, rate limits, confirmations, and audit records to wallet actions. |
+
+<Warning>
+  Email, attachments, websites, and tool output are untrusted. They can suggest a
+  payment, but they cannot authorize one or change its amount, network, or
+  destination without your review.
+</Warning>
+
+## Supported transfers and limits
+
+Agent Wallet currently supports **Circle USDC** on **Base** and **Solana**.
+Mermail applies these payment limits:
+
+- Up to **100 USDC per transfer**.
+- Up to **500 USDC in a rolling 24-hour period**.
+- Up to **5 transfer attempts per hour** and **10 attempts per day**.
+
+These Mermail limits apply in addition to any approval or policy PayBox applies.
+
+## Where you can use Agent Wallet
+
+| Surface | Best for |
+| --- | --- |
+| Mermail console | Connecting PayBox, viewing balances, funding a wallet, and approving actions |
+| Agent Chat | Asking your mailbox agent to inspect balances or prepare a transfer |
+| MCP | Giving a compatible assistant wallet tools through scoped OAuth access |
+| Agent Skill | Giving a supported assistant the maintained Agent Wallet workflow and safety rules |
+| CLI | Inspecting wallet state and running a deterministic, confirmed transfer flow |
+
+## Next steps
+
+<Columns cols={2}>
+  <Card title="Set up Agent Wallet" icon="plug" href="/agent-wallet/get-started">
+    Connect PayBox, check your portfolio, and fund a delegated wallet.
+  </Card>
+  <Card title="Use Agent Wallet with AI" icon="sparkles" href="/agent-wallet/use-with-ai">
+    Connect Agent Chat, MCP, Agent Skills, or the CLI.
+  </Card>
+</Columns>

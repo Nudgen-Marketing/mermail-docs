@@ -51,7 +51,7 @@ mermail auth check
 
 ### Agent Wallet (MCP OAuth)
 
-Agent Wallet commands use Mermail MCP **OAuth**, not API keys. See [Agent Wallet](/concepts/agent-wallet).
+Agent Wallet commands use Mermail MCP **OAuth**, not API keys. See [Agent Wallet](/agent-wallet/overview).
 
 ```bash
 mermail auth login
@@ -60,7 +60,7 @@ mermail wallet status --mailbox-id MAILBOX_PUBLIC_ID
 mermail auth logout
 ```
 
-`auth login` opens a browser PKCE consent flow (requires a TTY). Tokens are stored at `~/.config/mermail/mcp-oauth.json` (mode `0600`). Grant `wallet:read` and, for transfers, `wallet:transact`. Then **Connect Paybox** on the console Agent Wallet page.
+`auth login` opens a browser PKCE consent flow (requires a TTY). Tokens are stored at `~/.config/mermail/mcp-oauth.json` (mode `0600`). Grant `wallet:read` and, for transfers, `wallet:transact`. Then select **Connect** on the console [Agent Wallet](/agent-wallet/get-started#connect-paybox) page.
 
 ## Command structure
 
@@ -370,7 +370,7 @@ configured as a verification inbox with automations disabled.
   <Card title="API Reference" icon="code" href="/api-reference/overview">
     Review request and response schemas.
   </Card>
-  <Card title="Agent Wallet" icon="wallet" href="/concepts/agent-wallet">
+  <Card title="Agent Wallet" icon="wallet" href="/agent-wallet/overview">
     Understand OAuth-only PayBox wallet flows.
   </Card>
 </CardGroup>
