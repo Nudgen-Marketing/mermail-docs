@@ -37,6 +37,10 @@ You need:
   <Step title="Confirm the connection">
     Check that **PayBox connection** shows **ACTIVE**. Your delegated wallets
     and balances appear under **Portfolio** and sync automatically.
+
+    A brief **PAYBOX_UNAVAILABLE** badge means PayBox did not answer that
+    refresh. The connection is still active and the page keeps the balances it
+    last loaded, so wait for the next refresh instead of reconnecting.
   </Step>
 </Steps>
 
@@ -129,8 +133,11 @@ can prepare the transfer, but it cannot approve the transfer for you.
 ### Other PayBox catalog tokens
 
 For non-USDC assets (or a direct PayBox transfer), your AI uses
-`paybox_request_transfer`. When signing is required, it pastes
-`signing_handoff.console_url`:
+`paybox_request_transfer` with the asset in `token` and the human amount in
+`amount_decimal` — never a base-unit amount it calculated itself. See
+[catalog token transfers](/agent-wallet/catalog-transfers) for the full contract.
+
+When signing is required, it pastes `signing_handoff.console_url`:
 
 ```text
 https://console.mermail.app/mailbox/{public_id}/agent-wallet?sign=1&invocation={invocation_id}
@@ -143,7 +150,10 @@ same deep link.
 
 <Warning>
   Do not retry an uncertain transfer automatically. Check the request status and
-  destination wallet first to avoid sending the same payment twice.
+  destination wallet first to avoid sending the same payment twice. If PayBox
+  rejected the send outright — for example a nonce that is too low or a signing
+  plan that went stale — ask for a **new** transfer rather than reusing the old
+  request.
 </Warning>
 
 ## Disconnect PayBox
@@ -174,6 +184,20 @@ you reconnect.
     Check the request again instead of submitting a new transfer. If the status
     is uncertain, verify with PayBox and the destination network before taking
     another action.
+  </Accordion>
+  <Accordion title="PayBox rejected the transfer">
+    A rejected send is different from a pending one. Verify that nothing left
+    the wallet, then ask for a new transfer; the previous request cannot be
+    resumed. See [errors and recovery](/agent-wallet/errors-and-recovery).
+  </Accordion>
+  <Accordion title="My agent keeps retrying the amount">
+    Mermail rejects a base-unit amount for assets it can price and asks for
+    `amount_decimal`. Restate the amount in plain units, such as `1 USDC`, and
+    see [catalog token transfers](/agent-wallet/catalog-transfers).
+  </Accordion>
+  <Accordion title="The connection badge shows PAYBOX_UNAVAILABLE">
+    PayBox did not answer that refresh. The delegated connection is still
+    active, so wait for the next refresh instead of disconnecting.
   </Accordion>
 </AccordionGroup>
 

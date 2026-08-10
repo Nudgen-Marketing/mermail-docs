@@ -1,0 +1,65 @@
+---
+title: "Errors and recovery"
+description: "Agent Wallet error codes for transfers, approvals, and portfolio reads, with the safe recovery for each."
+icon: "triangle-exclamation"
+---
+
+Mermail returns a stable `code` with every wallet failure. Fix the call from the
+code instead of retrying the same request, because a transfer is not idempotent.
+
+## Amount and argument errors
+
+These are safe to fix and call again in the same turn. Nothing was sent to
+PayBox.
+
+| Code | What happened | Recovery |
+| --- | --- | --- |
+| `paybox_amount_requires_decimal` | An integer `amount` was sent for an asset whose decimals Mermail knows | Resend with `amount_decimal` set to the amount the user asked for and omit `amount` |
+| `paybox_amount_scale_mismatch` | `amount` and `amount_decimal` disagree | Resend with `amount_decimal` only |
+| `paybox_amount_below_dust_floor` | Mermail has a trusted unit price and the transfer implies less than about $0.01 | Ask the user for an amount worth at least $0.01, then retry with that `amount_decimal`. This code only appears when Mermail trusts the quote (DefiLlama or a proven portfolio price); an ambiguous portfolio balance fails open instead |
+| `paybox_amount_value_mismatch` | The implied USD value differs from `value_cents` by more than 3x | Restate the amount, or correct `value_cents` |
+| `paybox_invalid_arguments` | A required field such as `token`, `chain`, or `to` is missing or malformed | Read the asset from the portfolio and resend with the complete arguments |
+
+See [catalog token transfers](/agent-wallet/catalog-transfers) for the exact
+argument contract.
+
+## Approval errors
+
+| Code | Status | What happened | Recovery |
+| --- | --- | --- | --- |
+| `agent_approval_asset_missing` | `409` | The approval card was created before Mermail started recording the transfer asset | Ask the agent to start a new transfer so a fresh card is created |
+| `agent_approval_persist_timeout` | `503` | Mermail could not record the approval in time | Do not submit again. Wait, then check the request status or start a new transfer |
+| `confirmation_required` | `403` | A gated tool was called without a confirmation | Call `prepare_destructive_action` for the exact tool and arguments, then call the tool once |
+| `confirmation_unavailable` | `503` | Confirmation storage is unavailable | Do not call the gated tool. Retry after the outage clears |
+
+## Upstream PayBox errors
+
+| Code | Status | What happened | Recovery |
+| --- | --- | --- | --- |
+| `paybox_tool_error` | `502` | PayBox rejected the operation. Mermail forwards a sanitized reason, for example a nonce that is too low or a signing plan that has gone stale | Start a **new** `paybox_request_transfer`. Do not reuse the parked request or invocation id, and do not keep polling the old one |
+| `paybox_upstream_uncertain` | `502` | The submission timed out or returned a malformed response, so its outcome is unknown | Never retry automatically. Verify the request status and the destination balance before any further action |
+| `paybox_not_connected` | `403` | The mailbox has no active PayBox connection | Ask the user to connect PayBox on the Agent Wallet page |
+
+<Warning>
+  `pending`, `pending_paybox_approval`, and `SUBMISSION_UNKNOWN` are not success.
+  Treat them as unresolved and confirm the outcome before acting again.
+</Warning>
+
+## Portfolio reads during a PayBox outage
+
+`get_agent_wallet` can report a `connection.status` of `PAYBOX_UNAVAILABLE` with
+an empty portfolio and a null `portfolio_app`. That means PayBox did not answer
+that one read, not that the delegated connection ended.
+
+- Read again later instead of telling the user to reconnect or re-authorize.
+- Do not present the balances from that response as final; they are missing, not
+  zero.
+- The console keeps the last portfolio it loaded on screen while this happens, so
+  what the user sees and what the tool returned can differ briefly.
+
+A genuine disconnect shows `NOT_CONNECTED`, and an expired delegation shows
+`REAUTH_REQUIRED`, which does need the user to reconnect.
+
+<Card title="Transfer amount rules" icon="coins" href="/agent-wallet/catalog-transfers">
+  The argument contract these errors refer to.
+</Card>

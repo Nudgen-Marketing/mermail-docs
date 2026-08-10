@@ -325,6 +325,8 @@ Rules:
 - `fund-url` prints a Mermail console Funding deep link (`?fund=1&amount=…`). It does not call MoonPay; open the URL in a browser.
 - `transfer submit` prompts on a TTY or requires `--yes` after an exact preview.
 - Pending or uncertain submission is not success; do not auto-retry.
+- `proposal create --amount` is the human USDC amount for the metered proposal path. It is not the MCP `paybox_request_transfer` field: catalog-token transfers are MCP-only and use `amount_decimal`. See [catalog token transfers](/agent-wallet/catalog-transfers).
+- `wallet status` can report `connection.status: "PAYBOX_UNAVAILABLE"` with an empty portfolio when PayBox did not answer that read. The connection is still active; read again later.
 - Headless CI cannot complete browser login; skip wallet automation there.
 
 ## Exit codes

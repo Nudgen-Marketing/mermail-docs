@@ -29,8 +29,9 @@ prepare a payment, and keep the receipt in the same workflow.
     the proposal path.
   </Card>
   <Card title="Transfer PayBox catalog tokens" icon="coins">
-    For other reviewed PayBox assets, your AI uses `paybox_request_transfer` and
-    hands you a console signing link when a signature is required.
+    For other reviewed PayBox assets, your AI uses `paybox_request_transfer`
+    with the human amount in `amount_decimal`, and hands you a console signing
+    link when a signature is required.
   </Card>
   <Card title="Approve every send" icon="shield-check">
     Review the network, amount, and destination before funds move. PayBox may
@@ -71,9 +72,16 @@ These Mermail limits apply in addition to any approval or policy PayBox applies.
 ### Direct PayBox catalog path
 
 Reviewed PayBox catalog tools (such as `paybox_request_transfer`) can move other
-delegated assets your PayBox connection exposes. When a signature is required,
-MCP pastes a Mermail console `signing_handoff.console_url` — open it on Agent
-Wallet to Generate Signing Key and sign. Signing plans stay browser-only.
+delegated assets your PayBox connection exposes. Your AI sends the asset in
+`token` and the human amount in `amount_decimal`; Mermail resolves the asset's
+decimals, converts the amount, and rejects a sub-cent or mis-scaled transfer.
+When a signature is required, MCP pastes a Mermail console
+`signing_handoff.console_url` — open it on Agent Wallet to Generate Signing Key
+and sign. Signing plans stay browser-only.
+
+See [catalog token transfers](/agent-wallet/catalog-transfers) for the full
+argument contract and [errors and recovery](/agent-wallet/errors-and-recovery)
+for what each failure means.
 
 ## Where you can use Agent Wallet
 
@@ -93,5 +101,11 @@ Wallet to Generate Signing Key and sign. Signing plans stay browser-only.
   </Card>
   <Card title="Use Agent Wallet with AI" icon="sparkles" href="/agent-wallet/use-with-ai">
     Connect Agent Chat, MCP, Agent Skills, or the CLI.
+  </Card>
+  <Card title="Catalog token transfers" icon="coins" href="/agent-wallet/catalog-transfers">
+    Send the amount the way Mermail expects it, and understand the value guards.
+  </Card>
+  <Card title="Errors and recovery" icon="triangle-exclamation" href="/agent-wallet/errors-and-recovery">
+    Read every wallet error code and its safe recovery.
   </Card>
 </Columns>
