@@ -702,24 +702,6 @@ add(
 );
 
 add(
-	"/api/v1/workspaces/{workspaceId}",
-	"delete",
-	slimOp({
-		summary: "Delete workspace",
-		description:
-			"Deletes a workspace and tombstones its blobs. Requires workspace **admin**. Returns **204** with an empty body.",
-		tags: ["Workspaces"],
-		parameters: [
-			pathParam("workspaceId", "Workspace id", "ws_01abc"),
-		],
-		xCredits: 2,
-		successStatus: "204",
-		successDescription: "Deleted",
-		successSchema: { type: "object" },
-	}),
-);
-
-add(
 	"/api/v1/workspaces/{workspaceId}/storage",
 	"get",
 	slimOp({
