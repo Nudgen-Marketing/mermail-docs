@@ -306,6 +306,7 @@ mermail auth login
 mermail wallet status --mailbox-id MAILBOX_PUBLIC_ID
 mermail wallet credentials --mailbox-id MAILBOX_PUBLIC_ID
 mermail wallet portfolio --mailbox-id MAILBOX_PUBLIC_ID
+mermail wallet fund-url --mailbox-id MAILBOX_PUBLIC_ID --amount 1
 mermail wallet proposal create \
   --mailbox-id MAILBOX_PUBLIC_ID \
   --chain BASE \
@@ -320,7 +321,8 @@ mermail wallet transfer submit \
 
 Rules:
 
-- Wallet commands ignore `MERMAIL_API_KEY` and require a prior `auth login`.
+- Wallet commands ignore `MERMAIL_API_KEY` and require a prior `auth login` (except `fund-url`, which only prints a console deep link).
+- `fund-url` prints a Mermail console Funding deep link (`?fund=1&amount=…`). It does not call MoonPay; open the URL in a browser.
 - `transfer submit` prompts on a TTY or requires `--yes` after an exact preview.
 - Pending or uncertain submission is not success; do not auto-retry.
 - Headless CI cannot complete browser login; skip wallet automation there.

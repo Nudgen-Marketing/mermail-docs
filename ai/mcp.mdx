@@ -439,7 +439,7 @@ that baseline. Grouped by area:
   <Accordion title="Agent Wallet (OAuth + wallet scopes only)">
     `get_agent_wallet`, `list_agent_wallet_credentials`, `get_agent_wallet_portfolio`, `get_agent_wallet_request`, `create_agent_wallet_transfer_proposal`, `submit_agent_wallet_transfer`, `get_paybox_invocation`, plus reviewed `paybox_*` tools when PayBox is connected
 
-    Not available to API keys. Requires `wallet:read` and/or `wallet:transact`. See [Agent Wallet](/concepts/agent-wallet).
+    Not available to API keys. Requires `wallet:read` and/or `wallet:transact`. Checkout / MoonPay URLs stay browser-only (`[redacted]`); use `funding_handoff.console_url` for Funding. See [Agent Wallet](/concepts/agent-wallet).
   </Accordion>
   <Accordion title="Safety">
     `prepare_destructive_action` — issues confirmation tokens for destructive tools, including `submit_agent_wallet_transfer`
