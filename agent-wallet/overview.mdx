@@ -25,11 +25,16 @@ prepare a payment, and keep the receipt in the same workflow.
     eligible delegated Base wallet.
   </Card>
   <Card title="Prepare USDC transfers" icon="paper-plane">
-    Ask your agent to prepare a Circle USDC transfer on Base or Solana.
+    Ask your agent to prepare a Circle USDC transfer on Base or Solana through
+    the proposal path.
+  </Card>
+  <Card title="Transfer PayBox catalog tokens" icon="coins">
+    For other reviewed PayBox assets, your AI uses `paybox_request_transfer` and
+    hands you a console signing link when a signature is required.
   </Card>
   <Card title="Approve every send" icon="shield-check">
     Review the network, amount, and destination before funds move. PayBox may
-    also require passkey approval.
+    also require passkey approval or Generate Signing Key in the console.
   </Card>
 </Columns>
 
@@ -52,7 +57,9 @@ prepare a payment, and keep the receipt in the same workflow.
 
 ## Supported transfers and limits
 
-Agent Wallet currently supports **Circle USDC** on **Base** and **Solana**.
+### USDC proposal path
+
+Agent Wallet's proposal tools support **Circle USDC** on **Base** and **Solana**.
 Mermail applies these payment limits:
 
 - Up to **100 USDC per transfer**.
@@ -60,6 +67,13 @@ Mermail applies these payment limits:
 - Up to **5 transfer attempts per hour** and **10 attempts per day**.
 
 These Mermail limits apply in addition to any approval or policy PayBox applies.
+
+### Direct PayBox catalog path
+
+Reviewed PayBox catalog tools (such as `paybox_request_transfer`) can move other
+delegated assets your PayBox connection exposes. When a signature is required,
+MCP pastes a Mermail console `signing_handoff.console_url` — open it on Agent
+Wallet to Generate Signing Key and sign. Signing plans stay browser-only.
 
 ## Where you can use Agent Wallet
 

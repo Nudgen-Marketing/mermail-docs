@@ -39,7 +39,7 @@ wallet tools.
 | Scope | What it allows |
 | --- | --- |
 | `wallet:read` | Read connection status, delegated credential summaries, portfolio data, and request status |
-| `wallet:transact` | Create transfer proposals and submit reviewed transfers |
+| `wallet:transact` | Create USDC transfer proposals, submit reviewed transfers, and call gated PayBox catalog tools such as `paybox_request_transfer` |
 
 <Steps>
   <Step title="Connect Mermail MCP">
@@ -59,6 +59,13 @@ wallet tools.
     the exact tool and arguments. The resulting confirmation is single-use and
     expires after five minutes.
   </Step>
+  <Step title="Finish signing in the console when needed">
+    USDC can use the proposal tools. For other PayBox catalog tokens (or a
+    direct PayBox transfer), the assistant uses `paybox_request_transfer`. When
+    status is pending signature, it pastes `signing_handoff.console_url` — open
+    that Agent Wallet link, Generate Signing Key if prompted, and sign. Signing
+    plans and approval URLs stay browser-only.
+  </Step>
 </Steps>
 
 See the [MCP guide](/ai/mcp#agent-wallet-scopes) for client setup and the full
@@ -74,8 +81,9 @@ npx skills add Nudgen-Marketing/mermail-skills --skill mermail-agent-wallet
 ```
 
 The Skill gives the assistant the maintained workflow for inspecting balances,
-creating proposals, checking requests, and handling confirmation safely. It
-still needs an MCP OAuth connection with the wallet scopes above.
+funding handoff, USDC proposals, catalog-token transfers via
+`paybox_request_transfer`, signing handoff, and confirmation safely. It still
+needs an MCP OAuth connection with the wallet scopes above.
 
 See [Mermail Skills](/ai/skills) for supported hosts and installation options.
 
@@ -90,9 +98,11 @@ mermail auth status
 mermail wallet status --mailbox-id MAILBOX_PUBLIC_ID
 mermail wallet credentials --mailbox-id MAILBOX_PUBLIC_ID
 mermail wallet portfolio --mailbox-id MAILBOX_PUBLIC_ID
+mermail wallet fund-url --mailbox-id MAILBOX_PUBLIC_ID --amount 25
+mermail wallet sign-url --mailbox-id MAILBOX_PUBLIC_ID --invocation INVOCATION_ID
 ```
 
-To prepare and submit a transfer:
+To prepare and submit a USDC transfer:
 
 ```bash
 mermail wallet proposal create \

@@ -95,8 +95,10 @@ prints the deep link without calling MoonPay.
 
 ## Make a transfer with your agent
 
-Agent Wallet supports Circle USDC transfers on Base and Solana. Your agent can
-prepare the transfer, but it cannot approve the transfer for you.
+### USDC proposals
+
+Agent Wallet proposal tools support Circle USDC on Base and Solana. Your agent
+can prepare the transfer, but it cannot approve the transfer for you.
 
 <Steps>
   <Step title="Ask for a transfer">
@@ -123,6 +125,21 @@ prepare the transfer, but it cannot approve the transfer for you.
     `pending_paybox_approval`, and `SUBMISSION_UNKNOWN` are not success.
   </Step>
 </Steps>
+
+### Other PayBox catalog tokens
+
+For non-USDC assets (or a direct PayBox transfer), your AI uses
+`paybox_request_transfer`. When signing is required, it pastes
+`signing_handoff.console_url`:
+
+```text
+https://console.mermail.app/mailbox/{public_id}/agent-wallet?sign=1&invocation={invocation_id}
+```
+
+Open that link on **Agent Wallet**, Generate Signing Key if prompted, and
+complete the PayBox signing UI. From the CLI,
+`mermail wallet sign-url --mailbox-id {public_id} --invocation {id}` prints the
+same deep link.
 
 <Warning>
   Do not retry an uncertain transfer automatically. Check the request status and
