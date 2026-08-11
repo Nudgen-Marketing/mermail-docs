@@ -31,6 +31,8 @@ argument contract.
 | `agent_approval_persist_timeout` | `503` | Mermail could not record the approval in time | Do not submit again. Wait, then check the request status or start a new transfer |
 | `confirmation_required` | `403` | A gated tool was called without a confirmation | Call `prepare_destructive_action` for the exact tool and arguments, then call the tool once |
 | `confirmation_unavailable` | `503` | Confirmation storage is unavailable | Do not call the gated tool. Retry after the outage clears |
+| `wallet_proposal_already_handled` | `409` | The proposal was already claimed, rejected, or changed | Call `get_agent_wallet` and stop. Do not retry submit. Create a new proposal only if status is `FAILED` |
+| `wallet_proposal_not_pending` | `409` | The proposal is not `PENDING_REVIEW` (expired, submitting, or already finished) | Call `get_agent_wallet` and stop. Do not retry submit or create a duplicate |
 
 ## Upstream PayBox errors
 
@@ -41,8 +43,10 @@ argument contract.
 | `paybox_not_connected` | `403` | The mailbox has no active PayBox connection | Ask the user to connect PayBox on the Agent Wallet page |
 
 <Warning>
-  `pending`, `pending_paybox_approval`, and `SUBMISSION_UNKNOWN` are not success.
-  Treat them as unresolved and confirm the outcome before acting again.
+  `pending`, `pending_paybox_approval`, `SUBMISSION_UNKNOWN`,
+  `wallet_proposal_already_handled`, and `wallet_proposal_not_pending` are not
+  success. Treat them as unresolved. Do not retry submit or create another
+  proposal unless status is `FAILED`.
 </Warning>
 
 ## Portfolio reads during a PayBox outage
