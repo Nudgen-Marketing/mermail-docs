@@ -69,12 +69,14 @@ correct.
 
 ## Finishing the signature
 
-`paybox_request_transfer` never returns a signing plan or approval URL to a
-model. Those stay browser-only.
+USDC `submit_agent_wallet_transfer` and `paybox_request_transfer` use the same
+signing step. Neither returns a signing plan or approval URL to a model. Those
+stay browser-only.
 
 - Through MCP, a pending request carries `signing_handoff.console_url`. Paste it
   so the user can open Agent Wallet, Generate Signing Key if prompted, and sign.
-  If `needs_mailbox` is true, call `get_agent_wallet` with `mailboxId` first.
+  Never ask them to paste a key or signature into chat. If `needs_mailbox` is
+  true, call `get_agent_wallet` with `mailboxId` first.
 - In Agent Chat, the response carries
   `next_step: "finish_signing_in_paybox_transfer_widget"` and the user signs in
   the PayBox widget shown in the conversation.
