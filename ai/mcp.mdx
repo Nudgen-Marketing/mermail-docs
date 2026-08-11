@@ -445,14 +445,14 @@ that baseline. Grouped by area:
     Full catalog only. Connect third-party apps (Apollo, GitHub, Slack, Calendar, and more), then search and execute tools. Gmail and Outlook Composio toolkits stay disabled. See [Composio](/integrations/composio).
   </Accordion>
   <Accordion title="Agent Wallet (OAuth + wallet scopes only)">
-    `get_agent_wallet`, `list_agent_wallet_credentials`, `get_agent_wallet_portfolio`, `get_agent_wallet_request`, `create_agent_wallet_transfer_proposal`, `submit_agent_wallet_transfer`, `get_paybox_invocation`, plus reviewed `paybox_*` tools when PayBox is connected
+    `get_agent_wallet`, `list_agent_wallet_credentials`, `get_agent_wallet_portfolio`, `get_agent_wallet_request`, `create_agent_wallet_transfer_proposal`, `submit_agent_wallet_transfer`, `reject_agent_wallet_transfer_proposal`, `get_paybox_invocation`, plus reviewed `paybox_*` tools when PayBox is connected
 
     Not available to API keys. Requires `wallet:read` and/or `wallet:transact`. Checkout / MoonPay URLs stay browser-only (`[redacted]`); use `funding_handoff.console_url` for Funding. See [Agent Wallet](/agent-wallet/overview).
 
     `paybox_request_transfer` takes `chain`, `token` (a portfolio contract address, or `native`), `to`, and the human amount in `amount_decimal`. Mermail converts to base units and rejects an integer `amount` for any asset it can price. `create_agent_wallet_transfer_proposal` is the separate metered USDC path and keeps its own human `amount`. See [catalog token transfers](/agent-wallet/catalog-transfers).
   </Accordion>
   <Accordion title="Safety">
-    `prepare_destructive_action` — issues confirmation tokens for destructive tools, including `submit_agent_wallet_transfer`
+    `prepare_destructive_action` — issues confirmation tokens for destructive tools, including `submit_agent_wallet_transfer` and `reject_agent_wallet_transfer_proposal`
   </Accordion>
 </AccordionGroup>
 

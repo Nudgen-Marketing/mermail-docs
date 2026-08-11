@@ -102,7 +102,10 @@ prints the deep link without calling MoonPay.
 ### USDC proposals
 
 Agent Wallet proposal tools support Circle USDC on Base and Solana. Your agent
-can prepare the transfer, but it cannot approve the transfer for you.
+can prepare the transfer, but it cannot approve the transfer for you. Creating
+the same pending transfer again reuses that proposal. To cancel, reject each
+`PENDING_REVIEW` proposal with `reject_agent_wallet_transfer_proposal` — already
+submitted transfers cannot be cancelled this way.
 
 <Steps>
   <Step title="Ask for a transfer">
