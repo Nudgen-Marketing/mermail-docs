@@ -58,12 +58,14 @@ The same resolved price protects against a scale mistake reaching the chain.
 
 | Guard | Effect |
 | --- | --- |
-| Dust floor | A transfer implying less than about $0.01 is rejected with `paybox_amount_below_dust_floor` |
+| Dust floor | When Mermail has a trusted unit price, a transfer implying less than about $0.01 is rejected with `paybox_amount_below_dust_floor`. Ask the user for an amount worth at least $0.01, then retry with that `amount_decimal` |
 | Declared value cross-check | If you also send `value_cents` and the implied USD value differs by more than 3x, Mermail rejects with `paybox_amount_value_mismatch` |
 | Conflicting amounts | Sending `amount` and `amount_decimal` that disagree is rejected with `paybox_amount_scale_mismatch`. Send `amount_decimal` alone |
 
-When the price is unknown the guards do not block the transfer, so the amount
-still has to be correct.
+The dust floor only fail-closes on a trusted quote (DefiLlama, including a
+recent memoized price, or a proven portfolio price). An ambiguous portfolio
+balance, or no price at all, fails open — so the amount still has to be
+correct.
 
 ## Finishing the signature
 

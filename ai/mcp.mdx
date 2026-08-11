@@ -403,7 +403,8 @@ particular, `query` must be an object and newest-first sorting uses
 | `response_too_large` | Narrow the filters, reduce the page size, or lower `max_body_chars`. The agent-inbox profile caps one JSON tool result at 128,000 characters. |
 | `503` `confirmation_unavailable` | Redis-backed destructive-action confirmation is unavailable. Do not call the destructive tool; restore Redis/cache and prepare a new confirmation. |
 | `400` `paybox_amount_requires_decimal` / `paybox_amount_scale_mismatch` | A catalog transfer sent base units. Resend with the human amount in `amount_decimal` and no `amount`. See [catalog token transfers](/agent-wallet/catalog-transfers). |
-| `400` `paybox_amount_below_dust_floor` / `paybox_amount_value_mismatch` | The implied value is under about $0.01 or disagrees with `value_cents`. Restate the amount instead of retrying it unchanged. |
+| `400` `paybox_amount_below_dust_floor` | Mermail has a trusted unit price and the transfer implies under about $0.01. Ask the user for an amount worth at least $0.01, then retry with that `amount_decimal`. See [errors and recovery](/agent-wallet/errors-and-recovery). |
+| `400` `paybox_amount_value_mismatch` | The implied USD value disagrees with `value_cents`. Restate the amount or correct `value_cents`. |
 | `409` `agent_approval_asset_missing` | The approval card predates the transfer-asset fix. Start a new transfer so a fresh card is created. |
 | `503` `agent_approval_persist_timeout` | Mermail could not record the approval in time. Do not submit again; check the request status first. |
 | `502` `paybox_tool_error` | PayBox rejected the operation and Mermail forwards a sanitized reason, such as a nonce that is too low. Start a new `paybox_request_transfer` rather than reusing the parked request. |
