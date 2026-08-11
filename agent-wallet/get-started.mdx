@@ -124,8 +124,11 @@ submitted transfers cannot be cancelled this way.
     Approve only when every detail matches your request. Reject the action if
     any detail is missing or unexpected.
   </Step>
-  <Step title="Complete PayBox approval">
-    If PayBox requests passkey approval, complete it in the PayBox flow.
+  <Step title="Sign in Agent Wallet if asked">
+    If the assistant pastes a `signing_handoff.console_url`, open that Agent
+    Wallet link, Generate Signing Key if prompted, and sign in the PayBox UI.
+    Do not paste keys or signatures back into chat. On the Mermail console,
+    sign in the PayBox widget on the Agent Wallet page instead.
   </Step>
   <Step title="Verify the result">
     Wait for a confirmed success or transaction hash. `pending`,

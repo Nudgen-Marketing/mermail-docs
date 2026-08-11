@@ -33,6 +33,8 @@ argument contract.
 | `confirmation_unavailable` | `503` | Confirmation storage is unavailable | Do not call the gated tool. Retry after the outage clears |
 | `wallet_proposal_already_handled` | `409` | The proposal was already claimed, rejected, or changed | Call `get_agent_wallet` and stop. Do not retry submit. Create a new proposal only if status is `FAILED` |
 | `wallet_proposal_not_pending` | `409` | The proposal is not `PENDING_REVIEW` (expired, submitting, or already finished) | Call `get_agent_wallet` and stop. Do not retry submit or create a duplicate |
+| `wallet_paybox_credential_unavailable` | `409` | No active PayBox wallet credential matches this chain | Ask the user to connect or unlock the wallet on Agent Wallet. Do not retry submit or paste keys |
+| `paybox_not_connected` | `409` | The mailbox has no usable PayBox connection | Ask the user to connect PayBox on the Agent Wallet page |
 
 ## Upstream PayBox errors
 
