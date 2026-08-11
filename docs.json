@@ -91,7 +91,9 @@
             "pages": [
               "agent-wallet/overview",
               "agent-wallet/get-started",
-              "agent-wallet/use-with-ai"
+              "agent-wallet/use-with-ai",
+              "agent-wallet/catalog-transfers",
+              "agent-wallet/errors-and-recovery"
             ]
           }
         ]

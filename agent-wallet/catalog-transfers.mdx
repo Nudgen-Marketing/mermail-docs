@@ -1,0 +1,87 @@
+---
+title: "Catalog token transfers"
+description: "How amount_decimal, token, and Mermail's amount guards work for paybox_request_transfer."
+icon: "coins"
+---
+
+Agent Wallet has two transfer paths. Circle USDC on Base and Solana can use the
+metered proposal tools. Every other reviewed PayBox asset moves through
+`paybox_request_transfer`, which this page describes.
+
+| Path | Tool | Amount field |
+| --- | --- | --- |
+| USDC proposal (Mermail limits, console or CLI approval) | `create_agent_wallet_transfer_proposal` then `submit_agent_wallet_transfer` | `amount` as human USDC, for example `5.00` |
+| PayBox catalog token or native asset | `paybox_request_transfer` | `amount_decimal` as the human amount, for example `1` |
+
+## Arguments for paybox_request_transfer
+
+| Field | Required | What to send |
+| --- | --- | --- |
+| `chain` | Yes | CAIP-2 chain id, for example `eip155:8453` for Base |
+| `token` | Yes | The asset's contract address, or `native` for the chain asset. Read it from `paybox_get_portfolio` or `get_agent_wallet_portfolio`; the `token` field is visible to the model |
+| `to` | Yes | The complete destination address |
+| `amount_decimal` | Yes in practice | The human amount exactly as the user stated it, for example `1` or `0.000053389889845` |
+| `amount` | Only as a fallback | Base units, accepted only when Mermail cannot resolve the asset's decimals |
+
+```json
+{
+  "chain": "eip155:8453",
+  "token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  "to": "0xRecipientAddress",
+  "amount_decimal": "1"
+}
+```
+
+<Warning>
+  Never convert the amount to base units yourself. Mermail refuses an integer
+  `amount` for any asset whose decimals it can resolve and answers
+  `paybox_amount_requires_decimal`, because the same request has produced both
+  the intended value and a 1000x-short one.
+</Warning>
+
+## How Mermail reads the amount
+
+Mermail resolves the asset's decimals, converts `amount_decimal` to the smallest
+unit, and sends that to PayBox.
+
+- Circle USDC and chain native assets come from a built-in table.
+- Any other token is resolved through the pricing source (the DefiLlama coins
+  API), cached briefly, and memoized once known.
+- If the lookup fails, Mermail falls back to the built-in table.
+- If no source can prove the decimals, Mermail rejects `amount_decimal` and asks
+  for base units in `amount` instead. That is the only case where `amount` is
+  the right field.
+
+## Value guards
+
+The same resolved price protects against a scale mistake reaching the chain.
+
+| Guard | Effect |
+| --- | --- |
+| Dust floor | When Mermail has a trusted unit price, a transfer implying less than about $0.01 is rejected with `paybox_amount_below_dust_floor`. Ask the user for an amount worth at least $0.01, then retry with that `amount_decimal` |
+| Declared value cross-check | If you also send `value_cents` and the implied USD value differs by more than 3x, Mermail rejects with `paybox_amount_value_mismatch` |
+| Conflicting amounts | Sending `amount` and `amount_decimal` that disagree is rejected with `paybox_amount_scale_mismatch`. Send `amount_decimal` alone |
+
+The dust floor only fail-closes on a trusted quote (DefiLlama, including a
+recent memoized price, or a proven portfolio price). An ambiguous portfolio
+balance, or no price at all, fails open — so the amount still has to be
+correct.
+
+## Finishing the signature
+
+`paybox_request_transfer` never returns a signing plan or approval URL to a
+model. Those stay browser-only.
+
+- Through MCP, a pending request carries `signing_handoff.console_url`. Paste it
+  so the user can open Agent Wallet, Generate Signing Key if prompted, and sign.
+  If `needs_mailbox` is true, call `get_agent_wallet` with `mailboxId` first.
+- In Agent Chat, the response carries
+  `next_step: "finish_signing_in_paybox_transfer_widget"` and the user signs in
+  the PayBox widget shown in the conversation.
+
+After the user signs, read the status once with `paybox_get_request` or
+`get_paybox_invocation`. Do not poll in a loop.
+
+<Card title="Errors and recovery" icon="triangle-exclamation" href="/agent-wallet/errors-and-recovery">
+  What each transfer error code means and the safe way to recover.
+</Card>
