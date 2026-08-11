@@ -101,6 +101,7 @@
       {
         "tab": "API Reference",
         "icon": "square-terminal",
+        "openapi": "openapi/openapi.json",
         "groups": [
           {
             "group": "Getting started",
@@ -125,7 +126,6 @@
               "GET /api/v1/workspaces",
               "GET /api/v1/workspaces/{workspaceId}",
               "PUT /api/v1/workspaces/{workspaceId}",
-              "DELETE /api/v1/workspaces/{workspaceId}",
               "GET /api/v1/workspaces/{workspaceId}/storage",
               "GET /api/v1/workspaces/{workspaceId}/members",
               "PUT /api/v1/workspaces/{workspaceId}/members/{memberId}",
@@ -259,6 +259,7 @@
     }
   ],
   "api": {
+    "openapi": "openapi/openapi.json",
     "playground": {
       "display": "interactive"
     },
