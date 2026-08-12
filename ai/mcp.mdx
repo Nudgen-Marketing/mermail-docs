@@ -85,6 +85,7 @@ Use the interactive guide at [mermail.app/agents](https://mermail.app/agents) fo
 | --- | --- |
 | Cursor, Claude, ChatGPT (custom connector) | **OAuth** — for mailbox-first verification, connect to `https://console.mermail.app/mcp?profile=agent-inbox`; use `/mcp` only when the task needs the full catalog |
 | ChatGPT / Codex **Plugins Directory** (when published) | **OAuth Apps Connected** + Skills (Linear-style) |
+| Hermes Agent | **OAuth** — add `url` + `auth: oauth` under `mcp_servers` in `~/.hermes/config.yaml`, then `hermes mcp login mermail` from a fresh terminal |
 | Codex (GitHub), OpenClaw, CLI | **API key** — Streamable HTTP + `x-api-key` |
 
 **API-key** example:
