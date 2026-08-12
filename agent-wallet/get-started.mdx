@@ -49,6 +49,25 @@ You need:
   those tokens, private keys, or wallet secrets to your AI agent.
 </Info>
 
+### Connect or reauth from an AI host or the CLI
+
+PayBox Connect and reauth always happen **inside Mermail**, not in Claude /
+ChatGPT / Codex connector settings.
+
+- `get_paybox_connection` and `get_agent_wallet` return `connect_handoff` when
+  PayBox was never connected, and `reauth_handoff` when status is
+  `REAUTH_REQUIRED`. Paste the `console_url` so the user can open Agent Wallet
+  and select **Connect** / reconnect.
+- From the CLI:
+
+```bash
+mermail wallet connect-url --mailbox-id MAILBOX_PUBLIC_ID
+mermail wallet reauth-url --mailbox-id MAILBOX_PUBLIC_ID
+```
+
+Both print the Agent Wallet page URL. Do not reconnect the host Mermail MCP
+connector for PayBox authorization — that only refreshes Mermail OAuth scopes.
+
 ## Fund a delegated wallet
 
 The console can open a supported funding checkout for an eligible delegated
@@ -174,7 +193,9 @@ you reconnect.
 <AccordionGroup>
   <Accordion title="The connection was cancelled or expired">
     Return to **Agent Wallet**, select **Connect**, and complete the PayBox flow
-    in the same browser session.
+    in the same browser session. If an AI pasted `reauth_handoff.console_url` or
+    `connect_handoff.console_url`, open that Mermail link — do not reconnect the
+    Claude, ChatGPT, or Codex Mermail connector for PayBox.
   </Accordion>
   <Accordion title="My balance has not updated">
     Allow the funding provider time to finish processing, then reload the Agent

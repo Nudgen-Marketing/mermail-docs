@@ -306,7 +306,10 @@ mermail auth login
 mermail wallet status --mailbox-id MAILBOX_PUBLIC_ID
 mermail wallet credentials --mailbox-id MAILBOX_PUBLIC_ID
 mermail wallet portfolio --mailbox-id MAILBOX_PUBLIC_ID
+mermail wallet connect-url --mailbox-id MAILBOX_PUBLIC_ID
+mermail wallet reauth-url --mailbox-id MAILBOX_PUBLIC_ID
 mermail wallet fund-url --mailbox-id MAILBOX_PUBLIC_ID --amount 1
+mermail wallet sign-url --mailbox-id MAILBOX_PUBLIC_ID --invocation INVOCATION_ID
 mermail wallet proposal create \
   --mailbox-id MAILBOX_PUBLIC_ID \
   --chain BASE \
@@ -321,12 +324,14 @@ mermail wallet transfer submit \
 
 Rules:
 
-- Wallet commands ignore `MERMAIL_API_KEY` and require a prior `auth login` (except `fund-url`, which only prints a console deep link).
+- Wallet commands ignore `MERMAIL_API_KEY` and require a prior `auth login` (except `connect-url`, `reauth-url`, `fund-url`, and `sign-url`, which only print console deep links).
+- `connect-url` / `reauth-url` print the Agent Wallet page for PayBox Connect / reconnect. Open them in a browser; do not reconnect the host Mermail MCP connector for PayBox.
 - `fund-url` prints a Mermail console Funding deep link (`?fund=1&amount=…`). It does not call MoonPay; open the URL in a browser.
+- `sign-url` prints a signing deep link (`?sign=1&invocation=…`) after a pending transfer.
 - `transfer submit` prompts on a TTY or requires `--yes` after an exact preview.
 - Pending or uncertain submission is not success; do not auto-retry.
 - `proposal create --amount` is the human USDC amount for the metered proposal path. It is not the MCP `paybox_request_transfer` field: catalog-token transfers are MCP-only and use `amount_decimal`. See [catalog token transfers](/agent-wallet/catalog-transfers).
-- `wallet status` can report `connection.status: "PAYBOX_UNAVAILABLE"` with an empty portfolio when PayBox did not answer that read. The connection is still active; read again later.
+- `wallet status` can report `connection.status: "PAYBOX_UNAVAILABLE"` with an empty portfolio when PayBox did not answer that read. The connection is still active; read again later. `NOT_CONNECTED` / `REAUTH_REQUIRED` need `connect-url` / `reauth-url`.
 - Headless CI cannot complete browser login; skip wallet automation there.
 
 ## Exit codes

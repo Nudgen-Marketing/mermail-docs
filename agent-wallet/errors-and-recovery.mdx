@@ -34,7 +34,10 @@ argument contract.
 | `wallet_proposal_already_handled` | `409` | The proposal was already claimed, rejected, or changed | Call `get_agent_wallet` and stop. Do not retry submit. Create a new proposal only if status is `FAILED` |
 | `wallet_proposal_not_pending` | `409` | The proposal is not `PENDING_REVIEW` (expired, submitting, or already finished) | Call `get_agent_wallet` and stop. Do not retry submit or create a duplicate |
 | `wallet_paybox_credential_unavailable` | `409` | No active PayBox wallet credential matches this chain | Ask the user to connect or unlock the wallet on Agent Wallet. Do not retry submit or paste keys |
-| `paybox_not_connected` | `409` | The mailbox has no usable PayBox connection | Ask the user to connect PayBox on the Agent Wallet page |
+| `paybox_not_connected` | `409` | The mailbox has no usable PayBox connection | Paste `connect_handoff.console_url` (or open Agent Wallet → Connect). Do not reconnect the host MCP connector |
+| `paybox_reauth_required` | `401` | PayBox delegation needs reauthorization | Paste `reauth_handoff.console_url` and wait for the user to reconnect PayBox inside Mermail |
+| `paybox_write_retry_required` | `409` | A PayBox write raced with token refresh | Re-check `get_paybox_connection` / `get_agent_wallet`, then start a new write only if still connected |
+| `paybox_oauth_unavailable` | `502` / `503` | PayBox OAuth / refresh could not complete | Stop. Ask the user to open Agent Wallet and reconnect if status is `REAUTH_REQUIRED` |
 
 ## Upstream PayBox errors
 
@@ -64,7 +67,10 @@ that one read, not that the delegated connection ended.
   what the user sees and what the tool returned can differ briefly.
 
 A genuine disconnect shows `NOT_CONNECTED`, and an expired delegation shows
-`REAUTH_REQUIRED`, which does need the user to reconnect.
+`REAUTH_REQUIRED`. Those need the user: paste `connect_handoff.console_url` or
+`reauth_handoff.console_url` from `get_paybox_connection` / `get_agent_wallet`,
+or print `mermail wallet connect-url` / `reauth-url`. Never send the user to
+Claude, ChatGPT, or Codex connector settings for PayBox authorization.
 
 <Card title="Transfer amount rules" icon="coins" href="/agent-wallet/catalog-transfers">
   The argument contract these errors refer to.

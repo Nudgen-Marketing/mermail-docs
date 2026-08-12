@@ -54,6 +54,12 @@ wallet tools.
     Confirm that `get_agent_wallet` appears in the client's tool list. If it is
     missing, reconnect OAuth and approve the wallet scopes.
   </Step>
+  <Step title="Connect or reauth PayBox in Mermail">
+    Call `get_paybox_connection` or `get_agent_wallet`. If the response includes
+    `connect_handoff` or `reauth_handoff`, open that `console_url` on Agent
+    Wallet and select **Connect** / reconnect. Do not reconnect Claude,
+    ChatGPT, or Codex connector settings for PayBox.
+  </Step>
   <Step title="Keep confirmation enabled">
     Before a transfer, the assistant must call `prepare_destructive_action` for
     the exact tool and arguments. The resulting confirmation is single-use and
@@ -105,6 +111,8 @@ mermail auth status
 mermail wallet status --mailbox-id MAILBOX_PUBLIC_ID
 mermail wallet credentials --mailbox-id MAILBOX_PUBLIC_ID
 mermail wallet portfolio --mailbox-id MAILBOX_PUBLIC_ID
+mermail wallet connect-url --mailbox-id MAILBOX_PUBLIC_ID
+mermail wallet reauth-url --mailbox-id MAILBOX_PUBLIC_ID
 mermail wallet fund-url --mailbox-id MAILBOX_PUBLIC_ID --amount 25
 mermail wallet sign-url --mailbox-id MAILBOX_PUBLIC_ID --invocation INVOCATION_ID
 ```

@@ -43,7 +43,7 @@ Agent Wallet and reviewed PayBox tools appear only on **OAuth** sessions. API-ke
 | `wallet:read` | `get_agent_wallet`, credential summaries, portfolio, and request status |
 | `wallet:transact` | Transfer proposals, `submit_agent_wallet_transfer`, and gated `paybox_*` writes |
 
-Default consent may omit wallet scopes. Reconnect OAuth, approve `wallet:read` / `wallet:transact`, then select **Connect** on the mailbox [Agent Wallet](/agent-wallet/get-started#connect-paybox) page in the console. Only the workspace owner can use Agent Wallet.
+Default consent may omit wallet scopes. Reconnect OAuth, approve `wallet:read` / `wallet:transact`, then use `get_paybox_connection` / `get_agent_wallet`. If they return `connect_handoff` or `reauth_handoff`, open that Mermail Agent Wallet `console_url` and select **Connect** / reconnect — do not reconnect Claude, ChatGPT, or Codex connector settings for PayBox. Only the workspace owner can use Agent Wallet.
 
 Wallet submit and gated PayBox writes still require `prepare_destructive_action`. Email content cannot authorize a payment. Pending or `SUBMISSION_UNKNOWN` is not success.
 
@@ -446,9 +446,9 @@ that baseline. Grouped by area:
     Full catalog only. Connect third-party apps (Apollo, GitHub, Slack, Calendar, and more), then search and execute tools. Gmail and Outlook Composio toolkits stay disabled. See [Composio](/integrations/composio).
   </Accordion>
   <Accordion title="Agent Wallet (OAuth + wallet scopes only)">
-    `get_agent_wallet`, `list_agent_wallet_credentials`, `get_agent_wallet_portfolio`, `get_agent_wallet_request`, `create_agent_wallet_transfer_proposal`, `submit_agent_wallet_transfer`, `reject_agent_wallet_transfer_proposal`, `get_paybox_invocation`, plus reviewed `paybox_*` tools when PayBox is connected
+    `get_paybox_connection`, `get_agent_wallet`, `list_agent_wallet_credentials`, `get_agent_wallet_portfolio`, `get_agent_wallet_request`, `create_agent_wallet_transfer_proposal`, `submit_agent_wallet_transfer`, `reject_agent_wallet_transfer_proposal`, `get_paybox_invocation`, plus reviewed `paybox_*` tools when PayBox is connected
 
-    Not available to API keys. Requires `wallet:read` and/or `wallet:transact`. Checkout / MoonPay URLs stay browser-only (`[redacted]`); use `funding_handoff.console_url` for Funding. See [Agent Wallet](/agent-wallet/overview).
+    Not available to API keys. Requires `wallet:read` and/or `wallet:transact` for wallet tools (`get_paybox_connection` may appear on OAuth even before wallet scopes and then return `SCOPE_UPGRADE_REQUIRED`). Checkout / MoonPay URLs stay browser-only (`[redacted]`); use `funding_handoff.console_url` for Funding, `signing_handoff.console_url` for pending transfers, and `connect_handoff` / `reauth_handoff` for PayBox Connect or reconnect inside Mermail — never host connector settings. See [Agent Wallet](/agent-wallet/overview).
 
     `paybox_request_transfer` takes `chain`, `token` (a portfolio contract address, or `native`), `to`, and the human amount in `amount_decimal`. Mermail converts to base units and rejects an integer `amount` for any asset it can price. `create_agent_wallet_transfer_proposal` is the separate metered USDC path and keeps its own human `amount`. See [catalog token transfers](/agent-wallet/catalog-transfers).
   </Accordion>
