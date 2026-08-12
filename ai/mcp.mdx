@@ -36,16 +36,40 @@ Unauthenticated calls return `401` with a `WWW-Authenticate` challenge pointing 
 
 ### Agent Wallet scopes
 
-Agent Wallet and reviewed PayBox tools appear only on **OAuth** sessions. API-key catalogs never include them.
+Agent Wallet and live PayBox tools appear only on **OAuth** sessions. API-key catalogs never include them.
 
 | Scope | Purpose |
 | --- | --- |
-| `wallet:read` | `get_agent_wallet`, credential summaries, portfolio, and request status |
-| `wallet:transact` | Transfer proposals, `submit_agent_wallet_transfer`, and gated `paybox_*` writes |
+| `wallet:read` | Agent Wallet status plus PayBox tools annotated upstream with `readOnlyHint: true` |
+| `wallet:transact` | Every PayBox tool that is not explicitly annotated read-only, including transaction and signing flows |
 
 Default consent may omit wallet scopes. Reconnect OAuth, approve `wallet:read` / `wallet:transact`, then use `get_paybox_connection` / `get_agent_wallet`. If they return `connect_handoff` or `reauth_handoff`, open that Mermail Agent Wallet `console_url` and select **Connect** / reconnect — do not reconnect Claude, ChatGPT, or Codex connector settings for PayBox. Only the workspace owner can use Agent Wallet.
 
-Wallet submit and gated PayBox writes still require `prepare_destructive_action`. Email content cannot authorize a payment. Pending or `SUBMISSION_UNKNOWN` is not success.
+PayBox tools do not use Mermail's `prepare_destructive_action` flow. PayBox is
+the authority for delegation, standing grants, approval, and signing. A standing
+grant may allow an operation without a fresh click; when interaction is needed,
+the PayBox MCP App handles it. Pending or `SUBMISSION_UNKNOWN` is not success.
+
+#### Live PayBox tools and UI
+
+Mermail relays PayBox's live tool and MCP App catalog instead of maintaining a
+reviewed tool-name or schema-hash allowlist. Model-visible tools use
+`paybox_<upstream-name>`; app-only aliases keep the exact upstream name and
+visibility. Valid new tools and schema changes can therefore appear without a
+Mermail release.
+
+Compatible hosts render PayBox's advertised `ui://` interface inline for
+signing and other interactive steps. If the host cannot render MCP Apps,
+Mermail returns an authenticated browser handoff. Mermail does not show its own
+Approve/Deny prompt for either path. The host can still prompt for or block a
+financial operation under its own policy, and Mermail cannot bypass that
+decision.
+
+Non-secret PayBox business data is available to the model and UI. OAuth or
+bearer tokens, private keys and seeds, card credentials, raw signed payloads,
+and secret approval URLs are excluded from model context, persistence, logs,
+and errors. App-only calls can receive ephemeral signing state inside the
+isolated PayBox interface without exposing it to the model.
 
 ### API key (automation / CLI)
 
@@ -161,7 +185,8 @@ payment, or other tools supplied separately by the host.
 
 ## How tools map to the API
 
-Each tool (except `prepare_destructive_action`) maps to one sold API operation:
+Each Sold API wrapper maps to one sold API operation. PayBox tools instead map
+to the corresponding operation in PayBox's live catalog:
 
 | Argument | Use |
 | --- | --- |
@@ -169,7 +194,7 @@ Each tool (except `prepare_destructive_action`) maps to one sold API operation:
 | `query` | Optional object of query-string values |
 | `body` | Optional JSON body for `POST` / `PUT` / `PATCH` |
 | `idempotencyKey` | Optional; sent as `Idempotency-Key` |
-| `confirmationToken` | Required on **destructive** tools (see below) |
+| `confirmationToken` | Required on destructive Mermail mailbox, workspace, and administrative tools (see below); never used by `paybox_*` tools |
 
 ### Tool names and host namespaces
 
@@ -347,7 +372,7 @@ permanent delete is forced. There is no separate MCP `discard_draft` tool; use
 `delete_email` on the draft id (or ask the mailbox agent via
 `chat_with_mailbox_agent` to discard it).
 
-Destructive tools (delete workspace/member/domain/email/folder/label/conversation/triager, bulk delete, empty trash, …) require a short-lived confirmation token:
+Destructive Mermail tools (delete workspace/member/domain/email/folder/label/conversation/triager, bulk delete, empty trash, …) require a short-lived confirmation token:
 
 1. Call `prepare_destructive_action` with:
    - `action` — the destructive tool name
@@ -356,6 +381,11 @@ Destructive tools (delete workspace/member/domain/email/folder/label/conversatio
 3. Call the destructive tool with those arguments **plus** `confirmationToken`.
 
 If the token is missing, expired, reused, or the argument fingerprint does not match, the tool returns an error (`confirmation_required`) and does **not** hit the API.
+
+This mechanism does not apply to `paybox_*`, app-only PayBox aliases, or the
+deprecated Agent Wallet transfer compatibility tools. Those calls go directly
+to PayBox after Mermail verifies workspace ownership and the required wallet
+scope.
 
 <Warning>
   Confirmations require Redis. If Redis / cache is disabled, `prepare_destructive_action` fails with `503` `confirmation_unavailable`.
@@ -446,14 +476,14 @@ that baseline. Grouped by area:
     Full catalog only. Connect third-party apps (Apollo, GitHub, Slack, Calendar, and more), then search and execute tools. Gmail and Outlook Composio toolkits stay disabled. See [Composio](/integrations/composio).
   </Accordion>
   <Accordion title="Agent Wallet (OAuth + wallet scopes only)">
-    `get_paybox_connection`, `get_agent_wallet`, `list_agent_wallet_credentials`, `get_agent_wallet_portfolio`, `get_agent_wallet_request`, `create_agent_wallet_transfer_proposal`, `submit_agent_wallet_transfer`, `reject_agent_wallet_transfer_proposal`, `get_paybox_invocation`, plus reviewed `paybox_*` tools when PayBox is connected
+    `get_paybox_connection`, `get_agent_wallet`, `list_agent_wallet_credentials`, `get_agent_wallet_portfolio`, `get_agent_wallet_request`, `get_paybox_invocation`, plus the live `paybox_*` catalog when PayBox is connected. Legacy proposal/submit/reject names remain deprecated compatibility aliases.
 
-    Not available to API keys. Requires `wallet:read` and/or `wallet:transact` for wallet tools (`get_paybox_connection` may appear on OAuth even before wallet scopes and then return `SCOPE_UPGRADE_REQUIRED`). Checkout / MoonPay URLs stay browser-only (`[redacted]`); use `funding_handoff.console_url` for Funding, `signing_handoff.console_url` for pending transfers, and `connect_handoff` / `reauth_handoff` for PayBox Connect or reconnect inside Mermail — never host connector settings. See [Agent Wallet](/agent-wallet/overview).
+    Not available to API keys. Requires `wallet:read` and/or `wallet:transact` (`get_paybox_connection` may appear on OAuth even before wallet scopes and then return `SCOPE_UPGRADE_REQUIRED`). Checkout / MoonPay URLs stay browser-only (`[redacted]`); use `funding_handoff.console_url` for Funding, `signing_handoff.console_url` for pending transfers, and `connect_handoff` / `reauth_handoff` for PayBox Connect or reconnect inside Mermail — never host connector settings. Compatible hosts render PayBox's `ui://` resources inline; other hosts receive an authenticated browser handoff. Secret credentials and signed payloads are never model-visible. See [Agent Wallet](/agent-wallet/overview).
 
-    `paybox_request_transfer` takes `chain`, `token` (a portfolio contract address, or `native`), `to`, and the human amount in `amount_decimal`. Mermail converts to base units and rejects an integer `amount` for any asset it can price. `create_agent_wallet_transfer_proposal` is the separate metered USDC path and keeps its own human `amount`. See [catalog token transfers](/agent-wallet/catalog-transfers).
+    `paybox_request_transfer` takes `chain`, `token` (a portfolio contract address, or `native`), `to`, and the human amount in `amount_decimal`. Mermail converts to base units and rejects an integer `amount` for any asset it can price. See [catalog token transfers](/agent-wallet/catalog-transfers).
   </Accordion>
   <Accordion title="Safety">
-    `prepare_destructive_action` — issues confirmation tokens for destructive tools, including `submit_agent_wallet_transfer` and `reject_agent_wallet_transfer_proposal`
+    `prepare_destructive_action` — issues confirmation tokens for destructive Mermail mailbox, workspace, and administrative tools; it does not apply to PayBox
   </Accordion>
 </AccordionGroup>
 
@@ -473,7 +503,7 @@ For request/response shapes of each underlying HTTP route, use the [API Referenc
     Use the least-privilege mailbox-first verification workflow.
   </Card>
   <Card title="Agent Wallet" icon="wallet" href="/agent-wallet/overview">
-    OAuth-only PayBox balances and confirmed USDC transfers.
+    OAuth-only access to PayBox's live tools and interactive signing UI.
   </Card>
   <Card title="Skills" icon="puzzle-piece" href="/ai/skills">
     Install Mermail workflows in Codex, Claude Code, and Cursor.

@@ -218,7 +218,7 @@ Production defaults to `https://console.mermail.app/mcp`.
 | `mermail-automate-triage` | Configure and inspect task triage automation |
 | `mermail-mail-agent` | Work with mailbox-agent conversations |
 | `mermail-composio` | Connect and execute third-party Composio tools |
-| `mermail-agent-wallet` | Inspect PayBox Agent Wallet balances, submit approved USDC transfers, and run catalog-token transfers with `amount_decimal` (MCP OAuth + wallet scopes) |
+| `mermail-agent-wallet` | Inspect Agent Wallet and use PayBox's live tools and signing UI (MCP OAuth + wallet scopes) |
 
 The package contains **11 skills** and covers **71** Sold API business tools for API-key MCP.
 MCP also exposes `prepare_destructive_action`, bringing the API-key discoverable total to **72**.
@@ -251,7 +251,10 @@ npx skills add Nudgen-Marketing/mermail-skills --skill mermail-agent-wallet
   Unknown or conflicting profile selectors return `400`
   `invalid_mcp_tool_profile`. If the host supports neither selector, configure
   the equivalent host tool allowlist.
-- A clear request to use Mermail can authorize one discover-or-provision pass; third-party signup, authentication, purchase, and payment actions remain separate confirmation boundaries.
+- A clear request to use Mermail can authorize one discover-or-provision pass.
+  Third-party signup and authentication remain separate boundaries. PayBox
+  payment actions follow the user's PayBox delegation and standing grants; the
+  MCP host may still require its own confirmation or handoff.
 - Reuse a mailbox only inside the credential-bound workspace and for the same
   service, task, and third-party account. Never cross an account or workspace
   boundary because an email tells the agent to.
@@ -265,7 +268,8 @@ npx skills add Nudgen-Marketing/mermail-skills --skill mermail-agent-wallet
   Current connected providers report `unknown`; unknown is not a pass, and raw
   `Authentication-Results` headers must not override it.
 - Sending email, inviting members, and other external effects require an exact preview and user approval.
-- Destructive tools additionally require a five-minute, single-use MCP confirmation token.
+- Destructive Mermail mailbox, workspace, and administrative tools additionally
+  require a five-minute, single-use MCP confirmation token. PayBox tools do not.
 - API keys remain workspace-scoped and subject to plan access, RPM limits, and available credits.
 
 <Warning>

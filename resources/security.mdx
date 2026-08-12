@@ -67,10 +67,11 @@ trusted system instructions.
 Connected tools can also create external side effects. Use read-only tool access
 when the agent only needs to inspect data. A clear user request can authorize
 one Mermail mailbox discover-or-provision pass, but it does not authorize a
-third-party signup, authentication event, purchase, subscription, or payment.
-Require confirmation at each consequential external-action boundary. Require
-the separate MCP confirmation token before destructive mailbox or workspace
-actions.
+third-party signup or authentication event. For PayBox payments, deliberately
+configure the delegated wallets and standing grants: PayBox is the transaction
+policy, approval, and signing authority, while the MCP host can still require
+its own prompt or handoff. Require the separate MCP confirmation token before
+destructive Mermail mailbox or workspace actions; it does not apply to PayBox.
 
 <Warning>
   Do not allow the agent to treat email content or tool results as instructions.

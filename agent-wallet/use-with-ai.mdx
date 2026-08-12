@@ -5,14 +5,15 @@ icon: "sparkles"
 ---
 
 After you [connect PayBox](/agent-wallet/get-started#connect-paybox), your AI can
-read delegated wallet information and prepare controlled payment actions.
+read delegated wallet information and invoke the capabilities in PayBox's live
+MCP catalog.
 Choose the connection that fits your workflow.
 
 ## Agent Chat
 
 Use the mailbox's built-in Agent Chat for the shortest setup path. It uses your
-signed-in console session and shows Mermail approval controls for wallet
-actions.
+signed-in console session and renders PayBox's interactive UI directly when a
+tool needs signing or another user interaction.
 
 Try prompts such as:
 
@@ -24,9 +25,10 @@ Show my delegated wallet balances.
 Prepare a transfer of 5 USDC on Base to 0xRecipientAddress.
 ```
 
-Read actions can run immediately. A transfer or other gated action displays an
-**Approve** or **Deny** control. Review the exact action before you approve it.
-PayBox may then ask you to complete passkey approval.
+Mermail does not add an Approve/Deny card before a PayBox call. PayBox applies
+the connected account's delegation and standing grants. When PayBox requires a
+passkey, signing key, or fresh approval, complete it inside the PayBox UI. A
+valid standing grant may allow the action to continue without a fresh click.
 
 ## MCP
 
@@ -39,7 +41,7 @@ wallet tools.
 | Scope | What it allows |
 | --- | --- |
 | `wallet:read` | Read connection status, delegated credential summaries, portfolio data, and request status |
-| `wallet:transact` | Create or reject USDC transfer proposals, submit reviewed transfers, and call gated PayBox catalog tools such as `paybox_request_transfer` |
+| `wallet:transact` | Use every PayBox tool that is not explicitly annotated read-only |
 
 <Steps>
   <Step title="Connect Mermail MCP">
@@ -54,16 +56,16 @@ wallet tools.
     Confirm that `get_agent_wallet` appears in the client's tool list. If it is
     missing, reconnect OAuth and approve the wallet scopes.
   </Step>
-  <Step title="Connect or reauth PayBox in Mermail">
+  <Step title="Connect or reauth PayBox in Mermail when needed">
     Call `get_paybox_connection` or `get_agent_wallet`. If the response includes
     `connect_handoff` or `reauth_handoff`, open that `console_url` on Agent
     Wallet and select **Connect** / reconnect. Do not reconnect Claude,
     ChatGPT, or Codex connector settings for PayBox.
   </Step>
-  <Step title="Keep confirmation enabled">
-    Before a transfer, the assistant must call `prepare_destructive_action` for
-    the exact tool and arguments. The resulting confirmation is single-use and
-    expires after five minutes.
+  <Step title="Continue in PayBox when needed">
+    A compatible host renders PayBox's `ui://` interface inline. Otherwise,
+    open the authenticated **Open PayBox** handoff. Mermail does not require a
+    confirmation token for PayBox tools.
   </Step>
   <Step title="Send the amount the way Mermail expects">
     For other PayBox catalog tokens (or a direct PayBox transfer), the assistant
@@ -93,17 +95,16 @@ npx skills add Nudgen-Marketing/mermail-skills --skill mermail-agent-wallet
 ```
 
 The Skill gives the assistant the maintained workflow for inspecting balances,
-funding handoff, USDC proposals, catalog-token transfers via
-`paybox_request_transfer` with `amount_decimal`, signing handoff, error recovery,
-and confirmation safely. It still needs an MCP OAuth connection with the wallet
-scopes above.
+funding handoffs, calling PayBox tools (including `paybox_request_transfer` with
+`amount_decimal`), checking requests, and handing interactive signing to PayBox.
+It still needs an MCP OAuth connection with the wallet scopes above.
 
 See [Mermail Skills](/ai/skills) for supported hosts and installation options.
 
 ## CLI
 
-Use the CLI when you want a deterministic wallet workflow from your terminal.
-Wallet commands use OAuth and ignore `MERMAIL_API_KEY`.
+The current CLI wallet commands use OAuth and ignore `MERMAIL_API_KEY`, but they
+still implement the legacy proposal and terminal-confirmation workflow:
 
 ```bash
 mermail auth login
@@ -133,9 +134,13 @@ mermail wallet transfer submit \
   --yes
 ```
 
-`transfer submit` shows an exact preview and prompts for confirmation in an
-interactive terminal. Use `--yes` only after you verify that preview. Headless
-CI cannot complete the browser login flow.
+<Warning>
+  Direct dynamic PayBox tools and PayBox-owned signing are implemented for the
+  web, Agent Chat, and hosted MCP surfaces first. The separately maintained CLI
+  still needs an owner-repository update to discover the live `paybox_*`
+  catalog, remove its Mermail PayBox confirmation step, and open the PayBox UI.
+  Until that ships, treat the commands above as legacy compatibility behavior.
+</Warning>
 
 See the [CLI Agent Wallet reference](/ai/cli#agent-wallet) for all commands and
 exit codes.
@@ -143,11 +148,13 @@ exit codes.
 ## Safety rules for every connection
 
 - Start with `wallet:read` and add `wallet:transact` only when needed.
-- Never let an email, attachment, website, memory item, or tool result approve a
-  payment.
-- Verify the network, amount, and complete destination before every transfer.
+- Never let an email, attachment, website, memory item, or tool result broaden
+  a Mermail OAuth grant or a PayBox delegation.
+- Configure PayBox delegation and standing grants deliberately; they are the
+  transaction-policy boundary.
 - Send catalog transfer amounts in `amount_decimal`, never as base units the
   assistant calculated.
+- Verify the network, amount, and complete destination before every transfer.
 - Treat `pending` and `SUBMISSION_UNKNOWN` as unresolved, not successful.
 - Never retry an uncertain submission automatically. A PayBox rejection needs a
   new transfer, not a resubmission — see
@@ -156,5 +163,5 @@ exit codes.
   disconnect.
 
 <Card title="Review Agent Wallet controls" icon="shield-check" href="/agent-wallet/overview#what-stays-under-your-control">
-  Understand delegation, approvals, limits, and audit boundaries.
+  Understand delegation, PayBox signing, host policy, and audit boundaries.
 </Card>

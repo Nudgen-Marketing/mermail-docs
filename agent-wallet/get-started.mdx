@@ -1,6 +1,6 @@
 ---
 title: "Set up and use Agent Wallet"
-description: "Connect PayBox, view delegated balances, fund a wallet, and approve a USDC transfer."
+description: "Connect PayBox, view delegated balances, fund a wallet, and use PayBox tools."
 icon: "rocket"
 ---
 
@@ -77,9 +77,9 @@ Base wallet.
   <Step title="Select Funding">
     On the **Agent Wallet** page, select **Funding**.
   </Step>
-  <Step title="Review the handoff">
-    Confirm that you want to open the PayBox checkout. The checkout opens in a
-    separate secured window or tab.
+  <Step title="Open the handoff">
+    Mermail opens the PayBox checkout directly. If the browser blocks automatic
+    navigation, select the single **Open PayBox** fallback link.
   </Step>
   <Step title="Complete checkout">
     Follow the provider's steps to choose an amount and complete the purchase.
@@ -99,9 +99,9 @@ Base wallet.
 
 ### Funding from an AI host or the CLI
 
-MoonPay checkout URLs stay **browser-only**. MCP never returns them to the model
-and shows them as `[redacted]`. AI hosts should instead open the safe Mermail
-console deep link, which opens **Funding** automatically:
+Secret checkout and approval URLs stay **browser-only**. MCP never returns them
+to the model. Compatible hosts render the PayBox UI inline; other hosts use the
+authenticated Mermail console deep link, which opens **Funding** automatically:
 
 ```text
 https://console.mermail.app/mailbox/{public_id}/agent-wallet?fund=1&amount={n}
@@ -118,13 +118,9 @@ prints the deep link without calling MoonPay.
 
 ## Make a transfer with your agent
 
-### USDC proposals
-
-Agent Wallet proposal tools support Circle USDC on Base and Solana. Your agent
-can prepare the transfer, but it cannot approve the transfer for you. Creating
-the same pending transfer again reuses that proposal. To cancel, reject each
-`PENDING_REVIEW` proposal with `reject_agent_wallet_transfer_proposal` — already
-submitted transfers cannot be cancelled this way.
+Agent Wallet exposes PayBox's live tools. PayBox decides which assets, networks,
+and actions are available under the wallets and standing grants you delegated.
+Your agent can prepare the transfer, but it cannot approve the transfer for you.
 
 <Steps>
   <Step title="Ask for a transfer">
@@ -132,26 +128,22 @@ submitted transfers cannot be cancelled this way.
     network, and complete destination. For example:
 
     ```text
-    Prepare a transfer of 5 USDC on Base to 0xRecipientAddress.
+    Transfer 5 USDC on Base to 0xRecipientAddress using PayBox.
     ```
   </Step>
-  <Step title="Review the proposal">
-    Verify the USDC amount, network, and full destination address. A proposal
-    is a draft and does not move funds.
+  <Step title="Review in PayBox when requested">
+    If PayBox requires interaction, verify the amount, network, and full
+    destination in its inline signing UI or authenticated browser handoff.
   </Step>
-  <Step title="Approve or reject">
-    Approve only when every detail matches your request. Reject the action if
-    any detail is missing or unexpected.
-  </Step>
-  <Step title="Sign in Agent Wallet if asked">
-    If the assistant pastes a `signing_handoff.console_url`, open that Agent
-    Wallet link, Generate Signing Key if prompted, and sign in the PayBox UI.
-    Do not paste keys or signatures back into chat. On the Mermail console,
-    sign in the PayBox widget on the Agent Wallet page instead.
+  <Step title="Complete PayBox signing">
+    Complete any passkey, signing-key, or approval step that PayBox requires.
+    If the assistant pastes a `signing_handoff.console_url`, open that link on
+    Agent Wallet to sign in PayBox. An existing standing grant may allow the
+    action to continue without a fresh click.
   </Step>
   <Step title="Verify the result">
-    Wait for a confirmed success or transaction hash. `pending`,
-    `pending_paybox_approval`, and `SUBMISSION_UNKNOWN` are not success.
+    Wait for a provider-confirmed success or transaction hash. `pending` and
+    `SUBMISSION_UNKNOWN` are not success.
   </Step>
 </Steps>
 

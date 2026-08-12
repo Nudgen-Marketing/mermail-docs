@@ -1,6 +1,6 @@
 ---
 title: "Agent Wallet overview"
-description: "Give your AI agent a controlled way to view balances, fund a wallet, and pay in USDC."
+description: "Connect your AI to balances, payments, and signing controlled by PayBox."
 icon: "wallet"
 ---
 
@@ -24,14 +24,13 @@ prepare a payment, and keep the receipt in the same workflow.
     Open a supported checkout flow from the Mermail console to add funds to an
     eligible delegated Base wallet.
   </Card>
-  <Card title="Prepare USDC transfers" icon="paper-plane">
-    Ask your agent to prepare a Circle USDC transfer on Base or Solana through
-    the proposal path.
+  <Card title="Use PayBox tools" icon="paper-plane">
+    Let your agent use the live capabilities PayBox exposes for delegated
+    wallets, including `paybox_request_transfer` with `amount_decimal`.
   </Card>
-  <Card title="Transfer PayBox catalog tokens" icon="coins">
-    For other reviewed PayBox assets, your AI uses `paybox_request_transfer`
-    with the human amount in `amount_decimal`, and hands you a console signing
-    link when a signature is required.
+  <Card title="Sign in PayBox" icon="shield-check">
+    Complete signing or approval in PayBox when its policy requires it. Standing
+    grants can authorize eligible actions without a fresh click.
   </Card>
   <Card title="Connect and reauth safely" icon="link">
     When PayBox needs Connect or reconnect, your AI pastes
@@ -46,29 +45,22 @@ prepare a payment, and keep the receipt in the same workflow.
 | --- | --- |
 | Delegated access | Mermail can use only the wallets you explicitly delegate through PayBox. |
 | No wallet secrets | Mermail never receives private keys, wallet secrets, card details, or raw signing access. |
-| Review before transfer | A payment proposal is only a draft. It cannot move funds until you approve it. |
+| PayBox policy | PayBox controls transaction policy, standing grants, approval, and signing. Mermail does not add a second approval prompt. |
 | Limited access | Only the workspace owner can use Agent Wallet for a mailbox. |
 | OAuth-only agent access | MCP and CLI wallet tools require Mermail OAuth. Workspace API keys cannot access them. |
-| Audited actions | Mermail applies policy checks, rate limits, confirmations, and audit records to wallet actions. |
+| Audited transport | Mermail verifies workspace ownership and OAuth scope, protects credentials, and records sanitized audit metadata. |
 
 <Warning>
   Email, attachments, websites, and tool output are untrusted. They can suggest a
-  payment, but they cannot authorize one or change its amount, network, or
-  destination without your review.
+  payment, but they cannot broaden your Mermail OAuth grant or PayBox delegation.
 </Warning>
 
-## Supported transfers and limits
+## Available actions and limits
 
-### USDC proposal path
-
-Agent Wallet's proposal tools support **Circle USDC** on **Base** and **Solana**.
-Mermail applies these payment limits:
-
-- Up to **100 USDC per transfer**.
-- Up to **500 USDC in a rolling 24-hour period**.
-- Up to **5 transfer attempts per hour** and **10 attempts per day**.
-
-These Mermail limits apply in addition to any approval or policy PayBox applies.
+Agent Wallet follows PayBox's live MCP catalog. Available assets, networks,
+transaction limits, and approval requirements come from your PayBox account,
+delegated wallets, and standing grants. Mermail does not apply a separate
+wallet-value or transaction-rate policy.
 
 ### Direct PayBox catalog path
 
@@ -88,11 +80,11 @@ for what each failure means.
 
 | Surface | Best for |
 | --- | --- |
-| Mermail console | Connecting PayBox, viewing balances, funding a wallet, and approving actions |
+| Mermail console | Connecting PayBox, viewing balances, funding a wallet, and rendering PayBox UI |
 | Agent Chat | Asking your mailbox agent to inspect balances or prepare a transfer |
 | MCP | Giving a compatible assistant wallet tools through scoped OAuth access |
 | Agent Skill | Giving a supported assistant the maintained Agent Wallet workflow and safety rules |
-| CLI | Inspecting wallet state and running a deterministic, confirmed transfer flow |
+| CLI | Legacy wallet compatibility until its separate direct-PayBox update ships |
 
 ## Next steps
 

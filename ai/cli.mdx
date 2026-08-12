@@ -301,6 +301,14 @@ MERMAIL_BASE_URL=https://console-staging.mermail.app mermail mcp check
 
 ## Agent Wallet
 
+<Warning>
+  The web, Agent Chat, and hosted MCP surfaces now use PayBox's live tool catalog
+  and PayBox-owned signing without a Mermail confirmation step. The CLI is
+  maintained in a separate owner repository and has not yet adopted that flow.
+  The commands in this section describe legacy compatibility behavior until the
+  CLI adds dynamic `paybox_*` discovery and an interactive PayBox UI handoff.
+</Warning>
+
 ```bash
 mermail auth login
 mermail wallet status --mailbox-id MAILBOX_PUBLIC_ID
@@ -342,7 +350,7 @@ Rules:
 | `1` | API, network, or runtime failure |
 | `2` | Invalid command, flag, or payload |
 | `3` | Missing, invalid, expired, or revoked API key or MCP OAuth session |
-| `4` | Destructive confirmation required |
+| `4` | Destructive Mermail confirmation required, or legacy CLI wallet confirmation required |
 | `5` | Bounded `emails wait` outcome: timeout, ambiguity, flagged content, scan mismatch, or invalid response |
 | `130` | Cancelled or interrupted |
 
