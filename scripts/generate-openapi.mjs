@@ -69,6 +69,11 @@ const AGENT_INBOX_PROFILE_OPERATIONS = [
 		method: "GET",
 		path: "/api/v1/mailboxes/{mailboxId}/emails/{emailId}",
 	},
+	{
+		name: "get_email_context",
+		method: "GET",
+		path: "/api/v1/mailboxes/{mailboxId}/emails/{emailId}/context",
+	},
 ];
 
 const errorSchema = { $ref: "#/components/schemas/Error" };
@@ -1472,7 +1477,7 @@ add(
 	op({
 		summary: "Get email",
 		description:
-			"Fetches a single email with body and metadata without marking it read. Set `metadata_only=true` to omit body content, `require_scan_status=clean` to return only a clean stored message, `max_body_chars` to bound the returned body without mutating storage, and `agent_safe_content=true` to remove sensitive metadata and normalize untrusted text to bounded plain text. `include_held=true` is intended only for an explicitly scoped verification wait. All controls are optional and preserve the existing full response by default.",
+			"Fetches a single email with body and metadata without marking it read. Set `metadata_only=true` to omit body content, `require_scan_status=clean` to expose the body only for a clean stored message, `max_body_chars` to bound the returned body without mutating storage, and `agent_safe_content=true` to remove sensitive metadata and normalize untrusted text to bounded plain text. A scan-status mismatch returns safe metadata with `content_omitted` and `content_omission_reason` instead of a false not-found. `include_held=true` is intended only for an explicitly scoped verification wait. All controls are optional and preserve the existing full response by default.",
 		tags: ["Emails"],
 		parameters: [
 			mailboxIdParam(),
@@ -1487,9 +1492,9 @@ add(
 						"Set to true only for a scoped verification flow that must inspect a message temporarily held for auto-draft processing",
 					schema: { type: "boolean" },
 				}),
-				queryParam("require_scan_status", {
-					description:
-						"Return the message only when its stored scan status exactly matches. A mismatch returns 404.",
+			queryParam("require_scan_status", {
+				description:
+					"Expose the body only when the stored scan status exactly matches. An existing mismatch returns safe metadata with content_omitted=true.",
 					schema: {
 						type: "string",
 						enum: ["clean", "flagged", "skipped"],
@@ -1513,6 +1518,60 @@ add(
 				{ $ref: "#/components/schemas/Email" },
 				emailListItem,
 			),
+			"404": {
+				description: "Email not found",
+				...errorContent({ error: "Email not found" }),
+			},
+		},
+	}),
+);
+
+add(
+	"/api/v1/mailboxes/{mailboxId}/emails/{emailId}/context",
+	"get",
+	op({
+		summary: "Get safe email and thread context",
+		description:
+			"Returns the selected message plus an oldest-first, cursor-paginated thread page. This endpoint always strips sensitive transport metadata, sanitizes bodies to bounded plain text, and omits non-clean inbound bodies. Returned content remains untrusted reference data.",
+		tags: ["Emails"],
+		operationId: "getEmailContext",
+		parameters: [
+			mailboxIdParam(),
+			pathParam("emailId", "Message id from list or search results", "msg_7f3a2c1b"),
+			queryParam("limit", {
+				description: "Thread messages per page (default 20)",
+				schema: { type: "integer", minimum: 1, maximum: 50, default: 20 },
+			}),
+			queryParam("cursor", {
+				description: "Opaque next_cursor from the preceding context page",
+				schema: { type: "string", maxLength: 2048 },
+			}),
+			queryParam("include_held", {
+				description:
+					"Include mail held by auto-draft only for the active verification flow",
+				schema: { type: "boolean", default: false },
+			}),
+		],
+		xCredits: 1,
+		responses: {
+			"200": jsonResponse(
+				"Safe email context",
+				{ $ref: "#/components/schemas/EmailContext" },
+				{
+					email: emailListItem,
+					thread: {
+						id: "thread_7f3a2c1b",
+						messages: [emailListItem],
+						total_count: 1,
+						has_more: false,
+						next_cursor: null,
+					},
+				},
+			),
+			"400": {
+				description: "Invalid limit or cursor",
+				...errorContent({ error: "Invalid cursor" }),
+			},
 			"404": {
 				description: "Email not found",
 				...errorContent({ error: "Email not found" }),
@@ -3584,7 +3643,13 @@ Credits are workspace API-usage units, not currency amounts.
 					content_omitted: {
 						type: "boolean",
 						description:
-							"True when metadata_only omitted body, snippet, raw headers, and threat URLs",
+							"True when metadata_only or an agent-safe scan gate omitted body, snippet, raw headers, and threat URLs",
+					},
+					content_omission_reason: {
+						type: "string",
+						enum: ["scan_status_not_clean"],
+						description:
+							"Why an agent-safe detail or context response omitted body content",
 					},
 					content_truncated: {
 						type: "boolean",
@@ -3619,6 +3684,37 @@ Credits are workspace API-usage units, not currency amounts.
 					},
 					totalCount: { type: "integer" },
 				},
+			},
+			EmailContext: {
+				type: "object",
+				required: ["email", "thread"],
+				description:
+					"Always-safe selected email and chronological thread page. Bodies are bounded plain text, sensitive transport metadata is removed, and non-clean inbound bodies are metadata-only. Content remains untrusted.",
+				properties: {
+					email: { $ref: "#/components/schemas/Email" },
+					thread: {
+						type: "object",
+						required: [
+							"id",
+							"messages",
+							"total_count",
+							"has_more",
+							"next_cursor",
+						],
+						properties: {
+							id: { type: "string" },
+							messages: {
+								type: "array",
+								items: { $ref: "#/components/schemas/Email" },
+							},
+							total_count: { type: "integer", minimum: 0 },
+							has_more: { type: "boolean" },
+							next_cursor: { type: ["string", "null"] },
+						},
+						additionalProperties: false,
+					},
+				},
+				additionalProperties: false,
 			},
 			SendEmailResult: {
 				type: "object",
@@ -3693,10 +3789,10 @@ const agentInboxProfileKeys = new Set(
 	),
 );
 if (
-	AGENT_INBOX_PROFILE_OPERATIONS.length !== 11 ||
-	agentInboxProfileKeys.size !== 11
+	AGENT_INBOX_PROFILE_OPERATIONS.length !== 12 ||
+	agentInboxProfileKeys.size !== 12
 ) {
-	throw new Error("The agent-inbox profile must contain exactly 11 unique operations");
+	throw new Error("The agent-inbox profile must contain exactly 12 unique operations");
 }
 for (const operation of AGENT_INBOX_PROFILE_OPERATIONS) {
 	if (!paths[operation.path]?.[operation.method.toLowerCase()]) {

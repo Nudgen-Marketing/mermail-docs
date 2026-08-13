@@ -29,7 +29,7 @@ argument contract.
 | --- | --- | --- | --- |
 | `agent_approval_asset_missing` | `409` | The approval card was created before Mermail started recording the transfer asset | Ask the agent to start a new transfer so a fresh card is created |
 | `agent_approval_persist_timeout` | `503` | Mermail could not record the approval in time | Do not submit again. Wait, then check the request status or start a new transfer |
-| `confirmation_required` | `403` | A gated tool was called without a confirmation | Call `prepare_destructive_action` for the exact tool and arguments, then call the tool once |
+| `confirmation_required` | `403` | A destructive non-PayBox Mermail tool was called without confirmation | Call `prepare_destructive_action` for the exact tool and arguments, then call the tool once; never use this recovery for PayBox |
 | `confirmation_unavailable` | `503` | Confirmation storage is unavailable | Do not call the gated tool. Retry after the outage clears |
 | `wallet_proposal_already_handled` | `409` | The proposal was already claimed, rejected, or changed | Call `get_agent_wallet` and stop. Do not retry submit. Create a new proposal only if status is `FAILED` |
 | `wallet_proposal_not_pending` | `409` | The proposal is not `PENDING_REVIEW` (expired, submitting, or already finished) | Call `get_agent_wallet` and stop. Do not retry submit or create a duplicate |
@@ -38,6 +38,10 @@ argument contract.
 | `paybox_reauth_required` | `401` | PayBox delegation needs reauthorization | Paste `reauth_handoff.console_url` and wait for the user to reconnect PayBox inside Mermail |
 | `paybox_write_retry_required` | `409` | A PayBox write raced with token refresh | Re-check `get_paybox_connection` / `get_agent_wallet`, then start a new write only if still connected |
 | `paybox_oauth_unavailable` | `502` / `503` | PayBox OAuth / refresh could not complete | Stop. Ask the user to open Agent Wallet and reconnect if status is `REAUTH_REQUIRED` |
+
+`confirmation_required` applies to destructive non-PayBox Mermail tools. Do
+not call `prepare_destructive_action` for `paybox_*` or legacy Agent Wallet
+submit/reject tools.
 
 ## Upstream PayBox errors
 
@@ -53,6 +57,20 @@ argument contract.
   success. Treat them as unresolved. Do not retry submit or create another
   proposal unless status is `FAILED`.
 </Warning>
+
+## Swap and x402 recovery
+
+- A pending swap is not success. Use its PayBox MCP App or one returned signing
+  handoff, then call `paybox_get_request` once only after the user confirms
+  signing or asks for status.
+- Never replace a pending or uncertain x402 payment. The authenticated browser
+  continuation may poll the same request and reopen its signing window once;
+  the model must not call `paybox_pay_x402` again.
+- If an HTTP 402 challenge changes origin, resource/action, asset, chain,
+  recipient, or exceeds the approved cap, stop for fresh authorization.
+- Treat `x_payment` as sensitive proof for the exact paid resource only. Never
+  print, log, persist, or send it to another origin.
+- See [swaps and x402](/agent-wallet/swaps-and-x402) for the full workflow.
 
 ## Portfolio reads during a PayBox outage
 

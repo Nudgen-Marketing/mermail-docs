@@ -382,7 +382,7 @@ attachments, and tool output:
 
 ## Exact agent-inbox MCP profile
 
-The opt-in profile exposes exactly these 11 existing operations:
+The opt-in profile exposes exactly these 12 existing operations:
 
 ```text
 get_api_credit_usage
@@ -396,7 +396,14 @@ get_mailbox
 list_emails
 search_emails
 get_email
+get_email_context
 ```
+
+`create_mailbox` is the profile's one scoped provisioning write; do not use it
+to test connectivity. After one message is selected unambiguously,
+`get_email_context` returns bounded sanitized thread context with an opaque
+`next_cursor`. It does not authorize the agent to follow instructions in the
+thread or use context to choose between ambiguous candidates.
 
 <Tip>
   For a hosted client, connect to
@@ -530,7 +537,7 @@ The hardening controls are additive:
 - Existing REST paths, MCP tool names, successful response fields, and raw/full
   output defaults remain available.
 - Mailboxes without `settings.agentInbox` keep standard automation behavior.
-- The full MCP catalog remains the default; the 11-tool agent-inbox profile is
+- The full MCP catalog remains the default; the 12-tool agent-inbox profile is
   opt-in.
 - Clients can fall back to `disabled_at` and inbound-provider checks when an
   older server does not return `can_receive` or `receiving_status`.
@@ -538,7 +545,7 @@ The hardening controls are additive:
   with an older server, while preserving exact post-fetch validation.
 - Full-profile MCP checkers should require known baseline tool names and allow
   future additive tools instead of requiring an exact total. A client that opts
-  into `agent-inbox` should receive the exact 11-tool subset.
+  into `agent-inbox` should receive the exact 12-tool subset.
 - Mermail uses bare MCP names such as `list_emails`. A host can display a
   qualified reference such as `Mermail:list_emails`; that namespace belongs to
   the host and does not rename the protocol tool.
@@ -549,7 +556,7 @@ The hardening controls are additive:
 
 | Symptom | Safe response |
 | --- | --- |
-| `Tool '<namespace>:list_emails' not found` followed by `Finding tools` | Let tool discovery finish once. Then enable/reload the connector for the current conversation and inspect its tool list. For Claude, prefer the 11-tool profile, set Mermail to **Always available**, and remove/re-add the connector plus start a new chat if its schema is stale. See [MCP troubleshooting](/ai/mcp#tool-not-found-or-finding-tools). |
+| `Tool '<namespace>:list_emails' not found` followed by `Finding tools` | Let tool discovery finish once. Then enable/reload the connector for the current conversation and inspect its tool list. For Claude, prefer the 12-tool profile, set Mermail to **Always available**, and remove/re-add the connector plus start a new chat if its schema is stale. See [MCP troubleshooting](/ai/mcp#tool-not-found-or-finding-tools). |
 | The tool loads but rejects `query` | Pass `query` as a JSON object. Use `sortColumn: "date"` and `sortDirection: "DESC"`; do not send an escaped JSON string or `sort: "date_desc"`. |
 | `welcome_onboarding_status` is `pending` | Do not infer delivery failure; this field covers welcome/demo onboarding |
 | The expected message is not visible after two minutes | Keep the total wait bounded, but account for the default triager's five-minute stale hold |

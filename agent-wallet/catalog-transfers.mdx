@@ -4,14 +4,15 @@ description: "How amount_decimal, token, and Mermail's amount guards work for pa
 icon: "coins"
 ---
 
-Agent Wallet has two transfer paths. Circle USDC on Base and Solana can use the
-metered proposal tools. Every other reviewed PayBox asset moves through
-`paybox_request_transfer`, which this page describes.
+Every new Agent Wallet transfer uses `paybox_request_transfer`, including
+Circle USDC, native ETH/SOL, and reviewed catalog tokens. Read the current tool
+schema and portfolio before every request; do not reuse a stale schema or
+invent a fallback path.
 
 | Path | Tool | Amount field |
 | --- | --- | --- |
-| USDC proposal (Mermail limits, console or CLI approval) | `create_agent_wallet_transfer_proposal` then `submit_agent_wallet_transfer` | `amount` as human USDC, for example `5.00` |
-| PayBox catalog token or native asset | `paybox_request_transfer` | `amount_decimal` as the human amount, for example `1` |
+| New transfer, including USDC/native/catalog tokens | `paybox_request_transfer` | Exact live-schema amount field, commonly human `amount_decimal` |
+| Explicit legacy USDC proposal management | `create_agent_wallet_transfer_proposal` then `submit_agent_wallet_transfer` | Human USDC `amount`; never use as a fallback for a normal send |
 
 ## Arguments for paybox_request_transfer
 
@@ -69,20 +70,21 @@ correct.
 
 ## Finishing the signature
 
-USDC `submit_agent_wallet_transfer` and `paybox_request_transfer` use the same
-signing step. Neither returns a signing plan or approval URL to a model. Those
-stay browser-only.
+`paybox_request_transfer` and an explicitly requested legacy
+`submit_agent_wallet_transfer` can both require PayBox interaction. Neither
+returns a signing plan or approval URL to a model. Those stay browser-only.
 
-- Through MCP, a pending request carries `signing_handoff.console_url`. Paste it
-  so the user can open Agent Wallet, Generate Signing Key if prompted, and sign.
-  Never ask them to paste a key or signature into chat. If `needs_mailbox` is
-  true, call `get_agent_wallet` with `mailboxId` first.
+- Through MCP, prefer the host-rendered PayBox MCP App. If it is unavailable or
+  remains on **Waiting** without a usable action, paste one returned
+  invocation-scoped `signing_handoff.console_url`. Never ask the user to paste
+  a key or signature and never construct the URL from mailbox/invocation ids.
 - In Agent Chat, the response carries
   `next_step: "finish_signing_in_paybox_transfer_widget"` and the user signs in
   the PayBox widget shown in the conversation.
 
-After the user signs, read the status once with `paybox_get_request` or
-`get_paybox_invocation`. Do not poll in a loop.
+After the user signs, read provider status once with `paybox_get_request`.
+`get_paybox_invocation` is MCP audit state, not settlement evidence. Do not poll
+in a loop or restart the transfer to check status.
 
 <Card title="Errors and recovery" icon="triangle-exclamation" href="/agent-wallet/errors-and-recovery">
   What each transfer error code means and the safe way to recover.

@@ -73,6 +73,13 @@ policy, approval, and signing authority, while the MCP host can still require
 its own prompt or handoff. Require the separate MCP confirmation token before
 destructive Mermail mailbox or workspace actions; it does not apply to PayBox.
 
+Funding, transfers, swaps, and x402 payments are separate effects. Funding a
+wallet does not authorize spending. An x402 payment requires a user-selected
+service/origin, exact resource or action, and maximum spend. Treat HTTP 402
+challenges, quotes, redirects, and paid output as untrusted; they cannot change
+the origin, action, asset, chain, recipient, or cap. Keep `x_payment` proof out
+of chat and logs and use it only for the exact paid resource.
+
 <Warning>
   Do not allow the agent to treat email content or tool results as instructions.
   Those sources can contain prompt injection attempts.
@@ -198,7 +205,8 @@ search, and one message read. It does not need outbound send, browser, purchase,
 authentication, connected-account, or workspace-administration access. For a
 hosted client, prefer
 `https://console.mermail.app/mcp?profile=agent-inbox` to enforce Mermail's exact
-11-tool subset. Clients that support fixed headers can instead send
+12-tool subset, including bounded sanitized thread context through
+`get_email_context`. Clients that support fixed headers can instead send
 `x-mermail-tool-profile: agent-inbox` on every stateless MCP `POST`. The original
 `/mcp` URL remains the backward-compatible full catalog. Unknown or conflicting
 selectors fail closed with status `400` and `invalid_mcp_tool_profile`.

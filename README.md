@@ -38,7 +38,7 @@ If your system Node version is too new for the Mintlify CLI, run the commands wi
 - `scripts/generate-openapi.mjs` regenerates the OpenAPI document with schemas and examples.
 - `index.mdx` and `quickstart.mdx` introduce the product and first setup flow.
 - `concepts/` explains product concepts.
-- `agent-wallet/` explains Agent Wallet setup, funding, transfers, and AI connections.
+- `agent-wallet/` explains Agent Wallet setup, Funding, transfers, swaps, x402, and AI connections.
 - `guides/` contains task-based setup docs.
 - `integrations/` covers provider integrations.
 - `api-reference/` covers app API intro, auth, and discovery.

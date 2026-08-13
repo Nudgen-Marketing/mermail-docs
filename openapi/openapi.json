@@ -68,6 +68,11 @@
           "name": "get_email",
           "method": "GET",
           "path": "/api/v1/mailboxes/{mailboxId}/emails/{emailId}"
+        },
+        {
+          "name": "get_email_context",
+          "method": "GET",
+          "path": "/api/v1/mailboxes/{mailboxId}/emails/{emailId}/context"
         }
       ]
     }
@@ -4532,7 +4537,7 @@
     "/api/v1/mailboxes/{mailboxId}/emails/{emailId}": {
       "get": {
         "summary": "Get email",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nFetches a single email with body and metadata without marking it read. Set `metadata_only=true` to omit body content, `require_scan_status=clean` to return only a clean stored message, `max_body_chars` to bound the returned body without mutating storage, and `agent_safe_content=true` to remove sensitive metadata and normalize untrusted text to bounded plain text. `include_held=true` is intended only for an explicitly scoped verification wait. All controls are optional and preserve the existing full response by default.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nFetches a single email with body and metadata without marking it read. Set `metadata_only=true` to omit body content, `require_scan_status=clean` to expose the body only for a clean stored message, `max_body_chars` to bound the returned body without mutating storage, and `agent_safe_content=true` to remove sensitive metadata and normalize untrusted text to bounded plain text. A scan-status mismatch returns safe metadata with `content_omitted` and `content_omission_reason` instead of a false not-found. `include_held=true` is intended only for an explicitly scoped verification wait. All controls are optional and preserve the existing full response by default.\n\n**API credits:** 1 (read).",
         "tags": [
           "Emails"
         ],
@@ -4584,7 +4589,7 @@
             "name": "require_scan_status",
             "in": "query",
             "required": false,
-            "description": "Return the message only when its stored scan status exactly matches. A mismatch returns 404.",
+            "description": "Expose the body only when the stored scan status exactly matches. An existing mismatch returns safe metadata with content_omitted=true.",
             "schema": {
               "type": "string",
               "enum": [
@@ -5063,6 +5068,250 @@
             "tag": "All plans",
             "title": "Delete email",
             "sidebarTitle": "Delete email"
+          }
+        }
+      }
+    },
+    "/api/v1/mailboxes/{mailboxId}/emails/{emailId}/context": {
+      "get": {
+        "summary": "Get safe email and thread context",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns the selected message plus an oldest-first, cursor-paginated thread page. This endpoint always strips sensitive transport metadata, sanitizes bodies to bounded plain text, and omits non-clean inbound bodies. Returned content remains untrusted reference data.\n\n**API credits:** 1 (read).",
+        "tags": [
+          "Emails"
+        ],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "mailboxId",
+            "in": "path",
+            "required": true,
+            "description": "Mailbox public_id (UUID), hosted alias id, or current email",
+            "schema": {
+              "type": "string"
+            },
+            "example": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+          },
+          {
+            "name": "emailId",
+            "in": "path",
+            "required": true,
+            "description": "Message id from list or search results",
+            "schema": {
+              "type": "string"
+            },
+            "example": "msg_7f3a2c1b"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Thread messages per page (default 20)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Opaque next_cursor from the preceding context page",
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            }
+          },
+          {
+            "name": "include_held",
+            "in": "query",
+            "required": false,
+            "description": "Include mail held by auto-draft only for the active verification flow",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Safe email context",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailContext"
+                },
+                "example": {
+                  "email": {
+                    "id": "msg_7f3a2c1b",
+                    "subject": "Order question",
+                    "sender": "alice@example.com",
+                    "recipient": "support@mail.acme.com",
+                    "cc": null,
+                    "bcc": null,
+                    "date": "2026-07-14T09:00:00.000Z",
+                    "read": false,
+                    "starred": false,
+                    "is_urgent": false,
+                    "category": "customer_support",
+                    "body": "Hi, where is my order?",
+                    "folder_id": "INBOX",
+                    "folder_name": "Inbox",
+                    "thread_id": "thr_9aabb",
+                    "snippet": "Hi, where is my order?",
+                    "scan_status": null,
+                    "attachments": []
+                  },
+                  "thread": {
+                    "id": "thread_7f3a2c1b",
+                    "messages": [
+                      {
+                        "id": "msg_7f3a2c1b",
+                        "subject": "Order question",
+                        "sender": "alice@example.com",
+                        "recipient": "support@mail.acme.com",
+                        "cc": null,
+                        "bcc": null,
+                        "date": "2026-07-14T09:00:00.000Z",
+                        "read": false,
+                        "starred": false,
+                        "is_urgent": false,
+                        "category": "customer_support",
+                        "body": "Hi, where is my order?",
+                        "folder_id": "INBOX",
+                        "folder_name": "Inbox",
+                        "thread_id": "thr_9aabb",
+                        "snippet": "Hi, where is my order?",
+                        "scan_status": null,
+                        "attachments": []
+                      }
+                    ],
+                    "total_count": 1,
+                    "has_more": false,
+                    "next_cursor": null
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid limit or cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Invalid cursor"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, expired, or revoked API key / token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Unauthorized"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "API credits exhausted for this workspace period",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Invalid request"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden — plan gate, wrong workspace, or missing role",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Email not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Email not found"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded (workspace RPM or email send limits)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Too many requests"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Seconds until the rate limit window resets"
+              }
+            }
+          }
+        },
+        "operationId": "getEmailContext",
+        "x-credits": 1,
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans",
+            "title": "Get safe email and thread context",
+            "sidebarTitle": "Get safe email and thread context"
           }
         }
       }
@@ -15873,7 +16122,14 @@
           },
           "content_omitted": {
             "type": "boolean",
-            "description": "True when metadata_only omitted body, snippet, raw headers, and threat URLs"
+            "description": "True when metadata_only or an agent-safe scan gate omitted body, snippet, raw headers, and threat URLs"
+          },
+          "content_omission_reason": {
+            "type": "string",
+            "enum": [
+              "scan_status_not_clean"
+            ],
+            "description": "Why an agent-safe detail or context response omitted body content"
           },
           "content_truncated": {
             "type": "boolean",
@@ -15908,6 +16164,55 @@
             "type": "integer"
           }
         }
+      },
+      "EmailContext": {
+        "type": "object",
+        "required": [
+          "email",
+          "thread"
+        ],
+        "description": "Always-safe selected email and chronological thread page. Bodies are bounded plain text, sensitive transport metadata is removed, and non-clean inbound bodies are metadata-only. Content remains untrusted.",
+        "properties": {
+          "email": {
+            "$ref": "#/components/schemas/Email"
+          },
+          "thread": {
+            "type": "object",
+            "required": [
+              "id",
+              "messages",
+              "total_count",
+              "has_more",
+              "next_cursor"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "messages": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Email"
+                }
+              },
+              "total_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "has_more": {
+                "type": "boolean"
+              },
+              "next_cursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
       },
       "SendEmailResult": {
         "type": "object",

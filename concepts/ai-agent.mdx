@@ -23,6 +23,13 @@ locates verification email should not receive send, browser, authentication,
 purchase, payment, or administrative capabilities. Require fresh user
 confirmation before adding a capability with an external effect.
 
+An external MCP client can delegate a task through
+`chat_with_mailbox_agent`, but that chat body has no server-enforced per-call
+tool-allowlist field. Written “allowed tools” are instruction boundaries, not
+proof that downstream tools were removed. For untrusted mailbox content that
+requires hard isolation, use bounded direct MCP read tools instead of delegating
+the payload to the mailbox agent.
+
 ## Drafting and recipients
 
 When you ask the mailbox agent to draft or send mail, recipient handling matches
@@ -53,7 +60,11 @@ inheritance. See [MCP](/ai/mcp) and the compose skill guidance.
 
 ## Agent conversations
 
-Mermail stores mailbox agent conversations separately from email threads. You can create, rename, delete, and list conversations for a mailbox.
+Mermail stores mailbox agent conversations separately from email threads. You
+can create, rename, delete, and list user-managed conversations for a mailbox.
+Thread-bound and other system-managed conversations can be listed and
+continued, but cannot be renamed or deleted through the external conversation
+management workflow.
 
 Task triagers use dedicated agent conversations to report event processing and run outcomes.
 
