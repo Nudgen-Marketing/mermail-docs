@@ -116,11 +116,19 @@ refresh balances with `get_agent_wallet` or `get_agent_wallet_portfolio`.
 From the CLI, `mermail wallet fund-url --mailbox-id {public_id} --amount 1`
 prints the deep link without calling MoonPay.
 
+<Warning>
+  Funding is not spending authority. A link with `amount=1` pre-fills 1 USD of
+  fiat; it does not guarantee 1 USDC and does not authorize a later transfer,
+  swap, or x402 payment. After checkout, read the actual balance once and treat
+  every spending request as a separate action.
+</Warning>
+
 ## Make a transfer with your agent
 
 Agent Wallet exposes PayBox's live tools. PayBox decides which assets, networks,
 and actions are available under the wallets and standing grants you delegated.
-Your agent can prepare the transfer, but it cannot approve the transfer for you.
+Every new transfer, including Circle USDC, uses `paybox_request_transfer`.
+Legacy USDC proposal tools are not a fallback for an ordinary send.
 
 <Steps>
   <Step title="Ask for a transfer">
@@ -147,23 +155,22 @@ Your agent can prepare the transfer, but it cannot approve the transfer for you.
   </Step>
 </Steps>
 
-### Other PayBox catalog tokens
+### Transfer tool and signing handoff
 
-For non-USDC assets (or a direct PayBox transfer), your AI uses
-`paybox_request_transfer` with the asset in `token` and the human amount in
-`amount_decimal` — never a base-unit amount it calculated itself. See
+Your AI reads the live `paybox_request_transfer` schema, resolves the exact
+credential and portfolio asset, and sends the human-authorized amount without
+inventing omitted fields. See
 [catalog token transfers](/agent-wallet/catalog-transfers) for the full contract.
 
-When signing is required, it pastes `signing_handoff.console_url`:
+When signing is required, prefer the PayBox MCP App displayed in the
+conversation. If the frame does not appear or remains on **Waiting** without a
+signing action, open the single invocation-scoped
+`signing_handoff.console_url` returned by the tool. Do not derive it from a
+mailbox or invocation id; `mermail wallet sign-url` is retired.
 
-```text
-https://console.mermail.app/mailbox/{public_id}/agent-wallet?sign=1&invocation={invocation_id}
-```
-
-Open that link on **Agent Wallet**, Generate Signing Key if prompted, and
-complete the PayBox signing UI. From the CLI,
-`mermail wallet sign-url --mailbox-id {public_id} --invocation {id}` prints the
-same deep link.
+After you confirm signing, the assistant may read the known provider request
+once with `paybox_get_request`. `get_paybox_invocation` is audit state and does
+not prove settlement.
 
 <Warning>
   Do not retry an uncertain transfer automatically. Check the request status and
@@ -195,14 +202,15 @@ you reconnect.
     deposit.
   </Accordion>
   <Accordion title="My AI client cannot see wallet tools">
-    Reconnect the client with Mermail MCP OAuth and grant `wallet:read`. Add
-    `wallet:transact` only when the client should prepare or submit transfers.
-    API keys cannot expose wallet tools.
+    Reconnect the default full `/mcp` endpoint with OAuth as the workspace
+    owner and grant core `mcp:tools`. Legacy `wallet:read` and
+    `wallet:transact` labels are not required. API keys and the agent-inbox
+    profile cannot expose wallet tools.
   </Accordion>
   <Accordion title="A transfer is still pending">
-    Check the request again instead of submitting a new transfer. If the status
-    is uncertain, verify with PayBox and the destination network before taking
-    another action.
+    Reconcile the known request once instead of submitting it again. A clearly
+    distinct new transfer is a separate action with a new request id; repeating
+    identical terms requires an explicit “another” instruction.
   </Accordion>
   <Accordion title="PayBox rejected the transfer">
     A rejected send is different from a pending one. Verify that nothing left
@@ -220,8 +228,13 @@ you reconnect.
   </Accordion>
 </AccordionGroup>
 
-## Next step
+## Next steps
 
-<Card title="Connect Agent Wallet to your AI" icon="sparkles" href="/agent-wallet/use-with-ai">
-  Choose Agent Chat, MCP, an Agent Skill, or the CLI.
-</Card>
+<CardGroup cols={2}>
+  <Card title="Connect Agent Wallet to your AI" icon="sparkles" href="/agent-wallet/use-with-ai">
+    Choose Agent Chat, MCP, an Agent Skill, or the CLI.
+  </Card>
+  <Card title="Swap assets or use x402" icon="arrows-rotate" href="/agent-wallet/swaps-and-x402">
+    Keep swaps, Funding, and paid-service authority separate.
+  </Card>
+</CardGroup>

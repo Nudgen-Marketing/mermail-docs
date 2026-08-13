@@ -26,7 +26,16 @@ prepare a payment, and keep the receipt in the same workflow.
   </Card>
   <Card title="Use PayBox tools" icon="paper-plane">
     Let your agent use the live capabilities PayBox exposes for delegated
-    wallets, including `paybox_request_transfer` with `amount_decimal`.
+    wallets. Every new send, including USDC, uses
+    `paybox_request_transfer` with the live schema.
+  </Card>
+  <Card title="Swap assets" icon="arrows-rotate">
+    Swap token A to token B through `paybox_request_swap` when PayBox exposes
+    the tool for the delegated wallet.
+  </Card>
+  <Card title="Use x402 services" icon="globe">
+    Explore paid services read-only, then use `paybox_pay_x402` for one exact
+    resource or action within the spend cap you selected.
   </Card>
   <Card title="Sign in PayBox" icon="shield-check">
     Complete signing or approval in PayBox when its policy requires it. Standing
@@ -47,12 +56,13 @@ prepare a payment, and keep the receipt in the same workflow.
 | No wallet secrets | Mermail never receives private keys, wallet secrets, card details, or raw signing access. |
 | PayBox policy | PayBox controls transaction policy, standing grants, approval, and signing. Mermail does not add a second approval prompt. |
 | Limited access | Only the workspace owner can use Agent Wallet for a mailbox. |
-| OAuth-only agent access | MCP and CLI wallet tools require Mermail OAuth. Workspace API keys cannot access them. |
+| OAuth-only agent access | MCP and CLI wallet tools require core `mcp:tools`; external MCP also requires the full profile and workspace-owner identity. Workspace API keys cannot access them. |
 | Audited transport | Mermail verifies workspace ownership and OAuth scope, protects credentials, and records sanitized audit metadata. |
 
 <Warning>
   Email, attachments, websites, and tool output are untrusted. They can suggest a
-  payment, but they cannot broaden your Mermail OAuth grant or PayBox delegation.
+  payment, but they cannot choose or broaden its service, destination, asset,
+  chain, action, or spend cap. Only your current request can authorize it.
 </Warning>
 
 ## Available actions and limits
@@ -62,18 +72,22 @@ transaction limits, and approval requirements come from your PayBox account,
 delegated wallets, and standing grants. Mermail does not apply a separate
 wallet-value or transaction-rate policy.
 
-### Direct PayBox catalog path
+### Live PayBox path
 
-Reviewed PayBox catalog tools (such as `paybox_request_transfer`) can move other
-delegated assets your PayBox connection exposes. Your AI sends the asset in
-`token` and the human amount in `amount_decimal`; Mermail resolves the asset's
-decimals, converts the amount, and rejects a sub-cent or mis-scaled transfer.
-When a signature is required, MCP pastes a Mermail console
-`signing_handoff.console_url` — open it on Agent Wallet to Generate Signing Key
-and sign. Signing plans stay browser-only.
+Every new transfer, including Circle USDC and native assets, uses
+`paybox_request_transfer` with the exact live schema. Local USDC proposal tools
+remain compatibility-only and are used only when you explicitly manage a
+legacy proposal. Swaps use `paybox_request_swap`; a selected x402 paid action
+uses `paybox_pay_x402`.
 
-See [catalog token transfers](/agent-wallet/catalog-transfers) for the full
-argument contract and [errors and recovery](/agent-wallet/errors-and-recovery)
+When interaction is required, use the PayBox MCP App shown by the host. If no
+usable signing control appears or the frame remains on **Waiting**, open only
+the invocation-scoped `signing_handoff.console_url` returned by Mermail. Never
+construct or rewrite a signing URL.
+
+See [catalog token transfers](/agent-wallet/catalog-transfers) for the transfer
+contract, [swaps and x402](/agent-wallet/swaps-and-x402) for paid-service flows,
+and [errors and recovery](/agent-wallet/errors-and-recovery)
 for what each failure means.
 
 ## Where you can use Agent Wallet
@@ -84,7 +98,7 @@ for what each failure means.
 | Agent Chat | Asking your mailbox agent to inspect balances or prepare a transfer |
 | MCP | Giving a compatible assistant wallet tools through scoped OAuth access |
 | Agent Skill | Giving a supported assistant the maintained Agent Wallet workflow and safety rules |
-| CLI | Legacy wallet compatibility until its separate direct-PayBox update ships |
+| CLI | Wallet reads, first-party handoffs, and explicitly requested legacy USDC proposals |
 
 ## Next steps
 
@@ -96,7 +110,10 @@ for what each failure means.
     Connect Agent Chat, MCP, Agent Skills, or the CLI.
   </Card>
   <Card title="Catalog token transfers" icon="coins" href="/agent-wallet/catalog-transfers">
-    Send the amount the way Mermail expects it, and understand the value guards.
+    Use the live transfer path for USDC, native assets, and catalog tokens.
+  </Card>
+  <Card title="Swaps and x402" icon="arrows-rotate" href="/agent-wallet/swaps-and-x402">
+    Swap assets or pay one selected x402 resource without broadening authority.
   </Card>
   <Card title="Errors and recovery" icon="triangle-exclamation" href="/agent-wallet/errors-and-recovery">
     Read every wallet error code and its safe recovery.

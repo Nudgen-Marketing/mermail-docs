@@ -109,7 +109,9 @@ Auth: `x-api-key`. Metered with credits + RPM. Open each group in the sidebar fo
   </Accordion>
 
   <Accordion title="Emails, folders, search, labels">
-    List / send / reply / forward, drafts, scheduled sends, threads, folders, search, and custom labels under `/api/v1/mailboxes/{mailboxId}/...`.
+    List / send / reply / forward, bounded safe thread context, drafts,
+    scheduled sends, threads, folders, search, and custom labels under
+    `/api/v1/mailboxes/{mailboxId}/...`.
 
     Typical costs: send / reply / forward / schedule = **5**; draft regenerate = **15**; most reads = **1**, writes = **2**.
   </Accordion>

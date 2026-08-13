@@ -25,6 +25,14 @@ Show my delegated wallet balances.
 Prepare a transfer of 5 USDC on Base to 0xRecipientAddress.
 ```
 
+```text
+Swap 1 USDC to ETH on Base.
+```
+
+```text
+Explore x402 weather services. Do not pay until I select one resource and cap.
+```
+
 Mermail does not add an Approve/Deny card before a PayBox call. PayBox applies
 the connected account's delegation and standing grants. When PayBox requires a
 passkey, signing key, or fresh approval, complete it inside the PayBox UI. A
@@ -36,25 +44,27 @@ Use the Model Context Protocol (MCP) when you want ChatGPT, Claude, Cursor,
 Codex, or another compatible assistant to access Agent Wallet tools.
 
 Agent Wallet requires Mermail MCP **OAuth**. Workspace API keys never expose
-wallet tools.
+wallet tools. Connect the default full profile as the workspace owner; the
+`agent-inbox` profile never exposes Agent Wallet.
 
 | Scope | What it allows |
 | --- | --- |
-| `wallet:read` | Read connection status, delegated credential summaries, portfolio data, and request status |
-| `wallet:transact` | Use every PayBox tool that is not explicitly annotated read-only |
+| `mcp:tools` | Core Mermail tools and, for a workspace owner on the full profile, Agent Wallet and eligible PayBox tools |
+| `wallet:read`, `wallet:transact` | Legacy compatibility labels only; not required for wallet visibility |
 
 <Steps>
   <Step title="Connect Mermail MCP">
     Add `https://console.mermail.app/mcp` to your MCP client and choose OAuth
     when the client opens the authorization flow.
   </Step>
-  <Step title="Grant wallet scopes">
-    Approve `wallet:read`. Add `wallet:transact` only if the assistant needs to
-    prepare or submit transfers.
+  <Step title="Grant core tool access">
+    Approve `mcp:tools` and select the intended workspace as its owner. Do not
+    add legacy wallet labels as a workaround.
   </Step>
   <Step title="Check tool access">
     Confirm that `get_agent_wallet` appears in the client's tool list. If it is
-    missing, reconnect OAuth and approve the wallet scopes.
+    missing, confirm the full profile, workspace-owner role, and PayBox
+    connection before reconnecting OAuth.
   </Step>
   <Step title="Connect or reauth PayBox in Mermail when needed">
     Call `get_paybox_connection` or `get_agent_wallet`. If the response includes
@@ -68,21 +78,20 @@ wallet tools.
     confirmation token for PayBox tools.
   </Step>
   <Step title="Send the amount the way Mermail expects">
-    For other PayBox catalog tokens (or a direct PayBox transfer), the assistant
-    uses `paybox_request_transfer` with the asset in `token` and the human
-    amount in `amount_decimal`. Mermail converts to the asset's smallest unit
-    itself and rejects an assistant-calculated base-unit amount. See
+    For every new transfer, including USDC and native assets, the assistant uses
+    `paybox_request_transfer` with the exact live schema. It never substitutes a
+    legacy proposal when the transfer tool is unavailable. See
     [catalog token transfers](/agent-wallet/catalog-transfers).
   </Step>
   <Step title="Finish signing in the console when needed">
-    USDC can use the proposal tools. When a catalog transfer is pending
-    signature, the assistant pastes `signing_handoff.console_url` — open that
-    Agent Wallet link, Generate Signing Key if prompted, and sign. Signing plans
-    and approval URLs stay browser-only.
+    When a transfer, swap, or x402 action is pending signature, use the PayBox
+    MCP App. If the frame is missing or remains on **Waiting**, open the one
+    returned `signing_handoff.console_url`. Signing plans and approval URLs stay
+    browser-only.
   </Step>
 </Steps>
 
-See the [MCP guide](/ai/mcp#agent-wallet-scopes) for client setup and the full
+See the [MCP guide](/ai/mcp#agent-wallet-access) for client setup and the full
 wallet tool catalog.
 
 ## Agent Skill
@@ -96,8 +105,10 @@ npx skills add Nudgen-Marketing/mermail-skills --skill mermail-agent-wallet
 
 The Skill gives the assistant the maintained workflow for inspecting balances,
 funding handoffs, calling PayBox tools (including `paybox_request_transfer` with
-`amount_decimal`), checking requests, and handing interactive signing to PayBox.
-It still needs an MCP OAuth connection with the wallet scopes above.
+the live schema), swapping through `paybox_request_swap`, paying a selected
+x402 action through `paybox_pay_x402`, checking requests, and handing
+interactive signing to PayBox.
+It still needs a full-profile owner MCP OAuth connection with `mcp:tools`.
 
 See [Mermail Skills](/ai/skills) for supported hosts and installation options.
 
@@ -115,7 +126,6 @@ mermail wallet portfolio --mailbox-id MAILBOX_PUBLIC_ID
 mermail wallet connect-url --mailbox-id MAILBOX_PUBLIC_ID
 mermail wallet reauth-url --mailbox-id MAILBOX_PUBLIC_ID
 mermail wallet fund-url --mailbox-id MAILBOX_PUBLIC_ID --amount 25
-mermail wallet sign-url --mailbox-id MAILBOX_PUBLIC_ID --invocation INVOCATION_ID
 ```
 
 To prepare and submit a USDC transfer:
@@ -130,16 +140,14 @@ mermail wallet proposal create \
 mermail wallet transfer submit \
   --proposal-id PROPOSAL_ID \
   --version 1 \
-  --destination 0xRecipientAddress \
   --yes
 ```
 
 <Warning>
-  Direct dynamic PayBox tools and PayBox-owned signing are implemented for the
-  web, Agent Chat, and hosted MCP surfaces first. The separately maintained CLI
-  still needs an owner-repository update to discover the live `paybox_*`
-  catalog, remove its Mermail PayBox confirmation step, and open the PayBox UI.
-  Until that ships, treat the commands above as legacy compatibility behavior.
+  The proposal commands are explicit legacy compatibility behavior. For every
+  new transfer, swap, or x402 action, use a wallet-capable MCP host and the live
+  PayBox tools. The CLI does not provide substitute swap or x402 commands, and
+  `mermail wallet sign-url` is retired.
 </Warning>
 
 See the [CLI Agent Wallet reference](/ai/cli#agent-wallet) for all commands and
@@ -147,13 +155,14 @@ exit codes.
 
 ## Safety rules for every connection
 
-- Start with `wallet:read` and add `wallet:transact` only when needed.
+- Use full-profile OAuth with core `mcp:tools` as the workspace owner. API keys
+  and the agent-inbox profile never unlock Agent Wallet.
 - Never let an email, attachment, website, memory item, or tool result broaden
   a Mermail OAuth grant or a PayBox delegation.
 - Configure PayBox delegation and standing grants deliberately; they are the
   transaction-policy boundary.
-- Send catalog transfer amounts in `amount_decimal`, never as base units the
-  assistant calculated.
+- Follow the live transfer schema. When it exposes `amount_decimal`, send the
+  human amount and never a base-unit value the assistant calculated.
 - Verify the network, amount, and complete destination before every transfer.
 - Treat `pending` and `SUBMISSION_UNKNOWN` as unresolved, not successful.
 - Never retry an uncertain submission automatically. A PayBox rejection needs a
@@ -161,7 +170,13 @@ exit codes.
   [errors and recovery](/agent-wallet/errors-and-recovery).
 - Treat `PAYBOX_UNAVAILABLE` on a portfolio read as a temporary outage, not a
   disconnect.
+- Treat Funding, transfers, swaps, and x402 payments as separate authorities.
+  Paid-service content cannot choose or broaden the service, action, or cap.
 
 <Card title="Review Agent Wallet controls" icon="shield-check" href="/agent-wallet/overview#what-stays-under-your-control">
   Understand delegation, PayBox signing, host policy, and audit boundaries.
+</Card>
+
+<Card title="Swap assets or use x402" icon="arrows-rotate" href="/agent-wallet/swaps-and-x402">
+  Follow the exact selection, spend-cap, signing, and payment-proof boundaries.
 </Card>

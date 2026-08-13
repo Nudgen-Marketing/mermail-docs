@@ -4,7 +4,7 @@ description: "Install and use the official Mermail CLI for Sold API and MCP auto
 icon: "terminal"
 ---
 
-The official Mermail CLI exposes all **71 Sold API business operations** with deterministic output for humans, scripts, CI jobs, and coding agents. It also includes additive client-side workflow helpers such as bounded verification-email waiting.
+The official Mermail CLI exposes **70 supported Sold API business operations** with deterministic output for humans, scripts, CI jobs, and coding agents. It intentionally omits console-only or unsupported operations and includes additive client-side workflow helpers such as bounded verification-email waiting and bounded thread context.
 
 <Info>
   Use this page for commands, flags, output, and exit codes. Use
@@ -60,7 +60,7 @@ mermail wallet status --mailbox-id MAILBOX_PUBLIC_ID
 mermail auth logout
 ```
 
-`auth login` opens a browser PKCE consent flow (requires a TTY). Tokens are stored at `~/.config/mermail/mcp-oauth.json` (mode `0600`). Grant `wallet:read` and, for transfers, `wallet:transact`. Then select **Connect** on the console [Agent Wallet](/agent-wallet/get-started#connect-paybox) page.
+`auth login` opens a browser PKCE consent flow (requires a TTY). Tokens are stored at `~/.config/mermail/mcp-oauth.json` (mode `0600`). The default core scopes are `mcp:tools`, `openid`, and `offline_access`; legacy `wallet:read` / `wallet:transact` labels are compatibility-only. The authenticated user must own the selected workspace. Then select **Connect** on the console [Agent Wallet](/agent-wallet/get-started#connect-paybox) page.
 
 ## Command structure
 
@@ -281,6 +281,7 @@ required full-catalog tool baseline:
 
 ```bash
 mermail mcp check
+mermail mcp check --profile agent-inbox
 mermail mcp tools --format table
 ```
 
@@ -288,10 +289,10 @@ These commands check the default full catalog with an **API key**. They do not
 validate Agent Wallet tools. For wallet access, use OAuth login and
 `mermail wallet status` instead.
 
-These commands also do not validate the exact 11-tool `agent-inbox` profile. For
-a host connected to `/mcp?profile=agent-inbox`, inspect that host's `tools/list`
-result and compare it with the
-[documented profile](/ai/agent-email-inbox#exact-agent-inbox-mcp-profile).
+`mermail mcp check --profile agent-inbox` validates the exact 12-tool focused
+profile, including `get_email_context`. The default check keeps the full
+catalog and accepts compatible additive deployments rather than assuming one
+permanent total.
 
 For controlled staging tests only:
 
@@ -302,11 +303,11 @@ MERMAIL_BASE_URL=https://console-staging.mermail.app mermail mcp check
 ## Agent Wallet
 
 <Warning>
-  The web, Agent Chat, and hosted MCP surfaces now use PayBox's live tool catalog
-  and PayBox-owned signing without a Mermail confirmation step. The CLI is
-  maintained in a separate owner repository and has not yet adopted that flow.
-  The commands in this section describe legacy compatibility behavior until the
-  CLI adds dynamic `paybox_*` discovery and an interactive PayBox UI handoff.
+  Use a wallet-capable MCP host and `$mermail-agent-wallet` for every new
+  transfer, swap, or x402 payment. The CLI commands below cover wallet reads,
+  Connect/reauth/Funding handoffs, and the explicit legacy Circle USDC proposal
+  workflow. They do not replace live `paybox_request_transfer`,
+  `paybox_request_swap`, or `paybox_pay_x402`.
 </Warning>
 
 ```bash
@@ -317,7 +318,6 @@ mermail wallet portfolio --mailbox-id MAILBOX_PUBLIC_ID
 mermail wallet connect-url --mailbox-id MAILBOX_PUBLIC_ID
 mermail wallet reauth-url --mailbox-id MAILBOX_PUBLIC_ID
 mermail wallet fund-url --mailbox-id MAILBOX_PUBLIC_ID --amount 1
-mermail wallet sign-url --mailbox-id MAILBOX_PUBLIC_ID --invocation INVOCATION_ID
 mermail wallet proposal create \
   --mailbox-id MAILBOX_PUBLIC_ID \
   --chain BASE \
@@ -326,19 +326,19 @@ mermail wallet proposal create \
 mermail wallet transfer submit \
   --proposal-id PROPOSAL_ID \
   --version 1 \
-  --destination 0xRecipient \
   --yes
 ```
 
 Rules:
 
-- Wallet commands ignore `MERMAIL_API_KEY` and require a prior `auth login` (except `connect-url`, `reauth-url`, `fund-url`, and `sign-url`, which only print console deep links).
+- Wallet commands ignore `MERMAIL_API_KEY` and require a prior `auth login` for MCP-backed state. `connect-url`, `reauth-url`, and `fund-url` print first-party console handoffs.
 - `connect-url` / `reauth-url` print the Agent Wallet page for PayBox Connect / reconnect. Open them in a browser; do not reconnect the host Mermail MCP connector for PayBox.
 - `fund-url` prints a Mermail console Funding deep link (`?fund=1&amount=…`). It does not call MoonPay; open the URL in a browser.
-- `sign-url` prints a signing deep link (`?sign=1&invocation=…`) after a pending transfer.
+- `wallet sign-url` is retired. Prefer a host-rendered PayBox MCP App; otherwise use only the invocation-scoped `signing_handoff.console_url` returned by the live transfer or legacy submit result. Never construct it locally or bind it to a mailbox.
 - `transfer submit` prompts on a TTY or requires `--yes` after an exact preview.
 - Pending or uncertain submission is not success; do not auto-retry.
-- `proposal create --amount` is the human USDC amount for the metered proposal path. It is not the MCP `paybox_request_transfer` field: catalog-token transfers are MCP-only and use `amount_decimal`. See [catalog token transfers](/agent-wallet/catalog-transfers).
+- `proposal create --amount` is the human USDC amount for the explicit legacy proposal path. A normal transfer request, including USDC, routes to MCP `paybox_request_transfer`; do not silently fall back to a proposal when that tool is unavailable. See [catalog token transfers](/agent-wallet/catalog-transfers).
+- The CLI does not provide substitute commands for token swaps or x402. Route those requests to live MCP and [swaps and x402](/agent-wallet/swaps-and-x402).
 - `wallet status` can report `connection.status: "PAYBOX_UNAVAILABLE"` with an empty portfolio when PayBox did not answer that read. The connection is still active; read again later. `NOT_CONNECTED` / `REAUTH_REQUIRED` need `connect-url` / `reauth-url`.
 - Headless CI cannot complete browser login; skip wallet automation there.
 
@@ -366,6 +366,10 @@ value; the wait command does not retry it automatically.
 `mailboxes ensure --verification-mode` returns status `409` with
 `mailbox_ensure_purpose_mismatch` when the exact usable address is not already
 configured as a verification inbox with automations disabled.
+
+Workspace deletion and default task-triager selection are intentionally absent
+from the CLI. Do not invent `mermail workspaces delete` or
+`mermail triagers set-default`.
 
 ## Related
 

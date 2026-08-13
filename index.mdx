@@ -12,8 +12,9 @@ every receipt. One MCP connection gives your agent the tools to complete the
 workflow from inbox to payment.
 
 <Info>
-  You stay in control. Your agent can prepare email and payment actions, but
-  sending email and moving funds require your approval.
+  You stay in control. Email effects require explicit authorization. For
+  payments, PayBox enforces the delegated wallets, standing grants, approval,
+  and signing policy you configured; Mermail does not add a second approval.
 </Info>
 
 ## Give your agent a way to act
@@ -24,8 +25,8 @@ workflow from inbox to payment.
     receipts, and ongoing conversations.
   </Card>
   <Card title="A user-controlled Agent Wallet" icon="wallet" href="/agent-wallet/overview">
-    Let your agent view delegated balances and prepare USDC payments without
-    exposing private keys or raw signing access.
+    Let your agent view delegated balances, transfer or swap assets, and pay one
+    selected x402 resource without exposing private keys or raw signing access.
   </Card>
   <Card title="One MCP connection" icon="plug" href="/ai/mcp">
     Connect ChatGPT, Claude, Cursor, Codex, or another compatible assistant to
@@ -48,8 +49,9 @@ workflow from inbox to payment.
     for a repeatable workflow.
   </Step>
   <Step title="Add controlled payments">
-    Connect PayBox to Agent Wallet when your agent needs to fund a wallet or pay
-    in USDC. You review each transfer before funds move.
+    Connect PayBox to Agent Wallet when your agent needs Funding, transfers,
+    swaps, or x402. Each action stays inside the exact terms you requested and
+    the delegation and signing policy you configured in PayBox.
   </Step>
 </Steps>
 

@@ -93,6 +93,7 @@
               "agent-wallet/get-started",
               "agent-wallet/use-with-ai",
               "agent-wallet/catalog-transfers",
+              "agent-wallet/swaps-and-x402",
               "agent-wallet/errors-and-recovery"
             ]
           }
@@ -163,6 +164,7 @@
               "GET /api/v1/mailboxes/{mailboxId}/emails",
               "POST /api/v1/mailboxes/{mailboxId}/emails",
               "GET /api/v1/mailboxes/{mailboxId}/emails/{emailId}",
+              "GET /api/v1/mailboxes/{mailboxId}/emails/{emailId}/context",
               "PUT /api/v1/mailboxes/{mailboxId}/emails/{emailId}",
               "DELETE /api/v1/mailboxes/{mailboxId}/emails/{emailId}",
               "POST /api/v1/mailboxes/{mailboxId}/emails/bulk-delete",
