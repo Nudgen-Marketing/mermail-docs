@@ -9,6 +9,11 @@ Circle USDC, native ETH/SOL, and reviewed catalog tokens. Read the current tool
 schema and portfolio before every request; do not reuse a stale schema or
 invent a fallback path.
 
+On full-profile OAuth, a current workspace member can use this live tool through
+the workspace owner's active PayBox connection. The member remains the audited
+actor. This does not expose owner-only legacy proposal tools or connection
+management and does not broaden the exact transfer the member authorized.
+
 | Path | Tool | Amount field |
 | --- | --- | --- |
 | New transfer, including USDC/native/catalog tokens | `paybox_request_transfer` | Exact live-schema amount field, commonly human `amount_decimal` |

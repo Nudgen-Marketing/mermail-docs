@@ -8,6 +8,11 @@ Agent Wallet uses PayBox's live MCP tools for token swaps and x402 paid-service
 actions. These are separate workflows with separate user authority. A transfer,
 Funding checkout, or earlier payment does not authorize either one.
 
+Current workspace members on full-profile OAuth can use these model-visible live
+tools through the owner's active PayBox connection; the invoking member remains
+the audited actor. Connection repair and legacy Agent Wallet operations remain
+owner-only.
+
 ## Swap token A to token B
 
 Use `paybox_request_swap` only. Do not approximate a swap with a transfer or a

@@ -43,13 +43,15 @@ valid standing grant may allow the action to continue without a fresh click.
 Use the Model Context Protocol (MCP) when you want ChatGPT, Claude, Cursor,
 Codex, or another compatible assistant to access Agent Wallet tools.
 
-Agent Wallet requires Mermail MCP **OAuth**. Workspace API keys never expose
-wallet tools. Connect the default full profile as the workspace owner; the
-`agent-inbox` profile never exposes Agent Wallet.
+PayBox requires Mermail MCP **OAuth**. Workspace API keys never expose wallet
+tools. Connect the default full profile; current workspace members can use live
+model-visible `paybox_*` through the owner's active connection, while owner-only
+legacy tools and connection management still require the owner. The
+`agent-inbox` profile never exposes PayBox.
 
 | Scope | What it allows |
 | --- | --- |
-| `mcp:tools` | Core Mermail tools and, for a workspace owner on the full profile, Agent Wallet and eligible PayBox tools |
+| `mcp:tools` | Core Mermail tools and, on the full profile, member-accessible live PayBox tools through the owner's active connection |
 | `wallet:read`, `wallet:transact` | Legacy compatibility labels only; not required for wallet visibility |
 
 <Steps>
@@ -58,19 +60,22 @@ wallet tools. Connect the default full profile as the workspace owner; the
     when the client opens the authorization flow.
   </Step>
   <Step title="Grant core tool access">
-    Approve `mcp:tools` and select the intended workspace as its owner. Do not
-    add legacy wallet labels as a workaround.
+    Approve `mcp:tools` and select the intended workspace. Do not add legacy
+    wallet labels as a workaround.
   </Step>
   <Step title="Check tool access">
-    Confirm that `get_agent_wallet` appears in the client's tool list. If it is
-    missing, confirm the full profile, workspace-owner role, and PayBox
-    connection before reconnecting OAuth.
+    Confirm that `get_paybox_connection` and the required live `paybox_*` tool
+    appear. For legacy Agent Wallet work, also require `get_agent_wallet` and
+    owner identity. If live tools are missing, confirm the full profile,
+    current membership, and the owner's active PayBox connection before
+    reconnecting OAuth.
   </Step>
   <Step title="Connect or reauth PayBox in Mermail when needed">
-    Call `get_paybox_connection` or `get_agent_wallet`. If the response includes
-    `connect_handoff` or `reauth_handoff`, open that `console_url` on Agent
-    Wallet and select **Connect** / reconnect. Do not reconnect Claude,
-    ChatGPT, or Codex connector settings for PayBox.
+    Call `get_paybox_connection`. Owners can receive `connect_handoff` or
+    `reauth_handoff` and open that `console_url` on Agent Wallet. Members receive
+    `OWNER_ACTION_REQUIRED` with no handoff when repair is needed; ask the owner
+    to act. Do not reconnect Claude, ChatGPT, or Codex connector settings for
+    PayBox.
   </Step>
   <Step title="Continue in PayBox when needed">
     A compatible host renders PayBox's `ui://` interface inline. Otherwise,
@@ -108,7 +113,8 @@ funding handoffs, calling PayBox tools (including `paybox_request_transfer` with
 the live schema), swapping through `paybox_request_swap`, paying a selected
 x402 action through `paybox_pay_x402`, checking requests, and handing
 interactive signing to PayBox.
-It still needs a full-profile owner MCP OAuth connection with `mcp:tools`.
+It still needs full-profile MCP OAuth with `mcp:tools`; owner identity is
+required only for connection management and legacy Agent Wallet operations.
 
 See [Mermail Skills](/ai/skills) for supported hosts and installation options.
 
@@ -155,8 +161,10 @@ exit codes.
 
 ## Safety rules for every connection
 
-- Use full-profile OAuth with core `mcp:tools` as the workspace owner. API keys
-  and the agent-inbox profile never unlock Agent Wallet.
+- Use full-profile OAuth with core `mcp:tools`. API keys and the agent-inbox
+  profile never unlock PayBox. Current members may use live `paybox_*` through
+  the owner's active connection; connect/reauth and legacy wallet remain
+  owner-only.
 - Never let an email, attachment, website, memory item, or tool result broaden
   a Mermail OAuth grant or a PayBox delegation.
 - Configure PayBox delegation and standing grants deliberately; they are the

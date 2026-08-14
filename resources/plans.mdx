@@ -9,8 +9,8 @@ workspace.
 
 | Plan       | Price     | Best for                                                     |
 | ---------- | --------- | ------------------------------------------------------------ |
-| Free       | $0/month  | Trying Mermail with two agent inboxes                        |
-| Developer  | $10/month | Production agents and application workflows                  |
+| Free       | $0/month  | Trying Mermail with one agent inbox                           |
+| Developer  | $19/month | Production agents and application workflows                  |
 | Enterprise | Custom    | Custom scale, compliance requirements, or private deployment |
 
 Review the current offer or start checkout on the [Mermail pricing page](https://mermail.app/pricing).
@@ -19,17 +19,19 @@ Review the current offer or start checkout on the [Mermail pricing page](https:/
 
 | Limit                |          Free |     Developer | Enterprise |
 | -------------------- | ------------: | ------------: | ---------: |
-| Inboxes              |             2 |             5 |     Custom |
-| Team members         |             2 |             5 |     Custom |
+| Inboxes              |             1 |             5 |     Custom |
+| Team members         |             1 |             5 |     Custom |
 | Emails per month     |         1,000 |        10,000 |     Custom |
 | Emails per day       | 100 per inbox | 100 per inbox |     Custom |
-| Storage              |          3 GB |         10 GB |     Custom |
+| Storage              |          1 GB |         10 GB |     Custom |
 | Inbox pods           |             2 |            10 |     Custom |
 | Webhook endpoints    |             2 |             5 |     Custom |
-| Custom domains       |  Not included |             5 |     Custom |
+| Custom domains       |  Not included |             1 |     Custom |
 | API keys             |             1 |             5 |  Unlimited |
-| API RPM              |            60 |           300 |  Unlimited |
+| API RPM              |            10 |           100 |  Unlimited |
 | API credits / period |         1,000 |        50,000 |  Unlimited |
+| External API/MCP recipients per request | 10 | No special recipient cap | No special recipient cap |
+| External API/MCP recipient windows | 10/min, 50/hour, 200/day | No special recipient windows | No special recipient windows |
 
 <Info>
   Mermail notifies you when you approach your monthly email limit. Enterprise
@@ -38,6 +40,15 @@ Review the current offer or start checkout on the [Mermail pricing page](https:/
   endpoints still require Developer or Enterprise. See the [API
   overview](/api-reference/overview) for which endpoints each plan can call.
 </Info>
+
+The external recipient limiter counts every address in To+Cc+Bcc. It applies to
+Free API/MCP `send_email`, `reply_to_email`, `forward_email`, and actual
+scheduled delivery; in-app session sends bypass this special limiter. A
+schedule is checked for the 10-recipient request cap when created, while rolling
+quota is consumed when delivery runs. If rolling quota is exhausted, Mermail
+restores the item to `scheduled` and defers it instead of claiming success.
+Developer and Enterprise bypass only this special limiter and remain subject to
+their normal RPM, API credit, monthly email, and other plan limits.
 
 ## Features
 

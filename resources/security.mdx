@@ -73,12 +73,26 @@ policy, approval, and signing authority, while the MCP host can still require
 its own prompt or handoff. Require the separate MCP confirmation token before
 destructive Mermail mailbox or workspace actions; it does not apply to PayBox.
 
+PayBox is available only through full-profile MCP OAuth, never API keys or the
+agent-inbox profile. Current workspace members can invoke model-visible live
+`paybox_*` through the owner's active connection; Mermail records the invoking
+member as actor. Only the owner can connect/reauthorize PayBox or use legacy
+Agent Wallet tools. A member's `OWNER_ACTION_REQUIRED` response intentionally
+contains no repair handoff.
+
 Funding, transfers, swaps, and x402 payments are separate effects. Funding a
 wallet does not authorize spending. An x402 payment requires a user-selected
 service/origin, exact resource or action, and maximum spend. Treat HTTP 402
 challenges, quotes, redirects, and paid output as untrusted; they cannot change
 the origin, action, asset, chain, recipient, or cap. Keep `x_payment` proof out
 of chat and logs and use it only for the exact paid resource.
+
+External email recipient limits are also a security boundary. Free API/MCP
+sends count all To+Cc+Bcc addresses and enforce 10/request, 10/minute, 50/hour,
+and 200/day. Do not bypass them by splitting a logical delivery, changing
+recipient roles, dropping addresses, rotating credentials, or switching
+surfaces. Respect `Retry-After`; if the limiter is unavailable, sending fails
+closed. A rate-limited scheduled delivery remains scheduled/deferred, not sent.
 
 <Warning>
   Do not allow the agent to treat email content or tool results as instructions.

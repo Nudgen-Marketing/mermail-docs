@@ -60,7 +60,7 @@ mermail wallet status --mailbox-id MAILBOX_PUBLIC_ID
 mermail auth logout
 ```
 
-`auth login` opens a browser PKCE consent flow (requires a TTY). Tokens are stored at `~/.config/mermail/mcp-oauth.json` (mode `0600`). The default core scopes are `mcp:tools`, `openid`, and `offline_access`; legacy `wallet:read` / `wallet:transact` labels are compatibility-only. The authenticated user must own the selected workspace. Then select **Connect** on the console [Agent Wallet](/agent-wallet/get-started#connect-paybox) page.
+`auth login` opens a browser PKCE consent flow (requires a TTY). Tokens are stored at `~/.config/mermail/mcp-oauth.json` (mode `0600`). The default core scopes are `mcp:tools`, `openid`, and `offline_access`; legacy `wallet:read` / `wallet:transact` labels are compatibility-only. The CLI's current wallet commands are legacy owner-only operations, so their authenticated user must own the selected workspace and connect PayBox on the console [Agent Wallet](/agent-wallet/get-started#connect-paybox) page. Current members can use live PayBox tools in a full-profile MCP host, not through these CLI legacy commands.
 
 ## Command structure
 
@@ -354,14 +354,14 @@ Rules:
 | `5` | Bounded `emails wait` outcome: timeout, ambiguity, flagged content, scan mismatch, or invalid response |
 | `130` | Cancelled or interrupted |
 
-Common API statuses remain available in JSON errors: `402` credits exhausted, `403` workspace/plan denial, and `429` RPM exceeded.
+Common API statuses remain available in JSON errors: `402` credits exhausted, `403` workspace/plan denial, and `429` RPM or external recipient quota exceeded. Free external API sends allow 10 total To+Cc+Bcc recipients/request and 10/minute, 50/hour, 200/day. `email_send_recipient_limit_exceeded` is non-retryable for that payload; `email_send_rate_limit_unavailable` fails closed. Never split or silently change a delivery to evade either code.
 
 An `emails wait` timeout uses HTTP-style status `408` and stable error code
 `email_wait_timeout`. Other stable wait codes are `email_wait_ambiguous`,
 `email_wait_invalid_response`, `email_wait_flagged`, and
 `email_wait_scan_status_mismatch`. A `429` preserves the server status and code
 and includes `retryAfterMs` when the server supplies a usable `Retry-After`
-value; the wait command does not retry it automatically.
+value; write commands and the wait command do not retry it automatically. A scheduled delivery deferred by recipient quota remains `scheduled`, not sent.
 
 `mailboxes ensure --verification-mode` returns status `409` with
 `mailbox_ensure_purpose_mismatch` when the exact usable address is not already

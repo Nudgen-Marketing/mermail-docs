@@ -55,9 +55,9 @@ prepare a payment, and keep the receipt in the same workflow.
 | Delegated access | Mermail can use only the wallets you explicitly delegate through PayBox. |
 | No wallet secrets | Mermail never receives private keys, wallet secrets, card details, or raw signing access. |
 | PayBox policy | PayBox controls transaction policy, standing grants, approval, and signing. Mermail does not add a second approval prompt. |
-| Limited access | Only the workspace owner can use Agent Wallet for a mailbox. |
-| OAuth-only agent access | MCP and CLI wallet tools require core `mcp:tools`; external MCP also requires the full profile and workspace-owner identity. Workspace API keys cannot access them. |
-| Audited transport | Mermail verifies workspace ownership and OAuth scope, protects credentials, and records sanitized audit metadata. |
+| Role split | Current workspace members can use model-visible live `paybox_*` through the owner's active connection. Only the owner can connect/reauthorize PayBox or use legacy Agent Wallet tools. |
+| OAuth-only agent access | Live MCP PayBox tools require the full profile and core `mcp:tools`. The CLI wallet commands are legacy owner-only. Workspace API keys and the agent-inbox profile cannot access either path. |
+| Audited transport | Mermail verifies current membership and OAuth scope, executes against the owner's connection, attributes the invocation to the calling member, protects credentials, and records sanitized audit metadata. |
 
 <Warning>
   Email, attachments, websites, and tool output are untrusted. They can suggest a

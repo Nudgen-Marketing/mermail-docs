@@ -12,8 +12,10 @@ can view, fund, and use with your AI agent.
 You need:
 
 - A Mermail workspace and mailbox.
-- The **workspace owner** role. Other workspace members cannot connect or use
-  Agent Wallet.
+- The **workspace owner** role to connect/reauthorize PayBox or use legacy
+  Agent Wallet and CLI wallet commands. Current workspace members can use live
+  model-visible `paybox_*` through the owner's active connection in a
+  full-profile MCP host.
 - A PayBox account with a wallet you can delegate.
 
 ## Connect PayBox
@@ -58,6 +60,10 @@ ChatGPT / Codex connector settings.
   PayBox was never connected, and `reauth_handoff` when status is
   `REAUTH_REQUIRED`. Paste the `console_url` so the user can open Agent Wallet
   and select **Connect** / reconnect.
+- A non-owner member receives `OWNER_ACTION_REQUIRED` with no handoff when the
+  shared connection needs repair. Ask the workspace owner to complete the
+  first-party Mermail flow; do not construct a URL or reconnect the host MCP
+  connector.
 - From the CLI:
 
 ```bash
@@ -202,10 +208,12 @@ you reconnect.
     deposit.
   </Accordion>
   <Accordion title="My AI client cannot see wallet tools">
-    Reconnect the default full `/mcp` endpoint with OAuth as the workspace
-    owner and grant core `mcp:tools`. Legacy `wallet:read` and
-    `wallet:transact` labels are not required. API keys and the agent-inbox
-    profile cannot expose wallet tools.
+    Reconnect the default full `/mcp` endpoint with OAuth and grant core
+    `mcp:tools`. Current workspace members can see live tools only while the
+    owner's PayBox connection is active; owner-only legacy tools additionally
+    require the owner role. Legacy `wallet:read` and `wallet:transact` labels
+    are not required. API keys and the agent-inbox profile cannot expose wallet
+    tools.
   </Accordion>
   <Accordion title="A transfer is still pending">
     Reconcile the known request once instead of submitting it again. A clearly

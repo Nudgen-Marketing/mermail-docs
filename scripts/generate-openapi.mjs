@@ -111,6 +111,49 @@ const commonErrors = {
 	},
 };
 
+const externalEmailRecipientResponses = {
+	"400": {
+		description:
+			"Validation error, including email_send_recipient_limit_exceeded when a Free external send has more than 10 total To+Cc+Bcc recipients",
+		content: {
+			"application/json": {
+				schema: errorSchema,
+				examples: {
+					recipientLimit: {
+						value: {
+							error: "email_send_recipient_limit_exceeded",
+							code: "email_send_recipient_limit_exceeded",
+						},
+					},
+					validation: { value: { error: "Invalid request" } },
+				},
+			},
+		},
+	},
+	"429": {
+		description:
+			"Workspace RPM or external recipient window exceeded. email_send_rate_limit_exceeded is not safe for automatic write replay; Free windows are 10 recipient units/minute, 50/hour, and 200/day.",
+		...errorContent({
+			error: "email_send_rate_limit_exceeded",
+			code: "email_send_rate_limit_exceeded",
+		}),
+		headers: {
+			"Retry-After": {
+				schema: { type: "integer" },
+				description: "Seconds until the rate limit window resets",
+			},
+		},
+	},
+	"503": {
+		description:
+			"email_send_rate_limit_unavailable — external delivery fails closed because recipient capacity cannot be verified",
+		...errorContent({
+			error: "email_send_rate_limit_unavailable",
+			code: "email_send_rate_limit_unavailable",
+		}),
+	},
+};
+
 function pathParam(name, description, example = "ws_01abc") {
 	return {
 		name,
@@ -352,6 +395,7 @@ function slimOp({
 	successSchema = { type: "object", additionalProperties: true },
 	successExample,
 	security = apiKeySecurity,
+	responses = {},
 }) {
 	return op({
 		summary,
@@ -362,6 +406,7 @@ function slimOp({
 		xCredits,
 		security,
 		responses: {
+			...responses,
 			[successStatus]: jsonResponse(
 				successDescription,
 				successSchema,
@@ -1445,7 +1490,7 @@ add(
 	op({
 		summary: "Send email",
 		description:
-			"Sends a new outbound email from the mailbox. Provide `html` and/or `text` (at least one required). Subject to send rate limits and API credits. Returns **202** with `{ id, status: \"sent\" }`.",
+			"Sends a new outbound email from the mailbox. Provide `html` and/or `text` (at least one required). Free external sends count To+Cc+Bcc and allow 10 recipients/request, 10/minute, 50/hour, and 200/day. Respect `Retry-After` and never auto-replay a send-like write. Returns **202** with `{ id, status: \"sent\" }`.",
 		tags: ["Emails"],
 		parameters: [
 			mailboxIdParam(),
@@ -1458,15 +1503,12 @@ add(
 			text: "Hi there — thanks for writing in.",
 		}),
 		responses: {
+			...externalEmailRecipientResponses,
 			"202": jsonResponse(
 				"Accepted for sending",
 				{ $ref: "#/components/schemas/SendEmailResult" },
 				{ id: "msg_7f3a2c1b", status: "sent" },
 			),
-			"400": {
-				description: "Validation error",
-				...errorContent({ error: "Invalid request" }),
-			},
 		},
 	}),
 );
@@ -1756,7 +1798,7 @@ add(
 	op({
 		summary: "Reply to email",
 		description:
-			"Sends a reply. Server injects `in_reply_to`, `references`, and `thread_id` from the original message.",
+			"Sends a reply. Server injects `in_reply_to`, `references`, and `thread_id` from the original message. Free external recipient limits count every To+Cc+Bcc address; respect `Retry-After` and do not auto-retry writes.",
 		tags: ["Emails"],
 		parameters: [
 			mailboxIdParam(),
@@ -1770,6 +1812,7 @@ add(
 			text: "Thanks — shipping tomorrow.",
 		}),
 		responses: {
+			...externalEmailRecipientResponses,
 			"202": jsonResponse(
 				"Accepted",
 				{ $ref: "#/components/schemas/SendEmailResult" },
@@ -1788,7 +1831,7 @@ add(
 	"post",
 	op({
 		summary: "Forward email",
-		description: "Forwards an existing email to new recipients.",
+		description: "Forwards an existing email to new recipients. Free external recipient limits count every To+Cc+Bcc address; respect `Retry-After` and do not auto-retry writes.",
 		tags: ["Emails"],
 		parameters: [
 			mailboxIdParam(),
@@ -1802,6 +1845,7 @@ add(
 			text: "FYI",
 		}),
 		responses: {
+			...externalEmailRecipientResponses,
 			"202": jsonResponse(
 				"Accepted",
 				{ $ref: "#/components/schemas/SendEmailResult" },
@@ -1938,7 +1982,7 @@ add(
 	slimOp({
 		summary: "Schedule send",
 		description:
-			"Schedules an outbound email for a future time. Uses draft-style fields (`body`, `scheduled_send_at`) rather than send-email `html`/`text`. Returns **201**.",
+			"Schedules an outbound email for a future time. Uses draft-style fields (`body`, `scheduled_send_at`) rather than send-email `html`/`text`. Free validates the 10-recipient request cap now but consumes rolling recipient quota at delivery; a rolling-limit failure restores the item to scheduled/deferred rather than sent. Returns **201**.",
 		tags: ["Emails"],
 		parameters: [
 			mailboxIdParam(),
@@ -1989,6 +2033,7 @@ add(
 			},
 		),
 		successStatus: "201",
+		responses: externalEmailRecipientResponses,
 		successExample: {
 			id: "dft_sched01",
 			draft_id: "dft_sched01",

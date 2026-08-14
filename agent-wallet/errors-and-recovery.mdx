@@ -36,6 +36,7 @@ argument contract.
 | `wallet_paybox_credential_unavailable` | `409` | No active PayBox wallet credential matches this chain | Ask the user to connect or unlock the wallet on Agent Wallet. Do not retry submit or paste keys |
 | `paybox_not_connected` | `409` | The mailbox has no usable PayBox connection | Paste `connect_handoff.console_url` (or open Agent Wallet → Connect). Do not reconnect the host MCP connector |
 | `paybox_reauth_required` | `401` | PayBox delegation needs reauthorization | Paste `reauth_handoff.console_url` and wait for the user to reconnect PayBox inside Mermail |
+| `OWNER_ACTION_REQUIRED` | tool status | A member cannot repair the workspace owner's shared PayBox connection | Stop and ask the owner to connect/reauthorize PayBox in Mermail. No handoff is returned; do not construct one or switch identities |
 | `paybox_write_retry_required` | `409` | A PayBox write raced with token refresh | Re-check `get_paybox_connection` / `get_agent_wallet`, then start a new write only if still connected |
 | `paybox_oauth_unavailable` | `502` / `503` | PayBox OAuth / refresh could not complete | Stop. Ask the user to open Agent Wallet and reconnect if status is `REAUTH_REQUIRED` |
 
@@ -50,6 +51,7 @@ submit/reject tools.
 | `paybox_tool_error` | `502` | PayBox rejected the operation. Mermail forwards a sanitized reason, for example a nonce that is too low or a signing plan that has gone stale | Start a **new** `paybox_request_transfer`. Do not reuse the parked request or invocation id, and do not keep polling the old one |
 | `paybox_upstream_uncertain` | `502` | The submission timed out or returned a malformed response, so its outcome is unknown | Never retry automatically. Verify the request status and the destination balance before any further action |
 | `paybox_not_connected` | `403` | The mailbox has no active PayBox connection | Ask the user to connect PayBox on the Agent Wallet page |
+| `paybox_signing_unsupported` | `422` | The authenticated MCP App continuation cannot safely use the returned signing plan | Stop. Do not expose the plan, retry the payment, or substitute a different signing route |
 
 <Warning>
   `pending`, `pending_paybox_approval`, `SUBMISSION_UNKNOWN`,

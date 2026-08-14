@@ -4250,7 +4250,7 @@
       },
       "post": {
         "summary": "Send email",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nSends a new outbound email from the mailbox. Provide `html` and/or `text` (at least one required). Subject to send rate limits and API credits. Returns **202** with `{ id, status: \"sent\" }`.\n\n**API credits:** 5 (email_send).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nSends a new outbound email from the mailbox. Provide `html` and/or `text` (at least one required). Free external sends count To+Cc+Bcc and allow 10 recipients/request, 10/minute, 50/hour, and 200/day. Respect `Retry-After` and never auto-replay a send-like write. Returns **202** with `{ id, status: \"sent\" }`.\n\n**API credits:** 5 (email_send).",
         "tags": [
           "Emails"
         ],
@@ -4287,14 +4287,24 @@
             }
           },
           "400": {
-            "description": "Validation error",
+            "description": "Validation error, including email_send_recipient_limit_exceeded when a Free external send has more than 10 total To+Cc+Bcc recipients",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 },
-                "example": {
-                  "error": "Invalid request"
+                "examples": {
+                  "recipientLimit": {
+                    "value": {
+                      "error": "email_send_recipient_limit_exceeded",
+                      "code": "email_send_recipient_limit_exceeded"
+                    }
+                  },
+                  "validation": {
+                    "value": {
+                      "error": "Invalid request"
+                    }
+                  }
                 }
               }
             }
@@ -4339,14 +4349,15 @@
             }
           },
           "429": {
-            "description": "Rate limit exceeded (workspace RPM or email send limits)",
+            "description": "Workspace RPM or external recipient window exceeded. email_send_rate_limit_exceeded is not safe for automatic write replay; Free windows are 10 recipient units/minute, 50/hour, and 200/day.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "error": "Too many requests"
+                  "error": "email_send_rate_limit_exceeded",
+                  "code": "email_send_rate_limit_exceeded"
                 }
               }
             },
@@ -4356,6 +4367,20 @@
                   "type": "integer"
                 },
                 "description": "Seconds until the rate limit window resets"
+              }
+            }
+          },
+          "503": {
+            "description": "email_send_rate_limit_unavailable — external delivery fails closed because recipient capacity cannot be verified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "email_send_rate_limit_unavailable",
+                  "code": "email_send_rate_limit_unavailable"
+                }
               }
             }
           }
@@ -5975,7 +6000,7 @@
     "/api/v1/mailboxes/{mailboxId}/emails/{emailId}/reply": {
       "post": {
         "summary": "Reply to email",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nSends a reply. Server injects `in_reply_to`, `references`, and `thread_id` from the original message.\n\n**API credits:** 5 (email_send).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nSends a reply. Server injects `in_reply_to`, `references`, and `thread_id` from the original message. Free external recipient limits count every To+Cc+Bcc address; respect `Retry-After` and do not auto-retry writes.\n\n**API credits:** 5 (email_send).",
         "tags": [
           "Emails"
         ],
@@ -6017,6 +6042,29 @@
                 "example": {
                   "id": "msg_reply01",
                   "status": "sent"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error, including email_send_recipient_limit_exceeded when a Free external send has more than 10 total To+Cc+Bcc recipients",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "recipientLimit": {
+                    "value": {
+                      "error": "email_send_recipient_limit_exceeded",
+                      "code": "email_send_recipient_limit_exceeded"
+                    }
+                  },
+                  "validation": {
+                    "value": {
+                      "error": "Invalid request"
+                    }
+                  }
                 }
               }
             }
@@ -6074,14 +6122,15 @@
             }
           },
           "429": {
-            "description": "Rate limit exceeded (workspace RPM or email send limits)",
+            "description": "Workspace RPM or external recipient window exceeded. email_send_rate_limit_exceeded is not safe for automatic write replay; Free windows are 10 recipient units/minute, 50/hour, and 200/day.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "error": "Too many requests"
+                  "error": "email_send_rate_limit_exceeded",
+                  "code": "email_send_rate_limit_exceeded"
                 }
               }
             },
@@ -6091,6 +6140,20 @@
                   "type": "integer"
                 },
                 "description": "Seconds until the rate limit window resets"
+              }
+            }
+          },
+          "503": {
+            "description": "email_send_rate_limit_unavailable — external delivery fails closed because recipient capacity cannot be verified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "email_send_rate_limit_unavailable",
+                  "code": "email_send_rate_limit_unavailable"
+                }
               }
             }
           }
@@ -6272,7 +6335,7 @@
     "/api/v1/mailboxes/{mailboxId}/emails/{emailId}/forward": {
       "post": {
         "summary": "Forward email",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nForwards an existing email to new recipients.\n\n**API credits:** 5 (email_send).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nForwards an existing email to new recipients. Free external recipient limits count every To+Cc+Bcc address; respect `Retry-After` and do not auto-retry writes.\n\n**API credits:** 5 (email_send).",
         "tags": [
           "Emails"
         ],
@@ -6318,6 +6381,29 @@
               }
             }
           },
+          "400": {
+            "description": "Validation error, including email_send_recipient_limit_exceeded when a Free external send has more than 10 total To+Cc+Bcc recipients",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "recipientLimit": {
+                    "value": {
+                      "error": "email_send_recipient_limit_exceeded",
+                      "code": "email_send_recipient_limit_exceeded"
+                    }
+                  },
+                  "validation": {
+                    "value": {
+                      "error": "Invalid request"
+                    }
+                  }
+                }
+              }
+            }
+          },
           "401": {
             "description": "Missing, invalid, expired, or revoked API key / token",
             "content": {
@@ -6358,14 +6444,15 @@
             }
           },
           "429": {
-            "description": "Rate limit exceeded (workspace RPM or email send limits)",
+            "description": "Workspace RPM or external recipient window exceeded. email_send_rate_limit_exceeded is not safe for automatic write replay; Free windows are 10 recipient units/minute, 50/hour, and 200/day.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "error": "Too many requests"
+                  "error": "email_send_rate_limit_exceeded",
+                  "code": "email_send_rate_limit_exceeded"
                 }
               }
             },
@@ -6375,6 +6462,20 @@
                   "type": "integer"
                 },
                 "description": "Seconds until the rate limit window resets"
+              }
+            }
+          },
+          "503": {
+            "description": "email_send_rate_limit_unavailable — external delivery fails closed because recipient capacity cannot be verified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "email_send_rate_limit_unavailable",
+                  "code": "email_send_rate_limit_unavailable"
+                }
               }
             }
           }
@@ -7061,7 +7162,7 @@
     "/api/v1/mailboxes/{mailboxId}/scheduled-sends": {
       "post": {
         "summary": "Schedule send",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nSchedules an outbound email for a future time. Uses draft-style fields (`body`, `scheduled_send_at`) rather than send-email `html`/`text`. Returns **201**.\n\n**API credits:** 5 (email_send).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nSchedules an outbound email for a future time. Uses draft-style fields (`body`, `scheduled_send_at`) rather than send-email `html`/`text`. Free validates the 10-recipient request cap now but consumes rolling recipient quota at delivery; a rolling-limit failure restores the item to scheduled/deferred rather than sent. Returns **201**.\n\n**API credits:** 5 (email_send).",
         "tags": [
           "Emails"
         ],
@@ -7098,6 +7199,29 @@
                   "subject": "Later",
                   "recipient": "hello@example.com",
                   "scheduled_send_at": "2026-07-16T15:00:00.000Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error, including email_send_recipient_limit_exceeded when a Free external send has more than 10 total To+Cc+Bcc recipients",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "recipientLimit": {
+                    "value": {
+                      "error": "email_send_recipient_limit_exceeded",
+                      "code": "email_send_recipient_limit_exceeded"
+                    }
+                  },
+                  "validation": {
+                    "value": {
+                      "error": "Invalid request"
+                    }
+                  }
                 }
               }
             }
@@ -7142,14 +7266,15 @@
             }
           },
           "429": {
-            "description": "Rate limit exceeded (workspace RPM or email send limits)",
+            "description": "Workspace RPM or external recipient window exceeded. email_send_rate_limit_exceeded is not safe for automatic write replay; Free windows are 10 recipient units/minute, 50/hour, and 200/day.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "error": "Too many requests"
+                  "error": "email_send_rate_limit_exceeded",
+                  "code": "email_send_rate_limit_exceeded"
                 }
               }
             },
@@ -7159,6 +7284,20 @@
                   "type": "integer"
                 },
                 "description": "Seconds until the rate limit window resets"
+              }
+            }
+          },
+          "503": {
+            "description": "email_send_rate_limit_unavailable — external delivery fails closed because recipient capacity cannot be verified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "email_send_rate_limit_unavailable",
+                  "code": "email_send_rate_limit_unavailable"
+                }
               }
             }
           }

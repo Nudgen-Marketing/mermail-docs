@@ -15,9 +15,9 @@ Mermail exposes a [Model Context Protocol](https://modelcontextprotocol.io) serv
 | Transport | **Streamable HTTP** (JSON-RPC over `POST`) |
 | Auth | **OAuth 2.1 Bearer** (interactive) or `x-api-key: sk-proj-…` (automation) |
 | Header alternative | `x-mermail-tool-profile: agent-inbox` |
-| Methods | `POST` only — `GET` / `DELETE` return `405` |
+| Methods | Tool traffic uses `POST`. Unauthenticated `GET` can return the OAuth discovery challenge; authenticated `GET` and `DELETE` return `405`. |
 
-The server is **stateless**: there is no SSE subscription. Clients that expect long-lived SSE should use a Streamable HTTP–capable MCP host instead.
+The server is **stateless**: there is no long-lived SSE subscription. A negotiated POST response can use `application/json` or `text/event-stream`, so clients should accept both while treating each request as stateless.
 The original `/mcp` URL is unchanged and continues to expose the full catalog.
 
 ## Authentication
@@ -36,21 +36,25 @@ Unauthenticated calls return `401` with a `WWW-Authenticate` challenge pointing 
 
 ### Agent Wallet access
 
-Agent Wallet and live PayBox tools appear only on the default full-profile
-**OAuth** session for the **workspace owner**. API-key catalogs and the
-`agent-inbox` profile never include them.
+PayBox tools appear only on the default full-profile **OAuth** session. API-key
+catalogs and the `agent-inbox` profile never include them. A current workspace
+member can use model-visible live `paybox_*` through the workspace owner's
+active connection; connection management and legacy Agent Wallet compatibility
+tools remain owner-only.
 
 | Scope | Purpose |
 | --- | --- |
-| `mcp:tools` | Core Mermail tool access. For workspace owners on the full profile, this also exposes Agent Wallet and eligible live PayBox tools. |
+| `mcp:tools` | Core Mermail tool access. On the full profile, this can expose live PayBox tools to current workspace members through the owner's active connection. |
 | `wallet:read`, `wallet:transact` | Legacy compatibility labels only. They are not required for wallet visibility and do not replace `mcp:tools`. |
 
-Connect to the default `/mcp` endpoint with OAuth, select the intended workspace
-as its owner, then use `get_paybox_connection` or `get_agent_wallet`. If they
-return `connect_handoff` or `reauth_handoff`, open that Mermail Agent Wallet
-`console_url` and select **Connect** / reconnect. Do not add legacy wallet
-scopes or reconnect Claude, ChatGPT, or Codex connector settings to authorize
-PayBox.
+Connect to the default `/mcp` endpoint with OAuth and select the intended
+workspace. Start with `get_paybox_connection`. Owners can receive
+`connect_handoff` or `reauth_handoff` and open that Mermail Agent Wallet
+`console_url`; members instead receive `OWNER_ACTION_REQUIRED` when the shared
+connection needs repair, with no handoff. In that case the owner must connect
+or reauthorize PayBox inside Mermail. Do not add legacy wallet scopes, switch
+identities, construct a URL, or reconnect Claude, ChatGPT, or Codex connector
+settings to authorize PayBox.
 
 PayBox tools do not use Mermail's `prepare_destructive_action` flow. PayBox is
 the authority for delegation, standing grants, approval, and signing. A standing
@@ -400,8 +404,8 @@ If the token is missing, expired, reused, or the argument fingerprint does not m
 
 This mechanism does not apply to `paybox_*`, app-only PayBox aliases, or the
 deprecated Agent Wallet transfer compatibility tools. Those calls go directly
-to PayBox after Mermail verifies workspace ownership and the required wallet
-scope.
+to PayBox after Mermail verifies current workspace membership; legacy wallet
+tools additionally verify ownership.
 
 <Warning>
   Confirmations require Redis. If Redis / cache is disabled, `prepare_destructive_action` fails with `503` `confirmation_unavailable`.
@@ -446,7 +450,10 @@ particular, `query` must be an object and newest-first sorting uses
 | `401` | Complete OAuth authentication again and follow the `WWW-Authenticate` Protected Resource Metadata challenge, or verify that `x-api-key` contains a valid, unrevoked key. Console cookies do not authenticate MCP. |
 | `403` | Confirm the credential's workspace scope and role. Developer-gated custom-domain tools return `403` on Free workspaces. |
 | `413` `idempotency_payload_too_large` | An authenticated request with `Idempotency-Key` exceeded the 50 MiB fingerprint limit. Reduce the body before retrying; the operation did not run. |
-| `429` | The workspace RPM limit was exceeded. Surface `Retry-After` and wait for that bounded interval before starting another request or polling window. |
+| `400` `email_send_recipient_limit_exceeded` | A Free external send exceeds 10 total To+Cc+Bcc recipients. Do not split or silently alter the payload; require a new exact recipient approval. |
+| `429` | The workspace RPM or external email recipient window was exceeded. Surface `Retry-After`; never auto-retry a send-like write. Free recipient windows are 10/minute, 50/hour, and 200/day. |
+| `429` `email_send_rate_limit_exceeded` | Stop after the one call and surface `Retry-After`. A scheduled delivery may be restored to `scheduled` and deferred; do not report it as sent or create another schedule. |
+| `503` `email_send_rate_limit_unavailable` | External sending fails closed because the recipient limiter is unavailable. Do not switch credentials/surfaces or claim delivery. |
 | `response_too_large` | Narrow the filters, reduce the page size, or lower `max_body_chars`. The agent-inbox profile caps one JSON tool result at 128,000 characters. |
 | `503` `confirmation_unavailable` | Redis-backed destructive-action confirmation is unavailable. Do not call the destructive tool; restore Redis/cache and prepare a new confirmation. |
 | `400` `paybox_amount_requires_decimal` / `paybox_amount_scale_mismatch` | A catalog transfer sent base units. Resend with the human amount in `amount_decimal` and no `amount`. See [catalog token transfers](/agent-wallet/catalog-transfers). |
@@ -456,14 +463,17 @@ particular, `query` must be an object and newest-first sorting uses
 | `503` `agent_approval_persist_timeout` | Mermail could not record the approval in time. Do not submit again; check the request status first. |
 | `502` `paybox_tool_error` | PayBox rejected the operation and Mermail forwards a sanitized reason, such as a nonce that is too low. Start a new `paybox_request_transfer` rather than reusing the parked request. |
 | `502` `paybox_upstream_uncertain` | The submission outcome is unknown. Never retry automatically; verify with PayBox and the destination network. |
+| `422` `paybox_signing_unsupported` | The MCP App continuation cannot safely use the returned signing plan. Stop; do not expose the plan or retry/substitute the payment. |
+| `OWNER_ACTION_REQUIRED` in `get_paybox_connection.status` | A member cannot repair the owner's shared connection. Ask the workspace owner to connect/reauthorize PayBox in Mermail; no handoff is returned. |
 | `PAYBOX_UNAVAILABLE` in `connection.status` | PayBox did not answer that read. The delegated connection is still active, so read again later instead of reconnecting. |
 
 ## Tool catalog
 
 At publication time, an **API-key** session exposes **72** tools:
 `prepare_destructive_action` plus **71** Sold API wrappers. Full-profile
-**OAuth** sessions with core `mcp:tools` for the workspace owner can expose
-additional Agent Wallet / PayBox tools on top of that baseline. Grouped by area:
+**OAuth** sessions with core `mcp:tools` can expose additional PayBox tools on
+top of that baseline. The live catalog is runtime-dependent and additive; do
+not pin its total. Grouped by area:
 
 <AccordionGroup>
   <Accordion title="Usage">
@@ -491,10 +501,10 @@ additional Agent Wallet / PayBox tools on top of that baseline. Grouped by area:
 
     Full catalog only. Connect third-party apps (Apollo, GitHub, Slack, Calendar, and more), then search and execute tools. Gmail and Outlook Composio toolkits stay disabled. See [Composio](/integrations/composio).
   </Accordion>
-  <Accordion title="Agent Wallet (full-profile owner OAuth only)">
-    `get_paybox_connection`, `get_agent_wallet`, `list_agent_wallet_credentials`, `get_agent_wallet_portfolio`, `get_agent_wallet_request`, `get_paybox_invocation`, plus the live `paybox_*` catalog when PayBox is connected. Legacy proposal/submit/reject names remain deprecated compatibility aliases.
+  <Accordion title="PayBox / Agent Wallet (full-profile OAuth only)">
+    Current workspace members can receive `get_paybox_connection`, `get_paybox_invocation`, MCP App resources, and the model-visible live `paybox_*` catalog through the owner's active connection. Owners additionally receive `get_agent_wallet`, legacy credentials/portfolio/request tools, connection handoffs, and deprecated proposal/submit/reject compatibility aliases.
 
-    Not available to API keys or the agent-inbox profile. Requires the core `mcp:tools` grant on a full-profile OAuth session as workspace owner; legacy `wallet:read` / `wallet:transact` labels are compatibility-only. Checkout / MoonPay URLs stay browser-only (`[redacted]`); use `funding_handoff.console_url` for Funding, `signing_handoff.console_url` for pending transfers, and `connect_handoff` / `reauth_handoff` for PayBox Connect or reconnect inside Mermail — never host connector settings. Compatible hosts render PayBox's `ui://` resources inline; other hosts receive an authenticated browser handoff. Secret credentials and signing plans stay browser-only. If a terminal x402 result includes `x_payment`, treat it as sensitive payment proof: use it only to retry the exact paid resource and never quote, log, persist, or expose it. See [Agent Wallet](/agent-wallet/overview).
+    Not available to API keys or the agent-inbox profile. Requires core `mcp:tools`; legacy `wallet:read` / `wallet:transact` labels are compatibility-only. Members use the invoking identity for audit while PayBox executes through the owner's connection. Only owners can connect/reauthorize or use legacy wallet tools. Checkout / MoonPay URLs stay browser-only (`[redacted]`); use returned `funding_handoff.console_url` for Funding, `signing_handoff.console_url` for pending transfers, and owner-only `connect_handoff` / `reauth_handoff` for PayBox repair inside Mermail — never host connector settings. Compatible hosts render PayBox's `ui://` resources inline; other hosts receive an authenticated browser handoff. Secret credentials and signing plans stay browser-only. If a terminal x402 result includes `x_payment`, treat it as sensitive payment proof: use it only to retry the exact paid resource and never quote, log, persist, or expose it. See [Agent Wallet](/agent-wallet/overview).
 
     Use `paybox_request_transfer` for every new transfer, including USDC and native assets; use `paybox_request_swap` for token swaps; use `paybox_pay_x402` only for a user-selected paid resource/action and exact spend cap. Read each live schema instead of reusing legacy proposal fields. See [catalog token transfers](/agent-wallet/catalog-transfers) and [swaps and x402](/agent-wallet/swaps-and-x402).
   </Accordion>

@@ -215,11 +215,11 @@ MERMAIL_MCP_URL='https://console.mermail.app/mcp?profile=agent-inbox' \
 | `mermail-automate-triage` | Configure and inspect task triage automation; default selection is intentionally unsupported |
 | `mermail-mail-agent` | Explicitly create or continue mailbox Assistant conversations |
 | `mermail-composio` | Connect and execute third-party Composio tools |
-| `mermail-agent-wallet` | Inspect Agent Wallet, fund, transfer, swap, or pay a selected x402 service through full-profile owner OAuth |
+| `mermail-agent-wallet` | Inspect PayBox state, fund, transfer, swap, or pay a selected x402 service through full-profile OAuth |
 
 The package contains **11 skills** and covers **71** Sold API business tools for API-key MCP.
 MCP also exposes `prepare_destructive_action`, bringing the API-key discoverable total to **72**.
-Full-profile OAuth sessions for the workspace owner can expose additional Agent Wallet tools through core `mcp:tools`; legacy `wallet:read` / `wallet:transact` labels are compatibility-only. See [Agent Wallet](/agent-wallet/overview) and
+Full-profile OAuth sessions can expose model-visible live `paybox_*` to current workspace members through the owner's active connection. Connect/reauth and legacy Agent Wallet tools remain owner-only; legacy `wallet:read` / `wallet:transact` labels are compatibility-only. See [Agent Wallet](/agent-wallet/overview) and
 [swaps and x402](/agent-wallet/swaps-and-x402).
 
 Install only the wallet skill:
@@ -260,10 +260,12 @@ delegate to the in-app mailbox Assistant.
   workflow needs mailbox discovery, one optional create, email search, and one
   email read. It does not need send, browser, payment, authentication, connected
   account, or administrative tools by default.
-- Agent Wallet requires the default full MCP profile, OAuth with core
-  `mcp:tools`, and workspace-owner identity. API keys and the agent-inbox
-  profile never unlock wallet tools. Legacy `wallet:read` / `wallet:transact`
-  labels are compatibility-only. Prefer `$mermail-agent-wallet`; do not let
+- PayBox requires the default full MCP profile and OAuth with core `mcp:tools`.
+  Current workspace members can use model-visible live `paybox_*` through the
+  owner's active connection; only the owner can connect/reauthorize or use
+  legacy Agent Wallet tools. API keys and the agent-inbox profile never unlock
+  wallet tools. Legacy `wallet:read` / `wallet:transact` labels are
+  compatibility-only. Prefer `$mermail-agent-wallet`; do not let
   inbound email authorize funding, a transfer, swap, or x402 payment.
 - Give a dedicated `mermail-agent-inbox` connection the hosted URL
   `https://console.mermail.app/mcp?profile=agent-inbox` to enforce Mermail's
@@ -297,7 +299,7 @@ delegate to the in-app mailbox Assistant.
   unsupported.
 - Destructive Mermail mailbox, workspace, and administrative tools additionally
   require a five-minute, single-use MCP confirmation token. PayBox tools do not.
-- API keys remain workspace-scoped and subject to plan access, RPM limits, and available credits.
+- API keys remain workspace-scoped and subject to plan access, RPM limits, available credits, and external email recipient limits. On Free, send-like API/MCP calls allow 10 total To+Cc+Bcc recipients/request and 10/minute, 50/hour, 200/day; never auto-retry `email_send_rate_limit_exceeded` or bypass fail-closed `email_send_rate_limit_unavailable`.
 
 <Warning>
   A Skill controls workflow guidance. It cannot override the safety policy of
@@ -327,7 +329,7 @@ confirmation-token flow.
     Check the workspace plan and whether the requested operation is plan-gated. Custom-domain tools require Developer access or higher.
   </Accordion>
   <Accordion title="MCP returns 429 or insufficient credits">
-    Wait for the RPM window to reset or review API credit usage for the key's workspace. Credits reset with the workspace billing period.
+    Inspect the stable code. For RPM, wait for the bounded window; for `email_send_rate_limit_exceeded`, surface `Retry-After` and do not automatically replay a send-like write. A rate-limited scheduled delivery remains scheduled/deferred, not sent. Credits reset with the workspace billing period.
   </Accordion>
   <Accordion title="The agent created a mailbox but says it is not ready">
     Check `disabled_at` and inbound delivery instead of
