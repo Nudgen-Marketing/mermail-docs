@@ -48,7 +48,11 @@ tools remain owner-only.
 | `wallet:read`, `wallet:transact` | Legacy compatibility labels only. They are not required for wallet visibility and do not replace `mcp:tools`. |
 
 Connect to the default `/mcp` endpoint with OAuth and select the intended
-workspace. Start with `get_paybox_connection`. Owners can receive
+workspace. Always `tools/call` `get_paybox_connection` once as the first PayBox
+action. Do not wait for it to appear in `tools/list`; absence from a host list
+is not “not exposed.” After a usable/`ACTIVE` probe, continue even if the first
+list omitted `paybox_*`. Reconnect Mermail MCP only after that call returns
+unknown-tool, method-not-found, or a hard fail. Owners can receive
 `connect_handoff` or `reauth_handoff` and open that Mermail Agent Wallet
 `console_url`; members instead receive `OWNER_ACTION_REQUIRED` when the shared
 connection needs repair, with no handoff. In that case the owner must connect
@@ -59,7 +63,8 @@ settings to authorize PayBox.
 PayBox tools do not use Mermail's `prepare_destructive_action` flow. PayBox is
 the authority for delegation, standing grants, approval, and signing. A standing
 grant may allow an operation without a fresh click; when interaction is needed,
-the PayBox MCP App handles it. Pending or `SUBMISSION_UNKNOWN` is not success.
+the PayBox MCP App handles it. Pending, `SUBMISSION_UNKNOWN`, and
+`paybox_continuation_origin_not_found` are not success.
 
 #### Live PayBox tools and UI
 
@@ -464,6 +469,8 @@ particular, `query` must be an object and newest-first sorting uses
 | `502` `paybox_tool_error` | PayBox rejected the operation and Mermail forwards a sanitized reason, such as a nonce that is too low. Start a new `paybox_request_transfer` rather than reusing the parked request. |
 | `502` `paybox_upstream_uncertain` | The submission outcome is unknown. Never retry automatically; verify with PayBox and the destination network. |
 | `422` `paybox_signing_unsupported` | The MCP App continuation cannot safely use the returned signing plan. Stop; do not expose the plan or retry/substitute the payment. |
+| `paybox_continuation_origin_not_found` | PayBox Submit failed because the signing continuation had no `pay_x402` / transfer / swap origin. Not awaiting signature. Reconcile `paybox_get_request` once; if origin is missing, wait for a fresh authorized `paybox_pay_x402`. Do not call `reopen_signing_window`. See [errors and recovery](/agent-wallet/errors-and-recovery). |
+| Empty host `tools/list` for `paybox_*` | Always `tools/call` `get_paybox_connection` once before any reconnect-MCP copy. Absence from the list is not “not exposed.” Reconnect only after that call returns unknown-tool, method-not-found, or a hard fail. |
 | `OWNER_ACTION_REQUIRED` in `get_paybox_connection.status` | A member cannot repair the owner's shared connection. Ask the workspace owner to connect/reauthorize PayBox in Mermail; no handoff is returned. |
 | `PAYBOX_UNAVAILABLE` in `connection.status` | PayBox did not answer that read. The delegated connection is still active, so read again later instead of reconnecting. |
 
@@ -506,7 +513,7 @@ not pin its total. Grouped by area:
 
     Not available to API keys or the agent-inbox profile. Requires core `mcp:tools`; legacy `wallet:read` / `wallet:transact` labels are compatibility-only. Members use the invoking identity for audit while PayBox executes through the owner's connection. Only owners can connect/reauthorize or use legacy wallet tools. Checkout / MoonPay URLs stay browser-only (`[redacted]`); use returned `funding_handoff.console_url` for Funding, `signing_handoff.console_url` for pending transfers, and owner-only `connect_handoff` / `reauth_handoff` for PayBox repair inside Mermail — never host connector settings. Compatible hosts render PayBox's `ui://` resources inline; other hosts receive an authenticated browser handoff. Secret credentials and signing plans stay browser-only. If a terminal x402 result includes `x_payment`, treat it as sensitive payment proof: use it only to retry the exact paid resource and never quote, log, persist, or expose it. See [Agent Wallet](/agent-wallet/overview).
 
-    Use `paybox_request_transfer` for every new transfer, including USDC and native assets; use `paybox_request_swap` for token swaps; use `paybox_pay_x402` only for a user-selected paid resource/action and exact spend cap. Read each live schema instead of reusing legacy proposal fields. See [catalog token transfers](/agent-wallet/catalog-transfers) and [swaps and x402](/agent-wallet/swaps-and-x402).
+    Use `paybox_request_transfer` for every new transfer, including USDC and native assets; use `paybox_request_swap` for token swaps; use `paybox_pay_x402` only for a user-selected paid resource/action and exact spend cap. Do not pay with `paybox_use_service` — that tool is unpaid `mode: "probe"` only when the live schema has it. Live catalog rows such as `paybox_discover_services` and `paybox_get_contract` may appear without a separate coverage row. Read each live schema instead of reusing legacy proposal fields. See [catalog token transfers](/agent-wallet/catalog-transfers) and [swaps and x402](/agent-wallet/swaps-and-x402).
   </Accordion>
   <Accordion title="Safety">
     `prepare_destructive_action` — issues confirmation tokens for destructive Mermail mailbox, workspace, and administrative tools; it does not apply to PayBox

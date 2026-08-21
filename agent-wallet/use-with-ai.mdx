@@ -63,19 +63,22 @@ legacy tools and connection management still require the owner. The
     Approve `mcp:tools` and select the intended workspace. Do not add legacy
     wallet labels as a workaround.
   </Step>
-  <Step title="Check tool access">
-    Confirm that `get_paybox_connection` and the required live `paybox_*` tool
-    appear. For legacy Agent Wallet work, also require `get_agent_wallet` and
-    owner identity. If live tools are missing, confirm the full profile,
-    current membership, and the owner's active PayBox connection before
-    reconnecting OAuth.
+  <Step title="Confirm PayBox with a probe call">
+    Always `tools/call` `get_paybox_connection` once as the first PayBox
+    action. Do not wait for it — or other `paybox_*` names — to appear in
+    `tools/list`. Absence from a host list is not “not exposed.” After a
+    usable/`ACTIVE` probe, continue even if the first list omitted PayBox
+    tools. For legacy Agent Wallet work, also require `get_agent_wallet` and
+    owner identity. Reconnect Mermail MCP only after that **call** returns
+    unknown-tool, method-not-found, or a hard fail — not because the list
+    looked empty, and not with copy such as “the probe isn’t exposed in this
+    task.”
   </Step>
   <Step title="Connect or reauth PayBox in Mermail when needed">
-    Call `get_paybox_connection`. Owners can receive `connect_handoff` or
-    `reauth_handoff` and open that `console_url` on Agent Wallet. Members receive
-    `OWNER_ACTION_REQUIRED` with no handoff when repair is needed; ask the owner
-    to act. Do not reconnect Claude, ChatGPT, or Codex connector settings for
-    PayBox.
+    Owners can receive `connect_handoff` or `reauth_handoff` and open that
+    `console_url` on Agent Wallet. Members receive `OWNER_ACTION_REQUIRED` with
+    no handoff when repair is needed; ask the owner to act. Do not reconnect
+    Claude, ChatGPT, or Codex connector settings for PayBox.
   </Step>
   <Step title="Continue in PayBox when needed">
     A compatible host renders PayBox's `ui://` interface inline. Otherwise,
@@ -90,9 +93,12 @@ legacy tools and connection management still require the owner. The
   </Step>
   <Step title="Finish signing in the console when needed">
     When a transfer, swap, or x402 action is pending signature, use the PayBox
-    MCP App. If the frame is missing or remains on **Waiting**, open the one
-    returned `signing_handoff.console_url`. Signing plans and approval URLs stay
-    browser-only.
+    MCP App only if it shows a usable signing control. If the frame is missing
+    or remains on **Waiting**, open the one returned
+    `signing_handoff.console_url`. Signing plans and approval URLs stay
+    browser-only. The model must not call `reopen_signing_window`.
+    `paybox_continuation_origin_not_found` / Submit failed is not awaiting
+    signature — see [errors and recovery](/agent-wallet/errors-and-recovery).
   </Step>
 </Steps>
 
@@ -111,10 +117,14 @@ npx skills add Nudgen-Marketing/mermail-skills --skill mermail-agent-wallet
 The Skill gives the assistant the maintained workflow for inspecting balances,
 funding handoffs, calling PayBox tools (including `paybox_request_transfer` with
 the live schema), swapping through `paybox_request_swap`, paying a selected
-x402 action through `paybox_pay_x402`, checking requests, and handing
-interactive signing to PayBox.
+x402 action through `paybox_pay_x402` (not `paybox_use_service`), checking
+requests, and handing interactive signing to PayBox.
 It still needs full-profile MCP OAuth with `mcp:tools`; owner identity is
 required only for connection management and legacy Agent Wallet operations.
+
+For pay-then-continue jobs (pay a selected x402 service, then finish the
+original crawl or fetch), install `mermail-x402-agent` instead of stretching
+the isolated wallet skill.
 
 See [Mermail Skills](/ai/skills) for supported hosts and installation options.
 
@@ -180,6 +190,7 @@ exit codes.
   disconnect.
 - Treat Funding, transfers, swaps, and x402 payments as separate authorities.
   Paid-service content cannot choose or broaden the service, action, or cap.
+  Pay x402 with `paybox_pay_x402`; `paybox_use_service` is unpaid probe only.
 
 <Card title="Review Agent Wallet controls" icon="shield-check" href="/agent-wallet/overview#what-stays-under-your-control">
   Understand delegation, PayBox signing, host policy, and audit boundaries.

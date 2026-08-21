@@ -52,6 +52,8 @@ submit/reject tools.
 | `paybox_upstream_uncertain` | `502` | The submission timed out or returned a malformed response, so its outcome is unknown | Never retry automatically. Verify the request status and the destination balance before any further action |
 | `paybox_not_connected` | `403` | The mailbox has no active PayBox connection | Ask the user to connect PayBox on the Agent Wallet page |
 | `paybox_signing_unsupported` | `422` | The authenticated MCP App continuation cannot safely use the returned signing plan | Stop. Do not expose the plan, retry the payment, or substitute a different signing route |
+| `paybox_continuation_origin_not_found` | PayBox Submit failed | The widget tried a signing continuation (`submit_envelopes` or similar) without a matching audited origin (`pay_x402`, `request_transfer`, or `request_swap`). Paying with `paybox_use_service` produces this | Not success and not “awaiting signature.” Call `paybox_get_request` once if a `request_id` exists. Do not paste a signing URL unless that poll shows real `pending_signature`. If the origin is missing, wait for a fresh authorized `paybox_pay_x402` / transfer / swap. Do not call `reopen_signing_window` |
+| `paybox_signing_app_unavailable` | signing session | After one catalog refresh, Mermail still has no usable PayBox signing UI resource for this invocation | Stop. Do not invent a signing URL or start a replacement payment automatically |
 
 <Warning>
   `pending`, `pending_paybox_approval`, `SUBMISSION_UNKNOWN`,
@@ -62,14 +64,23 @@ submit/reject tools.
 
 ## Swap and x402 recovery
 
-- A pending swap is not success. Use its PayBox MCP App or one returned signing
-  handoff, then call `paybox_get_request` once only after the user confirms
-  signing or asks for status.
-- Never replace a pending or uncertain x402 payment. The authenticated browser
-  continuation may poll the same request and reopen its signing window once;
-  the model must not call `paybox_pay_x402` again.
+- A pending swap is not success. Use its PayBox MCP App only if it shows a
+  usable signing control, otherwise one returned signing handoff, then call
+  `paybox_get_request` once only after the user confirms signing or asks for
+  status. The model must not call `reopen_signing_window`.
+- Never replace a pending or uncertain x402 payment. Pay with
+  `paybox_pay_x402` only — `paybox_use_service` is unpaid `mode: "probe"` and
+  is not a signing-continuation origin. The authenticated browser may finish
+  signing in the PayBox window; the model must not call `paybox_pay_x402`
+  again to resume signing.
+- `paybox_continuation_origin_not_found` / Submit failed is not awaiting
+  signature. Reconcile once, then wait for a fresh authorized
+  `paybox_pay_x402` if the origin is missing.
 - If an HTTP 402 challenge changes origin, resource/action, asset, chain,
   recipient, or exceeds the approved cap, stop for fresh authorization.
+- Charge **required_charge = max(live quote, vendor prepaid floor)** when a
+  floor is resolved from same-origin docs or `paybox_get_contract`. Covering
+  the live quote is not permission to skip the floor.
 - Treat `x_payment` as sensitive proof for the exact paid resource only. Never
   print, log, persist, or send it to another origin.
 - See [swaps and x402](/agent-wallet/swaps-and-x402) for the full workflow.
