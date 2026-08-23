@@ -24,24 +24,27 @@ IDE, and client version.
 
 - A Mermail workspace on a plan that supports API access
 - An Agent Skills-compatible client, or Codex, Claude Code, Cursor, ChatGPT, or OpenClaw
-- For **API-key hosts** (Codex, OpenClaw) and API-key MCP fallback: a project API key with the `sk-proj-` prefix
+- For CLI, headless jobs, or an API-key MCP fallback: a project API key with the `sk-proj-` prefix
 
-**Cursor**, **Claude**, and **ChatGPT** can use **MCP OAuth** without putting an
+**Cursor**, **Claude**, **Codex**, **OpenClaw**, **Hermes**, and eligible **ChatGPT** workspaces can use **MCP OAuth** without putting an
 API key in MCP config. Use `https://console.mermail.app/mcp` for the complete
 Mermail skill catalog. For a dedicated `mermail-agent-inbox` connection, prefer
 `https://console.mermail.app/mcp?profile=agent-inbox`. Create a key in
 **Settings → API Keys** when your host needs `x-api-key`. Keys are
 workspace-bound; skill-driven operations use that workspace's RPM and API
-credits.
+credits. If a workspace does not show custom connectors or apps, ask its owner
+to enable them. Hermes keeps OAuth on remote/headless hosts through its printed
+redirect-URL paste-back flow; do not downgrade a PayBox workflow to API-key
+auth.
 
 ## Auth by host
 
 | Host | Preferred auth |
 | --- | --- |
-| Cursor, Claude, ChatGPT (custom connector) | MCP OAuth (browser consent; no key in MCP config) |
+| Cursor, Claude, Codex, OpenClaw, Hermes | MCP OAuth (browser consent; no key in MCP config) |
+| ChatGPT custom MCP app | MCP OAuth when custom apps and developer controls are available in the workspace |
 | ChatGPT / Codex **Plugins Directory** (when published) | OAuth **Apps Connected** + Skills (Linear-style; no API key) |
-| Hermes Agent | MCP OAuth via `~/.hermes/config.yaml` `auth: oauth`, then `hermes mcp login mermail` |
-| Codex (GitHub plugin), OpenClaw, **CLI** | API key via `MERMAIL_API_KEY` → `x-api-key` |
+| CLI, headless jobs, and package/plugin fallbacks | API key via `MERMAIL_API_KEY` → `x-api-key`; PayBox is unavailable |
 
 Interactive step-by-step setup: [mermail.app/agents](https://mermail.app/agents). OpenAI Directory publisher checklist: [CODEX_MARKETPLACE.md](https://github.com/Nudgen-Marketing/mermail-skills/blob/main/CODEX_MARKETPLACE.md) · skills ZIP: `npm run build:openai-zip` in mermail-skills.
 
@@ -50,13 +53,13 @@ Interactive step-by-step setup: [mermail.app/agents](https://mermail.app/agents)
 Install all Mermail skills with the Skills CLI:
 
 ```bash
-npx skills add Nudgen-Marketing/mermail-skills
+npx --yes skills add Nudgen-Marketing/mermail-skills
 ```
 
 Install only one focused workflow:
 
 ```bash
-npx skills add Nudgen-Marketing/mermail-skills \
+npx --yes skills add Nudgen-Marketing/mermail-skills \
   --skill mermail-agent-inbox
 ```
 
@@ -75,7 +78,11 @@ clawhub install mermail/mermail-compose-email
 Connect the hosted MCP server separately (skills provide workflows; MCP provides tools):
 
 ```bash
-openclaw mcp set mermail '{"url":"https://console.mermail.app/mcp","transport":"streamable-http","headers":{"x-api-key":"'"$MERMAIL_API_KEY"'"}}'
+openclaw mcp add mermail \
+  --url https://console.mermail.app/mcp \
+  --transport streamable-http \
+  --auth oauth
+openclaw mcp login mermail
 openclaw mcp doctor mermail --probe
 ```
 
@@ -85,9 +92,18 @@ Publisher notes for this repo live in [CLAWHUB.md](https://github.com/Nudgen-Mar
 
 <Tabs>
   <Tab title="Codex">
-    **Official Plugins Directory** (when published): install **Mermail** from ChatGPT/Codex **Plugins** for OAuth **Apps Connected** + Skills. See [CODEX_MARKETPLACE.md](https://github.com/Nudgen-Marketing/mermail-skills/blob/main/CODEX_MARKETPLACE.md).
+    **Recommended complete setup** — connect MCP with OAuth, then install the 15 skills without replacing that connection:
 
-    **GitHub marketplace** (API key):
+    ```bash
+    codex mcp add mermail --url https://console.mermail.app/mcp
+    codex mcp login mermail
+    npx --yes skills add Nudgen-Marketing/mermail-skills \
+      --agent codex --skill '*' --global --yes
+    ```
+
+    Start a new Codex session after installation. Run `/mcp` to inspect the Mermail connection.
+
+    **GitHub plugin fallback** (API key, no PayBox):
 
     ```bash
     export MERMAIL_API_KEY="sk-proj-YOUR_KEY"
@@ -95,15 +111,17 @@ Publisher notes for this repo live in [CLAWHUB.md](https://github.com/Nudgen-Mar
     codex plugin add mermail@mermail
     ```
 
-    Start a new Codex session after installation. Run `/mcp` to inspect the Mermail connection.
+    The plugin fallback is useful for core mail/workspace tools, but API keys never unlock Agent Wallet or x402 checkout.
   </Tab>
   <Tab title="Claude Code">
-    ```text
-    /plugin marketplace add Nudgen-Marketing/mermail-skills
-    /plugin install mermail@mermail
+    ```bash
+    claude mcp add --transport http --scope user mermail \
+      https://console.mermail.app/mcp
+    npx --yes skills add Nudgen-Marketing/mermail-skills \
+      --agent claude-code --skill '*' --global --yes
     ```
 
-    Run `/reload-plugins` after installing or updating, then use `/mcp` to inspect the connection.
+    Start a new Claude Code session, run `/mcp`, and choose **Authenticate** for Mermail. This keeps OAuth MCP separate from the skill package and preserves PayBox access.
   </Tab>
   <Tab title="Cursor">
     **Prefer MCP OAuth** — add `https://console.mermail.app/mcp` (or use the Cursor deeplink from [mermail.app/agents](https://mermail.app/agents)), then Authenticate. No `x-api-key` header is required.
@@ -131,15 +149,15 @@ Publisher notes for this repo live in [CLAWHUB.md](https://github.com/Nudgen-Mar
   <Tab title="ChatGPT">
     **Plugins Directory** (when published): install **Mermail** from **Plugins** for **Apps Connected** (OAuth) + Skills — same Linear-style layout.
 
-    **Custom connector** (works today): use **Streamable HTTP** + **OAuth** (leave auth empty). Follow the ChatGPT steps on [mermail.app/agents](https://mermail.app/agents): desktop **Settings** (`codex://settings`) then Connectors, with a web Connectors fallback at `https://chatgpt.com/#settings/Connectors`.
+    **Custom MCP app**: enable developer controls, open **Settings → Apps → Create**, choose OAuth, paste `https://console.mermail.app/mcp`, and scan tools. If **Create** is unavailable, ask the workspace owner to enable custom apps. See [mermail.app/agents](https://mermail.app/agents) for the exact flow.
   </Tab>
 </Tabs>
 
 ## Configure authentication
 
-**OAuth hosts** (Cursor, Claude, ChatGPT): connect to `https://console.mermail.app/mcp` and complete browser consent. Skip `x-api-key` in MCP config.
+**OAuth hosts** (Cursor, Claude, Codex, OpenClaw, Hermes, and eligible ChatGPT workspaces): connect to `https://console.mermail.app/mcp` and complete browser consent. Skip `x-api-key` in MCP config.
 
-**API-key hosts** (Codex, OpenClaw) and API-key fallback: set the key in the environment that launches your client:
+**CLI, headless jobs, and API-key fallbacks**: set the key in the environment that launches your client:
 
 ```bash
 export MERMAIL_API_KEY="sk-proj-your-key"
@@ -149,10 +167,10 @@ Never commit the expanded value to a repository, plugin manifest, shell script, 
 
 | Platform | Header mapping |
 | --- | --- |
-| Codex | `env_http_headers: { "x-api-key": "MERMAIL_API_KEY" }` |
+| Codex plugin fallback | `env_http_headers: { "x-api-key": "MERMAIL_API_KEY" }` |
 | Claude Code (API-key mode) | `headers: { "x-api-key": "${MERMAIL_API_KEY}" }` |
 | Cursor (API-key fallback) | `headers: { "x-api-key": "${env:MERMAIL_API_KEY}" }` |
-| OpenClaw | `headers: { "x-api-key": "<MERMAIL_API_KEY>" }` |
+| OpenClaw headless fallback | `headers: { "x-api-key": "<MERMAIL_API_KEY>" }` |
 
 <Warning>
   Desktop applications only receive environment variables available to their process. Restart an already-open client after setting the key. On macOS or Linux, launch the client from the configured terminal if a shell-only variable is not visible to desktop apps.
