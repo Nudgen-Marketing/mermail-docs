@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "Mermail",
   "colors": {
-    "primary": "#43c9cb",
+    "primary": "#0e7f85",
     "light": "#43c9cb",
-    "dark": "#43c9cb"
+    "dark": "#0e7f85"
   },
   "favicon": "/mermail-favicon.png",
   "navigation": {
@@ -60,6 +60,7 @@
             "pages": [
               "resources/faq",
               "resources/support",
+              "resources/brand-guideline",
               "resources/contact-socials",
               "resources/plans"
             ]
