@@ -56,6 +56,13 @@
             "pages": ["resources/security"]
           },
           {
+            "group": "Legal",
+            "pages": [
+              "legal/terms-of-service",
+              "legal/privacy-policy"
+            ]
+          },
+          {
             "group": "Resources",
             "pages": [
               "resources/faq",
