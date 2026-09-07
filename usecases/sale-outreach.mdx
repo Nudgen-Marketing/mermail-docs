@@ -1,0 +1,146 @@
+---
+title: "Sale Outreach"
+description: "Find prospects with Apify and prepare personalized outreach from a Mermail mailbox."
+icon: "paper-plane"
+---
+
+Find businesses that match your target audience, review their public contact
+details, and introduce your product from a Mermail mailbox.
+
+This guide follows the workflow shown in
+[Apify Sales Outreach Usecase @ Mermail](https://www.youtube.com/watch?v=RsQPHgKApHw):
+the user selects a mailbox, asks for Shopify prospects in Australia, completes
+an Apify prepaid-access signing step, and checks outreach in Mermail. The demo
+includes the **Sent** view and the assistant's summary of three outreach emails.
+
+The prompts below adapt that workflow into separate research, review, and send
+steps so you can check the results before contacting prospects.
+
+## Before you begin
+
+- [Create a Mermail mailbox](/guides/create-mailbox) and confirm which workspace
+  and sender address you want to use.
+- [Connect your assistant to Mermail MCP](/ai/mcp) using the full OAuth profile
+  for wallet-enabled work. An API-key connection or agent-inbox profile does
+  not unlock Agent Wallet.
+- [Connect Agent Wallet](/agent-wallet/get-started) and make sure the delegated
+  wallet has sufficient funds if Apify access needs a purchase. The workspace
+  owner must complete the initial PayBox connection.
+- Prepare your product description, target audience, and spending limit.
+
+<Note>
+  The demo uses a paid Apify research workflow. Available tools, prices, and
+  signing requirements can differ. Ask the assistant to check current service
+  access and the current quote rather than assuming the demo's amount applies.
+</Note>
+
+## Run the workflow
+
+<Steps>
+  <Step title="Choose your sender mailbox">
+    Ask your connected assistant to check Mermail and list your mailboxes:
+
+    ```text
+    Check my Mermail MCP connection and list the mailboxes I can use.
+    Do not send any email or purchase anything yet.
+    ```
+
+    Select the exact mailbox and workspace from the result. Use that sender
+    consistently for research context, saved emails, and any later send.
+  </Step>
+  <Step title="Define your prospect search">
+    The video asks for three Shopify prospects in Australia. Make the selection
+    criteria explicit instead of relying on an undefined ranking such as “top.”
+
+    ```text
+    Use the mailbox I selected for this outreach workflow.
+    Find up to 3 Shopify businesses in Australia using Apify.
+    Prioritize businesses with a public business contact address and a clear
+    reason they could benefit from a customer support inbox.
+
+    Show each business's name, website, public contact email, source URL,
+    and the evidence for its relevance. Do not guess owner names or email
+    addresses. Exclude duplicates and contacts who previously opted out.
+
+    Check whether usable Apify access already exists. If a purchase is needed,
+    show me the current cost and terms and wait for my approval. Do not send
+    outreach yet.
+    ```
+
+    Public research may return fewer than three suitable contacts. Ask for an
+    explanation rather than filling missing results with invented details.
+  </Step>
+  <Step title="Complete service access if required">
+    Review the proposed Apify purchase and set an explicit spending limit
+    before authorizing it. If signing is required, follow the console signing
+    link returned by the assistant and complete the approval in the app.
+
+    The video shows the user asking for the console signing URL, then returning
+    to the conversation after signing. You can use the same handoff:
+
+    ```text
+    Show me the console signing link for the pending purchase.
+    Do not create another purchase.
+    ```
+
+    After signing, ask the assistant to check the existing payment and service
+    access before continuing. Payment approval alone does not confirm that
+    research has completed. See [x402 and paid services](/agent-wallet/swaps-and-x402)
+    for the payment and recovery concepts.
+  </Step>
+  <Step title="Review leads and prepare emails">
+    Check the returned businesses, source links, and recipient addresses.
+    A public contact address is not proof that it belongs to the business owner.
+    Approve the contacts you want to use, then ask for personalized emails:
+
+    ```text
+    Prepare one short outreach email for each approved contact from my selected
+    Mermail mailbox. Introduce Mermail as a customer support inbox.
+    Use only the product details I provided and the sourced business facts.
+    Include a clear subject and a low-pressure invitation to learn more.
+    Do not claim we have used their products or spoken before.
+    Save the emails as drafts in Mermail and report which ones were saved.
+    Do not send them yet.
+    ```
+
+    Open the saved emails in Mermail. Check the sender, recipient, subject,
+    personalization, links, and signature. Research stays in Apify; email
+    preparation and sending stay in Mermail.
+  </Step>
+  <Step title="Approve sending and verify the result">
+    Once the content is ready, explicitly identify the reviewed drafts you want
+    sent. For example:
+
+    ```text
+    Send only the two drafts I just reviewed and identified above, unchanged,
+    from the selected mailbox. Leave all other drafts untouched.
+    Report the result for each email.
+    ```
+
+    Check **Sent** in that mailbox and the returned send results. A saved draft
+    is not a sent email, and a successful send does not guarantee delivery or
+    a reply. If a send result is uncertain, inspect the mailbox before retrying
+    to avoid contacting the same person twice.
+  </Step>
+</Steps>
+
+## Check the outcome
+
+- The sender belongs to the intended workspace and mailbox.
+- Every used contact has a source; missing contact details were not guessed.
+- The research cost stayed within your approved limit.
+- Only the emails you approved were sent; unapproved drafts remain untouched.
+- You can distinguish failed, saved, and sent results for each recipient.
+
+## If the workflow stops
+
+| What you see | What to do |
+| --- | --- |
+| Wallet or research tools are unavailable | Ask the assistant to inspect its available tools. Check the full OAuth MCP connection and service availability before proceeding. |
+| PayBox needs connection or reauthorization | Complete the handoff in Mermail; ask the workspace owner if your role cannot authorize it. |
+| Payment is pending | Check the existing payment and finish its signing step. Do not submit a duplicate purchase. |
+| Apify returns no usable contact | Refine the criteria or skip that business. Do not infer an email address from a name or domain. |
+| Emails exist only as drafts | Review them and explicitly approve the intended send. Research or draft creation does not authorize sending. |
+
+For related workflows, return to [Usecases overview](/usecases/overview) or read
+the [Customer Support guide](/guides/customer-support).

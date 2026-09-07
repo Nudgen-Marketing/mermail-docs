@@ -1,0 +1,133 @@
+---
+title: "Customer Support"
+description: "Set up branded customer support with shared website knowledge and signatures for your support mailboxes."
+icon: "headset"
+---
+
+Turn the public information on your website into shared reference material for
+your support mailbox agents. Review the findings, apply them to the right
+workspace, and give selected mailboxes a consistent signature.
+
+## Example: support for an online store
+
+You run an online store. Customers ask about products, delivery, and returns,
+but the answers are spread across product pages, an FAQ, and policy pages.
+You want your support mailbox agents to reference the same business information
+without copying it into each mailbox separately.
+
+In this example, you apply the store's website to its workspace and add a
+branded signature to its support mailbox. A separate partnerships mailbox keeps
+its existing signature.
+
+<Note>
+  Website context is shared across mailbox agents in the workspace. Selecting
+  mailboxes for a signature does not limit which agents can use the context.
+  Use separate workspaces for brands that need separate website profiles.
+</Note>
+
+## Before you begin
+
+- Have a public website with the business information you want to use.
+- Confirm you have admin access to the store's Mermail workspace.
+- [Create a support mailbox](/guides/create-mailbox) or choose an existing one.
+- If you want a branded email address, complete [custom domain setup](/guides/custom-domains)
+  separately and verify that the mailbox receives email.
+
+You can run this setup in the Mermail web app. It does not require an external
+MCP connection or an Apify purchase.
+
+## Set up the workflow
+
+<Steps>
+  <Step title="Analyze the store's website">
+    Open the [Customer Support page](https://mermail.app/customer-support), enter
+    your public website address, and select **Scan now**.
+
+    Use the website whose information should apply to this workspace. The scan
+    reads accessible public content, not private order records or customer
+    accounts.
+  </Step>
+  <Step title="Check the information customers rely on">
+    Review the brand summary, contact details, and **What Mermail learned**.
+    Open **Complete analysis details** and compare important findings with
+    their source pages.
+
+    For the store, check that delivery and return information matches the
+    published policies. Do not treat an absent policy as permission to offer
+    a refund or promise a delivery date.
+
+    If more relevant documentation is discovered, use **Run Detailed scan**
+    when offered. A **Partial result** can still be useful, but it does not
+    confirm that every page or policy was included.
+  </Step>
+  <Step title="Apply the knowledge to the store's workspace">
+    Select **Use this in Mermail**, sign in if needed, and choose the workspace
+    where you have admin access. Review any replacement confirmation before
+    proceeding.
+
+    In **Settings → Website context**, confirm the website and enabled state.
+    The workspace's mailbox agents can now reference its applied business
+    information. Applying context does not send a customer email or activate
+    the suggested signature.
+  </Step>
+  <Step title="Customize the support signature">
+    In **Settings → Website signature**, select **Edit signature**. Review the
+    suggested contact details and adjust the wording for your support team.
+
+    Select **Save changes** to update the preview. Under **Apply to mailboxes**,
+    select the support mailbox and leave the partnerships mailbox unchecked.
+    Select **Review and apply** and confirm any intended overwrite.
+
+    Only the selected mailboxes receive this signature. Saving inside the
+    editor alone does not persist it; a successful Apply does. Reload settings
+    to check the saved version, then open a new compose in the support mailbox
+    to inspect the signature without sending a message.
+  </Step>
+  <Step title="Check the support knowledge before using it">
+    In the support mailbox's assistant, ask a factual question based on a policy
+    you reviewed. For example:
+
+    ```text
+    Using this workspace's Website context, summarize our published return
+    policy. Include the source reference if available and identify any missing
+    conditions. Do not infer whether a particular order qualifies, and do not
+    send any email or change mailbox settings.
+    ```
+
+    Compare the answer with your current policy page. Check missing or outdated
+    details before using the information in customer communication. Website
+    context provides reference material, not access to an order's status or
+    authority to approve a return.
+  </Step>
+</Steps>
+
+## Check the outcome
+
+- **Website context** shows the intended store and is enabled in the correct
+  workspace.
+- Important business facts match the public source pages you reviewed.
+- The support mailbox uses the applied signature in a new compose.
+- Reloading settings retains the successfully applied signature.
+- The unchecked partnerships mailbox keeps its own signature, while its agent
+  still shares the workspace's Website context.
+
+Website setup and email delivery are separate. If customers cannot reach the
+support mailbox, check its address and domain configuration rather than
+re-importing the website.
+
+## Keep the setup current
+
+When your website policies change, use **Re-analyze**, review the new findings,
+and apply the new result. Do not assume that editing a website page updates the
+existing workspace profile automatically. Review signatures separately if
+contact details have changed.
+
+Use **Disable** when you want agents to stop using the retained context; it
+does not turn off existing signatures. Use **Remove** when you want to remove
+the profile and disable its associated Site Profile signatures, including
+ones edited in settings. Manually created signatures and sent emails are not
+removed.
+
+For detailed editor behavior, replacement confirmations, and troubleshooting,
+see the [Customer Support setup guide](/guides/customer-support). To choose a
+different workflow, return to [Usecases overview](/usecases/overview).
