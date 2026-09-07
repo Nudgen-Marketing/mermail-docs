@@ -49,6 +49,14 @@
             ]
           },
           {
+            "group": "Usecases",
+            "pages": [
+              "usecases/overview",
+              "usecases/sale-outreach",
+              "usecases/customer-support"
+            ]
+          },
+          {
             "group": "Integrations",
             "pages": ["integrations/composio", "integrations/telegram"]
           },
