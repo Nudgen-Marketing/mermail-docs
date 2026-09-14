@@ -1,0 +1,128 @@
+---
+title: "Urgent email detection"
+description: "Tell Mermail which incoming mail counts as urgent for your mailbox, in your own words."
+icon: "bell"
+---
+
+Every message that lands in your Inbox is checked on arrival, and the ones that need attention today get an **Urgent** badge and a louder notification. Out of the box Mermail uses a sensible built-in definition of urgent. When that definition does not match how you work, you can replace it with your own rules, written in plain language.
+
+This guide shows both: what the built-in behavior does, and how to write a custom rule. The example rule is one line — *emails from a specific client are always urgent* — and you will see it take effect on the next message that arrives.
+
+## What you need
+
+- A mailbox you can open in the [Mermail console](https://console.mermail.app).
+- A few minutes to think about what "urgent" actually means for this mailbox. That is the real work here; typing the rule takes seconds.
+
+## Open the setting
+
+Click the gear icon beside the mailbox name to open **Settings**, then scroll to **Urgent email detection**.
+
+The badge next to the section title tells you the current state at a glance:
+
+| Badge | What it means |
+| --- | --- |
+| **Default** | Detection is on and uses Mermail's built-in rules. |
+| **Custom rules** | Detection is on and uses only the rules you wrote. |
+| **Off** | Nothing is marked urgent. No badges, no urgent alerts. |
+
+<Frame caption="The Urgent email detection section, with a custom rule saved.">
+  <img src="/images/guides/urgent-email-detection/urgency-settings.png" alt="Mermail mailbox settings showing Urgent email detection with the Custom rules badge, the enable toggle, and a custom urgency rule" />
+</Frame>
+
+## Start with the built-in rules
+
+If you leave **Custom urgency rules** empty, Mermail applies its own definition. Click **View built-in default rules** to read them in full. In short, a message is marked urgent when it needs attention today — blocked customers, outages, payment failures, explicit deadlines, angry escalations, or time-sensitive requests from important contacts. Newsletters, FYI updates, marketing, routine notifications, "when you have a chance" requests, and automated reports are not urgent.
+
+<Tip>
+  Most mailboxes can leave the custom rules empty. Write your own only when the built-in definition misses something specific to your work, or flags things you do not care about.
+</Tip>
+
+## Write your own rules
+
+<Steps>
+  <Step title="Make sure detection is on">
+    **Enable urgent email detection** must be toggled on. While it is off, the rules field is disabled and nothing is ever marked urgent.
+  </Step>
+
+  <Step title="Write the rules">
+    Type your rules into **Custom urgency rules (optional)**, one rule per line. Say who or what is urgent, and be specific about the sender, domain, subject, or content that should match.
+
+    ```text
+    Emails from binhnnt.98@gmail.com are always urgent because he my client
+    ```
+
+    You can combine several rules, and you can state exceptions:
+
+    ```text
+    - Emails from @investor.com are always urgent
+    - Payment failures and outage reports are urgent
+    - Partnership intros are not urgent unless they mention a deadline
+    ```
+
+    The field holds up to 2,000 characters.
+  </Step>
+
+  <Step title="Save">
+    Click **Save Changes**. **Changes saved** appears beside the button and the badge at the top of the section switches to **Custom rules**. The next message that arrives is checked against your rules.
+  </Step>
+</Steps>
+
+<Warning>
+  Custom rules **fully replace** the built-in defaults. Once you save a rule, outages and deadlines are no longer urgent unless your own rules say so. If you want the built-in behavior *plus* something extra, write out both.
+</Warning>
+
+## What happens when mail arrives
+
+A message that matches your rules is flagged the moment it lands. In the inbox list it carries an **Urgent** badge alongside its other labels.
+
+<Frame caption="An incoming message from the sender named in the rule, flagged Urgent in the inbox list.">
+  <img src="/images/guides/urgent-email-detection/urgent-inbox.png" alt="Mermail inbox list with an email showing an Urgent badge next to its Partnership and UIUX labels" />
+</Frame>
+
+Open the message and the badge stays with the thread, next to its labels in the header.
+
+<Frame caption="The Urgent badge follows the thread, so the flag is still visible while you read.">
+  <img src="/images/guides/urgent-email-detection/urgent-thread.png" alt="Opened email thread titled Re: Invite you to design my app with an Urgent badge in the header" />
+</Frame>
+
+Urgent mail is also announced more loudly than ordinary mail: the in-app notification is styled as an alert rather than a quiet info message, and push and Telegram notifications are marked as urgent when you have them connected.
+
+<Note>
+  Only incoming Inbox mail is checked. Messages you send, and mail that never reaches the Inbox, are never marked urgent.
+</Note>
+
+## How Mermail decides
+
+Knowing the decision rules makes it much easier to predict the result:
+
+- **A rule that names a sender or domain applies only to that sender or domain.** "Emails from `alice@acme.com` are urgent" never makes `bob@acme.com` urgent.
+- **No clear match means not urgent.** Mermail does not stretch a rule to cover something similar.
+- **Ambiguity resolves to not urgent.** Vague wording such as "important stuff is urgent" will mostly produce nothing at all.
+- **Your rules are the only criteria.** With custom rules saved, Mermail deliberately ignores general email-triage instincts such as outages, deadlines, or angry tone unless you named them.
+
+## Write rules that work
+
+- **Name the thing that matches** — a sender address, a domain, a subject phrase, or specific content — instead of describing a feeling.
+- **Say what is *not* urgent** too. Exceptions are what keep the badge meaningful.
+- **Avoid "all", "every", and "always urgent" on their own.** If your rules look like they will flag most of your mail, Mermail asks you to confirm before saving, because badges and alerts stop being useful when everything carries them.
+- **Review after a week.** If nothing was flagged, your rules are probably too narrow or too vague. If everything was flagged, they are too broad.
+
+<Tip>
+  The guiding line is printed right under the toggle: be specific — if everything is urgent, nothing is.
+</Tip>
+
+## Turn it off or start over
+
+- **Reset to default** appears in the section header once you have custom rules. It clears the rules field and puts the mailbox back on the built-in defaults. Save afterwards to apply it.
+- **Toggle off** stops detection entirely. No message is marked urgent, no badges appear, and no urgent alerts are sent. Your saved rules are kept, so you can switch it back on later.
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Task triager" icon="bolt" href="/guides/task-triager">
+    Run your own instructions automatically when a calendar event or email arrives.
+  </Card>
+  <Card title="Mailbox agent" icon="sparkles" href="/concepts/ai-agent">
+    How the agent uses mailbox context, conversations, and connected tools.
+  </Card>
+</CardGroup>

@@ -1,0 +1,146 @@
+---
+title: "Task triager"
+description: "Set up a triager that runs your instructions automatically when a calendar event or email arrives."
+icon: "bolt"
+---
+
+A task triager is a rule you give a mailbox: *when this happens, do this*. You choose the event that starts it, you write the instructions in plain language, and the mailbox agent does the work on its own — no prompt, no clicking, no reminder to yourself.
+
+This guide follows one complete example from start to finish. You build a triager called **Meet clients** that watches your Google Calendar. Every time someone books a meeting, it reads the event, writes a confirmation email that summarizes the details, and sends it back to the person who booked it.
+
+## What you need first
+
+- A mailbox you can open in the [Mermail console](https://console.mermail.app).
+- A connected Google Calendar account, if you want to use a calendar trigger. The connection belongs to the member who creates the triager, so connect the calendar with the account you plan to use.
+
+<Info>
+  Every mailbox already has a **Default email response triager**. It drafts replies to incoming mail and is protected: you cannot rename, edit, or delete it. Build your own triager when you need something different.
+</Info>
+
+## Open the Task Triager page
+
+In the mailbox sidebar, select **Task Triager**. This page is where all of the mailbox's triagers live. Each row shows the triager name, how many triggers it has, how many are turned on, and which event it listens for.
+
+<Frame caption="The Task Triager page. The default triager has no Delete action; custom triagers do.">
+  <img src="/images/guides/task-triager/triager-list.png" alt="Mermail Task Triager page showing the default email response triager and a custom triager named Meet clients" />
+</Frame>
+
+## Build the triager
+
+A triager needs three things before it can run: a **name**, at least one **trigger**, and a set of **instructions**. The steps below add them in that order.
+
+<Steps>
+  <Step title="Click Create">
+    The **Create task triager** form opens. Nothing is saved until you finish the last step, so you can leave and start over.
+  </Step>
+
+  <Step title="Give it a name">
+    Type a name that says what the triager does, such as `Meet clients`.
+
+    The name is how you recognize the triager in the list, in its agent conversation, and in the notification you get after each run. Pick something you will still understand in a month.
+  </Step>
+
+  <Step title="Add a trigger">
+    The trigger answers the question printed above the field: **When should this agent run?**
+
+    Click **Add trigger**. The picker lists every event you can listen for, grouped into two categories:
+
+    | Category | Trigger choices | Use it when |
+    | --- | --- | --- |
+    | Calendar | Event created, Event updated, Event canceled | Something changes on a connected Google Calendar. |
+    | Mail | New email received, New email sent, New email received or sent | A message arrives in or leaves the mailbox. |
+
+    For this example, select **Event created**. Under **Calendars**, choose the connected calendar the triager should watch — this is the calendar whose new events will start a run. Leave **Filters** empty to catch every new event, or add a filter to narrow it down. Click **Add trigger** to confirm.
+
+    <Frame caption="Choose the event on the left, then the calendar it applies to on the right.">
+      <img src="/images/guides/task-triager/add-trigger.png" alt="Add trigger dialog with calendar and mail trigger choices and a connected calendar selected" />
+    </Frame>
+
+    You can add more than one trigger to the same triager. Each one gets its own toggle, so you can pause a single trigger later without touching the rest.
+  </Step>
+
+  <Step title="Write the instructions">
+    The instructions answer the second question on the form: **What should the agent do every time it runs?** Write them the way you would brief a new assistant — one action per line, in the order you want them done.
+
+    ```text
+    - Summarize the time, time zone, meeting location/link, attendees, and meeting objectives.
+    - Create mail that I already receive the booking meeting event and confirm
+
+    After all then send mail to inviter
+    ```
+
+    Notice what this example makes explicit: which details to pull out of the event, what kind of message to write, and who to send it to. The agent follows what you write, so anything you leave unsaid it has to guess.
+  </Step>
+
+  <Step title="Save">
+    Click **Save**. The triager appears in the list with its trigger already enabled, and it starts listening right away.
+  </Step>
+</Steps>
+
+<Frame caption="The finished triager: a name, an enabled Event created trigger, and the instructions the agent follows on every run.">
+  <img src="/images/guides/task-triager/triager-config.png" alt="Edit task trigger form showing the name Meet clients, an enabled Event created trigger, and the instructions" />
+</Frame>
+
+## Try it out
+
+The quickest way to check your work is to fire the trigger yourself. Open the calendar you selected and create an event — in this example, **Follow up project** on Friday, September 11, 4:30–5:30 PM, with a Google Meet link, a location, and two guests.
+
+Nothing else is needed on your side. Mermail picks up the new event, starts a run, and hands the agent your instructions together with the event details.
+
+## See what it did
+
+**A notification tells you the run finished.** When the triager sends mail, the notification names the message so you know exactly what went out.
+
+<Frame caption="The run notification names the message the triager sent.">
+  <img src="/images/guides/task-triager/run-notification.png" alt="Triager sent email notification naming the confirmation message" />
+</Frame>
+
+**The message itself lands in Sent.** Open it and compare it against your instructions — here the agent pulled out the time and time zone, the location and meeting link, the attendees, and the objective, exactly in the order the instructions asked for, then sent it to the inviter.
+
+<Frame caption="The confirmation the triager wrote and sent, built from the calendar event.">
+  <img src="/images/guides/task-triager/confirmation-email.png" alt="Sent email titled Re: Follow up project — meeting confirmation listing time, location, attendees, and objective" />
+</Frame>
+
+**The full history stays in the Agent panel.** Each triager keeps its own conversation. Open the conversation selector in the **Agent** tab and pick the triager — the ones that belong to a triager carry a **Trigger** badge. Use this when a run did something you did not expect and you want to see the reasoning.
+
+## Change or remove a triager
+
+Everything is managed from the **Task Triager** page:
+
+| To do this | Do that |
+| --- | --- |
+| Change the name, triggers, or instructions | Select the triager to open **Edit task trigger**. |
+| Pause a trigger without losing the setup | Turn off its toggle. The triager stays, but that event no longer starts a run. |
+| Read the run history | Click **Agent** beside the triager. |
+| Remove it for good | Click **Delete**. This also removes its triggers and its agent conversations. |
+
+The **Default email response triager** has no **Delete** action and stays with the mailbox no matter what you do to your own triagers.
+
+## Getting better results
+
+Most surprises come from instructions that left room for interpretation. A few habits that help:
+
+- **Say one action per line**, in the order you want it done.
+- **Name the exact fields** you want summarized — time, time zone, location or meeting link, attendees, objective — instead of asking for "the details".
+- **Say whether to draft or send.** If you want to review before anything goes out, ask for a draft.
+- **Say who receives the message**, for example the event organizer.
+- **Keep one triager to one job.** Two unrelated tasks are easier to debug as two triagers.
+
+<Warning>
+  A custom triager that uses a **Mail** trigger does not currently run your instructions when mail arrives or is sent. For inbound replies, use the built-in email-response triager. Use custom triagers for Google Calendar events.
+</Warning>
+
+<Note>
+  A triager runs on whatever the event contains. Treat the subject, body, links, attendees, and attachments as untrusted input — a matching trigger tells you where something came from, not that the sender is who they claim to be, and it is not permission for the agent to act beyond your instructions.
+</Note>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Task triage" icon="list-check" href="/concepts/task-triage">
+    How triggers, runs, and matching rules work behind the scenes.
+  </Card>
+  <Card title="Mailbox agent" icon="sparkles" href="/concepts/ai-agent">
+    How the agent uses mailbox context, conversations, and connected tools.
+  </Card>
+</CardGroup>

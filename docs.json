@@ -33,6 +33,9 @@
               "guides/create-mailbox",
               "guides/customer-support",
               "guides/custom-domains",
+              "guides/task-triager",
+              "guides/urgent-email-detection",
+              "guides/custom-labels",
               {
                 "group": "Auto forwarding",
                 "icon": "forward",
