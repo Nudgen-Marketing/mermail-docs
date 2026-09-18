@@ -125,3 +125,7 @@ flag.
 | A custom-domain mailbox can send but cannot receive | Re-check the domain's current Receiving MX records; send verification alone is not enough for `can_receive: true` |
 | The exact address already exists | Reuse it only when `receiving_status` is `ready` and its purpose matches the requested workflow; `--verification-mode` otherwise returns `mailbox_ensure_purpose_mismatch` |
 | A create response is uncertain | List and resolve the exact address before retrying |
+
+<Card title="Email module" icon="envelope" href="/concepts/email">
+  Review hosted vs custom-domain send, receive, and attachment limits.
+</Card>

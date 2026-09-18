@@ -424,21 +424,10 @@ const workspaceExample = {
 	role: "admin",
 	mailbox_count: 2,
 	storage: {
-		provider: "harbor_r2",
 		status: "ready",
 		redundancy_enabled: true,
 		storage_key_status: "ready",
 		storage_key_last_error: null,
-		space_id: "spc_01xyz",
-		bucket_id: "bkt_01xyz",
-		owner_address: "0xabc123def456",
-		has_api_key: true,
-		has_service_private_key: true,
-		harbor_provisioning_status: "ready",
-		harbor_last_error: null,
-		r2_bucket_name: "mermail-ws-01abc",
-		r2_provisioning_status: "ready",
-		r2_last_error: null,
 		last_error: null,
 	},
 	created_at: "2026-07-01T12:00:00.000Z",
@@ -452,9 +441,9 @@ const mailboxExample = {
 	email: "support@mail.acme.com",
 	name: "Acme Support",
 	email_domain_id: "ed_01xyz",
-	inbound_provider: "cloudflare_routing",
-	outbound_provider: "cloudflare_email",
-	provider_metadata: { domain: "mail.acme.com", provider: "resend" },
+	inbound_provider: "custom",
+	outbound_provider: "custom",
+	provider_metadata: { domain: "mail.acme.com" },
 	bucket_id: "bkt_01xyz",
 	settings: {
 		forwarding: { enabled: false, email: "" },
@@ -567,14 +556,14 @@ const emailUsageExample = {
 			name: "Acme Support",
 			email: "support@mail.acme.com",
 			sent: 200,
-			providers: { cloudflare_email: 180, legacy: 20 },
+			providers: { hosted: 180 },
 		},
 		{
 			id: "ops@mail.acme.com",
 			name: "Acme Ops",
 			email: "ops@mail.acme.com",
 			sent: 120,
-			providers: { resend: 120 },
+			providers: { custom: 120 },
 		},
 	],
 };
@@ -757,7 +746,7 @@ add(
 	slimOp({
 		summary: "Get workspace storage",
 		description:
-			"Returns Harbor / R2 storage provisioning status wrapped as `{ storage }`. Requires workspace **admin**.",
+			"Returns workspace storage provisioning status wrapped as `{ storage }`. Requires workspace **admin**.",
 		tags: ["Workspaces"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
@@ -927,20 +916,17 @@ const emailDomainExample = {
 	id: "ed_01xyz",
 	workspace_id: "ws_01abc",
 	domain: "mail.acme.com",
-	provider: "resend",
 	status: "pending",
-	provider_domain_id: "d_01",
-	region: "us-east-1",
 	dns_records: [
 		{
 			type: "TXT",
-			name: "resend._domainkey.mail.acme.com",
+			name: "selector._domainkey.mail.acme.com",
 			value: "p=MIGf…",
 		},
 		{
 			type: "MX",
 			name: "mail.acme.com",
-			value: "feedback-smtp.us-east-1.amazonses.com",
+			value: "inbound.example.net",
 		},
 	],
 	last_error: null,
@@ -971,7 +957,7 @@ add(
 	op({
 		summary: "Add email domain",
 		description:
-			"Starts custom domain provisioning with Resend. Domain must be a **subdomain** with ≥3 labels (for example `mail.acme.com` or `support.yourdomain.com`) — apex domains are rejected. Requires workspace **admin**. Subject to plan custom-domain limits. **Developer or Enterprise** required. Returns **201**. Costs **provision** credits (10).",
+			"Starts custom domain provisioning in the Email module. Domain must be a **subdomain** with ≥3 labels (for example `mail.acme.com` or `support.yourdomain.com`) — apex domains are rejected. Requires workspace **admin**. Subject to plan custom-domain limits. **Developer or Enterprise** required. Returns **201**. Costs **provision** credits (10).",
 		tags: ["Domains"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
@@ -1020,7 +1006,7 @@ add(
 	op({
 		summary: "Delete email domain",
 		description:
-			"Removes the domain from Resend and deletes the local row. Fails with **409** if any mailboxes still use the domain. Requires workspace **admin**. **Developer or Enterprise** required. Returns `{ status: \"deleted\" }` (HTTP 200).",
+			"Removes the domain from the Email module and deletes the local row. Fails with **409** if any mailboxes still use the domain. Requires workspace **admin**. **Developer or Enterprise** required. Returns `{ status: \"deleted\" }` (HTTP 200).",
 		tags: ["Domains"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
@@ -1058,7 +1044,7 @@ add(
 	op({
 		summary: "Verify email domain",
 		description:
-			"Asks Resend to re-check DNS and returns the updated domain object. `verified_at` is set when `status` becomes `verified`. Requires workspace **admin**. **Developer or Enterprise** required.\n\n**Note:** This path is metered as **provision** (10 credits) because all `POST …/email-domains…` routes share that credit class.",
+			"Asks the Email module to re-check DNS and returns the updated domain object. `verified_at` is set when `status` becomes `verified`. Requires workspace **admin**. **Developer or Enterprise** required.\n\n**Note:** This path is metered as **provision** (10 credits) because all `POST …/email-domains…` routes share that credit class.",
 		tags: ["Domains"],
 		parameters: [
 			pathParam("workspaceId", "Workspace id", "ws_01abc"),
@@ -1083,7 +1069,7 @@ add(
 			"409": {
 				description: "Missing provider domain id",
 				...errorContent({
-					error: "Email domain is missing a Resend domain id",
+					error: "Email domain is missing an Email-module domain id",
 				}),
 			},
 		},
@@ -1335,6 +1321,30 @@ add(
 );
 
 // —— Emails ——
+const outboundAttachmentsSchema = {
+	type: "array", maxItems: 20,
+	description: "Base64 file bytes or an existing attachment_id from the same authorized mailbox. Omit to preserve attachments from source_draft_id (send) or draft_id (save/schedule); [] clears; an array replaces the complete set. Storage limits: 20 files, 10 MiB each, 25 MiB decoded total. Encoded message limits include overhead: about 5 MiB for hosted addresses and about 40 MB for custom-domain addresses. Local paths and URLs are not accepted.",
+	items: {
+		oneOf: [
+			{
+				type: "object", required: ["content", "filename", "type", "disposition"],
+				properties: {
+					content: { type: "string", contentEncoding: "base64", description: "Base64 encoded file bytes, without a data URL prefix." },
+					filename: { type: "string", minLength: 1, maxLength: 255 },
+					type: { type: "string", description: "MIME type, e.g. application/pdf." },
+					disposition: { type: "string", enum: ["attachment", "inline"] },
+					contentId: { type: "string", description: "Unique bare Content-ID required for inline PNG/JPEG/GIF/WebP; use matching HTML src=cid:contentId." },
+					encryption: { type: "string", enum: ["worker-aes-v1"] },
+				}, additionalProperties: false,
+			},
+			{
+				type: "object", required: ["attachment_id"],
+				properties: { attachment_id: { type: "string", description: "Authorized same-mailbox attachment ID; metadata and bytes are resolved server-side." } },
+				additionalProperties: false,
+			},
+		],
+	},
+};
 const sendEmailSchema = {
 	type: "object",
 	required: ["to", "from", "subject"],
@@ -1375,22 +1385,7 @@ const sendEmailSchema = {
 		subject: { type: "string", example: "Hello from Mermail" },
 		html: { type: "string", example: "<p>Hi there</p>" },
 		text: { type: "string", example: "Hi there" },
-		attachments: {
-			type: "array",
-			items: {
-				type: "object",
-				properties: {
-					content: { type: "string", description: "Base64 content" },
-					filename: { type: "string" },
-					type: { type: "string" },
-					disposition: {
-						type: "string",
-						enum: ["attachment", "inline"],
-					},
-					contentId: { type: "string" },
-				},
-			},
-		},
+		attachments: outboundAttachmentsSchema,
 		in_reply_to: { type: "string" },
 		references: { type: "array", items: { type: "string" } },
 		thread_id: { type: "string" },
@@ -1918,6 +1913,7 @@ add(
 						type: "string",
 						description: "Existing draft id to replace",
 					},
+					attachments: outboundAttachmentsSchema,
 				},
 			},
 			{
@@ -2017,6 +2013,7 @@ add(
 					in_reply_to: { type: "string" },
 					thread_id: { type: "string" },
 					draft_id: { type: "string" },
+					attachments: outboundAttachmentsSchema,
 					scheduled_send_at: {
 						type: "string",
 						format: "date-time",
@@ -3496,11 +3493,13 @@ Credits are workspace API-usage units, not currency amounts.
 					email_domain_id: { type: ["string", "null"] },
 					inbound_provider: {
 						type: "string",
-						description: "Provider configured for inbound delivery",
+						description:
+							"Opaque Email-module identifier for the inbound path",
 					},
 					outbound_provider: {
 						type: "string",
-						description: "Provider configured for outbound delivery",
+						description:
+							"Opaque Email-module identifier for the outbound path",
 					},
 					provider_metadata: { type: "object", additionalProperties: true },
 					bucket_id: { type: ["string", "null"] },
@@ -3657,9 +3656,8 @@ Credits are workspace API-usage units, not currency amounts.
 							},
 							inbound_provider: {
 								type: ["string", "null"],
-								enum: ["cloudflare_routing", "resend", null],
 								description:
-									"Trusted transport source recorded by Mermail; this is not itself a sender verdict.",
+									"Opaque Email-module inbound identifier; this is not itself a sender verdict.",
 							},
 							reason: {
 								type: "string",
@@ -3782,7 +3780,10 @@ Credits are workspace API-usage units, not currency amounts.
 					id: { type: "string" },
 					workspace_id: { type: "string" },
 					domain: { type: "string" },
-					provider: { type: "string", example: "resend" },
+					provider: {
+						type: "string",
+						description: "Opaque Email-module identifier",
+					},
 					status: {
 						type: "string",
 						description:
@@ -3941,6 +3942,18 @@ if (
 }
 
 const outPath = path.join(root, "openapi", "openapi.json");
+for (const endpoint of [
+	"/api/v1/mailboxes/{mailboxId}/emails",
+	"/api/v1/mailboxes/{mailboxId}/emails/{emailId}/reply",
+	"/api/v1/mailboxes/{mailboxId}/emails/{emailId}/forward",
+	"/api/v1/mailboxes/{mailboxId}/drafts",
+	"/api/v1/mailboxes/{mailboxId}/scheduled-sends",
+]) {
+	const attachmentContract = paths[endpoint].post.requestBody.content["application/json"].schema.properties.attachments;
+	if (JSON.stringify(attachmentContract) !== JSON.stringify(outboundAttachmentsSchema)) {
+		throw new Error(`Attachment schema drift at ${endpoint}`);
+	}
+}
 fs.writeFileSync(outPath, `${JSON.stringify(spec, null, 2)}\n`);
 const count = Object.values(paths).reduce(
 	(n, methods) => n + Object.keys(methods).length,

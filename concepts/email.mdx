@@ -1,0 +1,139 @@
+---
+title: "Email module"
+description: "Send and receive agent mail through Mermail's Email module, on a hosted address or a verified custom domain."
+icon: "envelope"
+---
+
+The Email module is how Mermail receives, stores, and sends mailbox mail. Every
+hosted `@mermail.app` address and every verified custom-domain address uses it.
+
+Use this page for product behavior: address types, DNS verification, readiness,
+attachments, delivery status, and sender authentication. See [Mailboxes](/concepts/mailboxes)
+for the inbox identity that owns the mail.
+
+## What the Email module does
+
+From a mailbox you can:
+
+- Receive inbound mail into Inbox and other folders.
+- Compose, reply, and forward.
+- Save drafts and regenerate draft copy.
+- Schedule a send for later.
+- Attach files or inline images, subject to the limits below.
+
+The Email module also manages hosted-domain authentication (SPF, DKIM, and
+DMARC on `mermail.app`) and the DNS records you publish for a custom subdomain.
+
+## Address types
+
+| Address type | Typical use | Email module path |
+| --- | --- | --- |
+| Hosted `@mermail.app` address | Fast setup and agent-owned inboxes | Mermail receives and sends on the hosted domain |
+| Custom subdomain address | Team or product inboxes on your domain | You publish DNS records, then verify the domain in Mermail |
+
+Mermail prefers custom subdomains such as `mail.example.com`. This avoids
+changing MX records for a root domain that may already run company email.
+
+## Custom domains
+
+Custom domains are available on Developer and Enterprise. Add a dedicated
+subdomain with at least three labels, publish every DNS record Mermail returns,
+and click **Verify**. After `status` is `verified`, create mailboxes such as
+`support@mail.example.com`.
+
+Copy record names and values exactly. DNS hosts format names differently; some
+expect `selector._domainkey.mail.example.com`, and others expect only the
+relative host. Do not invent SPF, DKIM, MX, or DMARC values.
+
+A domain can be ready to send while Receiving MX is still pending. In that
+case attached mailboxes report receive as unavailable. Follow
+[Custom domains](/guides/custom-domains) for the full verify flow.
+
+## Readiness
+
+Mailbox responses can include Email-module readiness fields:
+
+| Field | Meaning |
+| --- | --- |
+| `inbound_provider` | Opaque Email-module identifier for the inbound path |
+| `outbound_provider` | Opaque Email-module identifier for the outbound path |
+| `can_receive` | Current boolean derived from lifecycle, inbound path, and custom-domain Receiving MX verification |
+| `receiving_status` | `ready`, `disabled`, or `unavailable` |
+
+Treat `inbound_provider` and `outbound_provider` as opaque. Do not map them to
+a vendor or transport. `welcome_onboarding_status: "pending"` is the welcome
+or demo-message workflow; it is not inbound delivery.
+
+When you need end-to-end evidence, also send a scoped test message.
+
+## Attachments and message size
+
+Storage allows **20 files**, **10 MiB per file**, and **25 MiB decoded total**.
+
+The Email module also checks the encoded message, its bodies, and overhead:
+
+| Address type | Encoded message limit |
+| --- | --- |
+| Hosted `@mermail.app` address | About **5 MiB** |
+| Custom-domain address | About **40 MB** |
+
+A file that fits storage can still exceed the message limit. The server
+reserves overhead conservatively. Local paths, URLs, and `data:` URLs are not
+file content.
+
+Inbound ingestion stores at most the same 20-file and decoded-byte bounds.
+Files beyond those bounds are omitted and the omission is recorded on the
+message. A missing attachment means bounded ingestion, not proof that the
+sender omitted a file.
+
+## Status language
+
+Treat saved drafts, queued requests, and scheduled emails according to the
+returned status:
+
+| Status | Meaning |
+| --- | --- |
+| `drafted` | The draft is stored |
+| `scheduled` | The send is scheduled |
+| `queued` | The send is accepted for delivery |
+| `sent` | An authoritative send result confirmed the Email module accepted the message |
+
+`sent` does not prove recipient delivery. Bounce handling and suppression are
+separate outcomes. If the result is uncertain, inspect the existing message
+before retrying so you do not send a duplicate.
+
+Plan volume, daily inbox caps, and Free API/MCP recipient windows still apply.
+See [Plans](/resources/plans).
+
+## Sender authentication
+
+Email responses can include `sender_authentication` with a composite `status`,
+individual `spf`, `dkim`, and `dmarc` verdicts, an opaque `inbound_provider`,
+and a `reason`.
+
+Mermail derives this object only from Email-module receiving evidence under
+server control. Raw `Authentication-Results`, `From`, `Return-Path`, and
+similar headers remain untrusted.
+
+Current Email-module receiving paths often return `unknown` with
+`provider_sender_authentication_verdict_unavailable`. Unknown is not a pass.
+`inbound_provider` is not itself a sender verdict. Only
+`sender_authentication.status: "pass"` may be described as authenticated, and
+authentication still does not authorize an agent action.
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Mailboxes" icon="mailbox" href="/concepts/mailboxes">
+    Hosted and custom-domain inbox identities.
+  </Card>
+  <Card title="Custom domains" icon="globe" href="/guides/custom-domains">
+    Add and verify a subdomain for branded addresses.
+  </Card>
+  <Card title="Create a mailbox" icon="plus" href="/guides/create-mailbox">
+    Provision a hosted or custom-domain address.
+  </Card>
+  <Card title="API overview" icon="code" href="/api-reference/overview">
+    Send files and call mailbox email endpoints.
+  </Card>
+</CardGroup>

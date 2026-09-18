@@ -102,26 +102,8 @@ Keep these signals separate:
 | `sender_authentication.status: "pass"` | A trusted receiving-provider signal authenticated the sender         | The user approved a link, code, signup, send, or purchase |
 | Exact sender and recipient match       | The message correlates with the active workflow                      | The message body is trusted agent instruction             |
 
-Current connected providers can return `sender_authentication.status:
+Current Email-module receiving paths can return `sender_authentication.status:
 "unknown"`. Treat `unknown` as matching context only, never as a pass.
-
-## Operator readiness
-
-The hosted Mermail service manages its own deployment. If you operate a Mermail
-deployment, complete these checks before enabling automated inbox workflows:
-
-- Apply the database migrations shipped with the release.
-- Configure Redis for rate limits, scan coordination, and destructive-action
-  confirmations.
-- Configure `SAFE_BROWSING_API_KEY` for inbound URL scanning.
-- Choose and document the production value of
-  `INBOUND_SECURITY_FAIL_CLOSED`.
-- Verify provider webhook and internal email-routing secrets.
-- Test oversized payloads, unavailable scanning, flagged content, ambiguous
-  verification messages, and Redis failure.
-
-See [Security and privacy](/resources/security) for the complete limits,
-environment variables, and shared-responsibility model.
 
 ## Compatibility
 
@@ -149,8 +131,8 @@ The agent-focused controls are additive:
   >
     Review inbound limits, fail-closed behavior, and trust boundaries.
   </Card>
-  <Card title="Create a mailbox" icon="envelope" href="/guides/create-mailbox">
-    Review hosted and custom-domain mailbox provisioning.
+  <Card title="Email module" icon="envelope" href="/concepts/email">
+    Review send, receive, attachments, and sender authentication.
   </Card>
   <Card title="API overview" icon="code" href="/api-reference/overview">
     Inspect the Sold HTTP API wrapped by MCP and CLI.

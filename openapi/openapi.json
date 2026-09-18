@@ -552,8 +552,7 @@
                       "email": "support@mail.acme.com",
                       "sent": 200,
                       "providers": {
-                        "cloudflare_email": 180,
-                        "legacy": 20
+                        "hosted": 180
                       }
                     },
                     {
@@ -562,7 +561,7 @@
                       "email": "ops@mail.acme.com",
                       "sent": 120,
                       "providers": {
-                        "resend": 120
+                        "custom": 120
                       }
                     }
                   ]
@@ -694,21 +693,10 @@
                       "role": "admin",
                       "mailbox_count": 2,
                       "storage": {
-                        "provider": "harbor_r2",
                         "status": "ready",
                         "redundancy_enabled": true,
                         "storage_key_status": "ready",
                         "storage_key_last_error": null,
-                        "space_id": "spc_01xyz",
-                        "bucket_id": "bkt_01xyz",
-                        "owner_address": "0xabc123def456",
-                        "has_api_key": true,
-                        "has_service_private_key": true,
-                        "harbor_provisioning_status": "ready",
-                        "harbor_last_error": null,
-                        "r2_bucket_name": "mermail-ws-01abc",
-                        "r2_provisioning_status": "ready",
-                        "r2_last_error": null,
                         "last_error": null
                       },
                       "created_at": "2026-07-01T12:00:00.000Z",
@@ -849,21 +837,10 @@
                   "role": "admin",
                   "mailbox_count": 2,
                   "storage": {
-                    "provider": "harbor_r2",
                     "status": "ready",
                     "redundancy_enabled": true,
                     "storage_key_status": "ready",
                     "storage_key_last_error": null,
-                    "space_id": "spc_01xyz",
-                    "bucket_id": "bkt_01xyz",
-                    "owner_address": "0xabc123def456",
-                    "has_api_key": true,
-                    "has_service_private_key": true,
-                    "harbor_provisioning_status": "ready",
-                    "harbor_last_error": null,
-                    "r2_bucket_name": "mermail-ws-01abc",
-                    "r2_provisioning_status": "ready",
-                    "r2_last_error": null,
                     "last_error": null
                   },
                   "created_at": "2026-07-01T12:00:00.000Z",
@@ -1013,21 +990,10 @@
                   "role": "admin",
                   "mailbox_count": 2,
                   "storage": {
-                    "provider": "harbor_r2",
                     "status": "ready",
                     "redundancy_enabled": true,
                     "storage_key_status": "ready",
                     "storage_key_last_error": null,
-                    "space_id": "spc_01xyz",
-                    "bucket_id": "bkt_01xyz",
-                    "owner_address": "0xabc123def456",
-                    "has_api_key": true,
-                    "has_service_private_key": true,
-                    "harbor_provisioning_status": "ready",
-                    "harbor_last_error": null,
-                    "r2_bucket_name": "mermail-ws-01abc",
-                    "r2_provisioning_status": "ready",
-                    "r2_last_error": null,
                     "last_error": null
                   },
                   "created_at": "2026-07-01T12:00:00.000Z",
@@ -1172,7 +1138,7 @@
     "/api/v1/workspaces/{workspaceId}/storage": {
       "get": {
         "summary": "Get workspace storage",
-        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns Harbor / R2 storage provisioning status wrapped as `{ storage }`. Requires workspace **admin**.\n\n**API credits:** 1 (read).",
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nReturns workspace storage provisioning status wrapped as `{ storage }`. Requires workspace **admin**.\n\n**API credits:** 1 (read).",
         "tags": [
           "Workspaces"
         ],
@@ -1204,21 +1170,10 @@
                 },
                 "example": {
                   "storage": {
-                    "provider": "harbor_r2",
                     "status": "ready",
                     "redundancy_enabled": true,
                     "storage_key_status": "ready",
                     "storage_key_last_error": null,
-                    "space_id": "spc_01xyz",
-                    "bucket_id": "bkt_01xyz",
-                    "owner_address": "0xabc123def456",
-                    "has_api_key": true,
-                    "has_service_private_key": true,
-                    "harbor_provisioning_status": "ready",
-                    "harbor_last_error": null,
-                    "r2_bucket_name": "mermail-ws-01abc",
-                    "r2_provisioning_status": "ready",
-                    "r2_last_error": null,
                     "last_error": null
                   }
                 }
@@ -2157,20 +2112,17 @@
                     "id": "ed_01xyz",
                     "workspace_id": "ws_01abc",
                     "domain": "mail.acme.com",
-                    "provider": "resend",
                     "status": "pending",
-                    "provider_domain_id": "d_01",
-                    "region": "us-east-1",
                     "dns_records": [
                       {
                         "type": "TXT",
-                        "name": "resend._domainkey.mail.acme.com",
+                        "name": "selector._domainkey.mail.acme.com",
                         "value": "p=MIGf…"
                       },
                       {
                         "type": "MX",
                         "name": "mail.acme.com",
-                        "value": "feedback-smtp.us-east-1.amazonses.com"
+                        "value": "inbound.example.net"
                       }
                     ],
                     "last_error": null,
@@ -2268,7 +2220,7 @@
       },
       "post": {
         "summary": "Add email domain",
-        "description": "**Plans:** `Developer` · `Enterprise`\n\nStarts custom domain provisioning with Resend. Domain must be a **subdomain** with ≥3 labels (for example `mail.acme.com` or `support.yourdomain.com`) — apex domains are rejected. Requires workspace **admin**. Subject to plan custom-domain limits. **Developer or Enterprise** required. Returns **201**. Costs **provision** credits (10).\n\n**API credits:** 10 (provision).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nStarts custom domain provisioning in the Email module. Domain must be a **subdomain** with ≥3 labels (for example `mail.acme.com` or `support.yourdomain.com`) — apex domains are rejected. Requires workspace **admin**. Subject to plan custom-domain limits. **Developer or Enterprise** required. Returns **201**. Costs **provision** credits (10).\n\n**API credits:** 10 (provision).",
         "tags": [
           "Domains"
         ],
@@ -2301,20 +2253,17 @@
                   "id": "ed_01xyz",
                   "workspace_id": "ws_01abc",
                   "domain": "mail.acme.com",
-                  "provider": "resend",
                   "status": "pending",
-                  "provider_domain_id": "d_01",
-                  "region": "us-east-1",
                   "dns_records": [
                     {
                       "type": "TXT",
-                      "name": "resend._domainkey.mail.acme.com",
+                      "name": "selector._domainkey.mail.acme.com",
                       "value": "p=MIGf…"
                     },
                     {
                       "type": "MX",
                       "name": "mail.acme.com",
-                      "value": "feedback-smtp.us-east-1.amazonses.com"
+                      "value": "inbound.example.net"
                     }
                   ],
                   "last_error": null,
@@ -2449,7 +2398,7 @@
     "/api/v1/workspaces/{workspaceId}/email-domains/{domainId}": {
       "delete": {
         "summary": "Delete email domain",
-        "description": "**Plans:** `Developer` · `Enterprise`\n\nRemoves the domain from Resend and deletes the local row. Fails with **409** if any mailboxes still use the domain. Requires workspace **admin**. **Developer or Enterprise** required. Returns `{ status: \"deleted\" }` (HTTP 200).\n\n**API credits:** 2 (write).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nRemoves the domain from the Email module and deletes the local row. Fails with **409** if any mailboxes still use the domain. Requires workspace **admin**. **Developer or Enterprise** required. Returns `{ status: \"deleted\" }` (HTTP 200).\n\n**API credits:** 2 (write).",
         "tags": [
           "Domains"
         ],
@@ -2614,7 +2563,7 @@
     "/api/v1/workspaces/{workspaceId}/email-domains/{domainId}/verify": {
       "post": {
         "summary": "Verify email domain",
-        "description": "**Plans:** `Developer` · `Enterprise`\n\nAsks Resend to re-check DNS and returns the updated domain object. `verified_at` is set when `status` becomes `verified`. Requires workspace **admin**. **Developer or Enterprise** required.\n\n**Note:** This path is metered as **provision** (10 credits) because all `POST …/email-domains…` routes share that credit class.\n\n**API credits:** 10 (provision).",
+        "description": "**Plans:** `Developer` · `Enterprise`\n\nAsks the Email module to re-check DNS and returns the updated domain object. `verified_at` is set when `status` becomes `verified`. Requires workspace **admin**. **Developer or Enterprise** required.\n\n**Note:** This path is metered as **provision** (10 credits) because all `POST …/email-domains…` routes share that credit class.\n\n**API credits:** 10 (provision).",
         "tags": [
           "Domains"
         ],
@@ -2657,20 +2606,17 @@
                   "id": "ed_01xyz",
                   "workspace_id": "ws_01abc",
                   "domain": "mail.acme.com",
-                  "provider": "resend",
                   "status": "verified",
-                  "provider_domain_id": "d_01",
-                  "region": "us-east-1",
                   "dns_records": [
                     {
                       "type": "TXT",
-                      "name": "resend._domainkey.mail.acme.com",
+                      "name": "selector._domainkey.mail.acme.com",
                       "value": "p=MIGf…"
                     },
                     {
                       "type": "MX",
                       "name": "mail.acme.com",
-                      "value": "feedback-smtp.us-east-1.amazonses.com"
+                      "value": "inbound.example.net"
                     }
                   ],
                   "last_error": null,
@@ -2741,7 +2687,7 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "error": "Email domain is missing a Resend domain id"
+                  "error": "Email domain is missing an Email-module domain id"
                 }
               }
             }
@@ -2833,11 +2779,10 @@
                     "email": "support@mail.acme.com",
                     "name": "Acme Support",
                     "email_domain_id": "ed_01xyz",
-                    "inbound_provider": "cloudflare_routing",
-                    "outbound_provider": "cloudflare_email",
+                    "inbound_provider": "custom",
+                    "outbound_provider": "custom",
                     "provider_metadata": {
-                      "domain": "mail.acme.com",
-                      "provider": "resend"
+                      "domain": "mail.acme.com"
                     },
                     "bucket_id": "bkt_01xyz",
                     "settings": {
@@ -3008,11 +2953,10 @@
                     "email": "support@mail.acme.com",
                     "name": "Acme Support",
                     "email_domain_id": "ed_01xyz",
-                    "inbound_provider": "cloudflare_routing",
-                    "outbound_provider": "cloudflare_email",
+                    "inbound_provider": "custom",
+                    "outbound_provider": "custom",
                     "provider_metadata": {
-                      "domain": "mail.acme.com",
-                      "provider": "resend"
+                      "domain": "mail.acme.com"
                     },
                     "bucket_id": "bkt_01xyz",
                     "settings": {
@@ -3179,11 +3123,10 @@
                   "email": "ops@mail.acme.com",
                   "name": "Acme Ops",
                   "email_domain_id": "ed_01xyz",
-                  "inbound_provider": "cloudflare_routing",
-                  "outbound_provider": "cloudflare_email",
+                  "inbound_provider": "custom",
+                  "outbound_provider": "custom",
                   "provider_metadata": {
-                    "domain": "mail.acme.com",
-                    "provider": "resend"
+                    "domain": "mail.acme.com"
                   },
                   "bucket_id": "bkt_01xyz",
                   "settings": {
@@ -3443,11 +3386,10 @@
                   "email": "support@mail.acme.com",
                   "name": "Acme Support",
                   "email_domain_id": "ed_01xyz",
-                  "inbound_provider": "cloudflare_routing",
-                  "outbound_provider": "cloudflare_email",
+                  "inbound_provider": "custom",
+                  "outbound_provider": "custom",
                   "provider_metadata": {
-                    "domain": "mail.acme.com",
-                    "provider": "resend"
+                    "domain": "mail.acme.com"
                   },
                   "bucket_id": "bkt_01xyz",
                   "settings": {
@@ -3619,11 +3561,10 @@
                   "email": "support@mail.acme.com",
                   "name": "Acme Support",
                   "email_domain_id": "ed_01xyz",
-                  "inbound_provider": "cloudflare_routing",
-                  "outbound_provider": "cloudflare_email",
+                  "inbound_provider": "custom",
+                  "outbound_provider": "custom",
                   "provider_metadata": {
-                    "domain": "mail.acme.com",
-                    "provider": "resend"
+                    "domain": "mail.acme.com"
                   },
                   "bucket_id": "bkt_01xyz",
                   "settings": {
@@ -4476,30 +4417,67 @@
                   },
                   "attachments": {
                     "type": "array",
+                    "maxItems": 20,
+                    "description": "Base64 file bytes or an existing attachment_id from the same authorized mailbox. Omit to preserve attachments from source_draft_id (send) or draft_id (save/schedule); [] clears; an array replaces the complete set. Storage limits: 20 files, 10 MiB each, 25 MiB decoded total. Encoded message limits include overhead: about 5 MiB for hosted addresses and about 40 MB for custom-domain addresses. Local paths and URLs are not accepted.",
                     "items": {
-                      "type": "object",
-                      "properties": {
-                        "content": {
-                          "type": "string",
-                          "description": "Base64 content"
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "content",
+                            "filename",
+                            "type",
+                            "disposition"
+                          ],
+                          "properties": {
+                            "content": {
+                              "type": "string",
+                              "contentEncoding": "base64",
+                              "description": "Base64 encoded file bytes, without a data URL prefix."
+                            },
+                            "filename": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 255
+                            },
+                            "type": {
+                              "type": "string",
+                              "description": "MIME type, e.g. application/pdf."
+                            },
+                            "disposition": {
+                              "type": "string",
+                              "enum": [
+                                "attachment",
+                                "inline"
+                              ]
+                            },
+                            "contentId": {
+                              "type": "string",
+                              "description": "Unique bare Content-ID required for inline PNG/JPEG/GIF/WebP; use matching HTML src=cid:contentId."
+                            },
+                            "encryption": {
+                              "type": "string",
+                              "enum": [
+                                "worker-aes-v1"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false
                         },
-                        "filename": {
-                          "type": "string"
-                        },
-                        "type": {
-                          "type": "string"
-                        },
-                        "disposition": {
-                          "type": "string",
-                          "enum": [
-                            "attachment",
-                            "inline"
-                          ]
-                        },
-                        "contentId": {
-                          "type": "string"
+                        {
+                          "type": "object",
+                          "required": [
+                            "attachment_id"
+                          ],
+                          "properties": {
+                            "attachment_id": {
+                              "type": "string",
+                              "description": "Authorized same-mailbox attachment ID; metadata and bytes are resolved server-side."
+                            }
+                          },
+                          "additionalProperties": false
                         }
-                      }
+                      ]
                     }
                   },
                   "in_reply_to": {
@@ -6249,30 +6227,67 @@
                   },
                   "attachments": {
                     "type": "array",
+                    "maxItems": 20,
+                    "description": "Base64 file bytes or an existing attachment_id from the same authorized mailbox. Omit to preserve attachments from source_draft_id (send) or draft_id (save/schedule); [] clears; an array replaces the complete set. Storage limits: 20 files, 10 MiB each, 25 MiB decoded total. Encoded message limits include overhead: about 5 MiB for hosted addresses and about 40 MB for custom-domain addresses. Local paths and URLs are not accepted.",
                     "items": {
-                      "type": "object",
-                      "properties": {
-                        "content": {
-                          "type": "string",
-                          "description": "Base64 content"
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "content",
+                            "filename",
+                            "type",
+                            "disposition"
+                          ],
+                          "properties": {
+                            "content": {
+                              "type": "string",
+                              "contentEncoding": "base64",
+                              "description": "Base64 encoded file bytes, without a data URL prefix."
+                            },
+                            "filename": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 255
+                            },
+                            "type": {
+                              "type": "string",
+                              "description": "MIME type, e.g. application/pdf."
+                            },
+                            "disposition": {
+                              "type": "string",
+                              "enum": [
+                                "attachment",
+                                "inline"
+                              ]
+                            },
+                            "contentId": {
+                              "type": "string",
+                              "description": "Unique bare Content-ID required for inline PNG/JPEG/GIF/WebP; use matching HTML src=cid:contentId."
+                            },
+                            "encryption": {
+                              "type": "string",
+                              "enum": [
+                                "worker-aes-v1"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false
                         },
-                        "filename": {
-                          "type": "string"
-                        },
-                        "type": {
-                          "type": "string"
-                        },
-                        "disposition": {
-                          "type": "string",
-                          "enum": [
-                            "attachment",
-                            "inline"
-                          ]
-                        },
-                        "contentId": {
-                          "type": "string"
+                        {
+                          "type": "object",
+                          "required": [
+                            "attachment_id"
+                          ],
+                          "properties": {
+                            "attachment_id": {
+                              "type": "string",
+                              "description": "Authorized same-mailbox attachment ID; metadata and bytes are resolved server-side."
+                            }
+                          },
+                          "additionalProperties": false
                         }
-                      }
+                      ]
                     }
                   },
                   "in_reply_to": {
@@ -6571,30 +6586,67 @@
                   },
                   "attachments": {
                     "type": "array",
+                    "maxItems": 20,
+                    "description": "Base64 file bytes or an existing attachment_id from the same authorized mailbox. Omit to preserve attachments from source_draft_id (send) or draft_id (save/schedule); [] clears; an array replaces the complete set. Storage limits: 20 files, 10 MiB each, 25 MiB decoded total. Encoded message limits include overhead: about 5 MiB for hosted addresses and about 40 MB for custom-domain addresses. Local paths and URLs are not accepted.",
                     "items": {
-                      "type": "object",
-                      "properties": {
-                        "content": {
-                          "type": "string",
-                          "description": "Base64 content"
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "content",
+                            "filename",
+                            "type",
+                            "disposition"
+                          ],
+                          "properties": {
+                            "content": {
+                              "type": "string",
+                              "contentEncoding": "base64",
+                              "description": "Base64 encoded file bytes, without a data URL prefix."
+                            },
+                            "filename": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 255
+                            },
+                            "type": {
+                              "type": "string",
+                              "description": "MIME type, e.g. application/pdf."
+                            },
+                            "disposition": {
+                              "type": "string",
+                              "enum": [
+                                "attachment",
+                                "inline"
+                              ]
+                            },
+                            "contentId": {
+                              "type": "string",
+                              "description": "Unique bare Content-ID required for inline PNG/JPEG/GIF/WebP; use matching HTML src=cid:contentId."
+                            },
+                            "encryption": {
+                              "type": "string",
+                              "enum": [
+                                "worker-aes-v1"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false
                         },
-                        "filename": {
-                          "type": "string"
-                        },
-                        "type": {
-                          "type": "string"
-                        },
-                        "disposition": {
-                          "type": "string",
-                          "enum": [
-                            "attachment",
-                            "inline"
-                          ]
-                        },
-                        "contentId": {
-                          "type": "string"
+                        {
+                          "type": "object",
+                          "required": [
+                            "attachment_id"
+                          ],
+                          "properties": {
+                            "attachment_id": {
+                              "type": "string",
+                              "description": "Authorized same-mailbox attachment ID; metadata and bytes are resolved server-side."
+                            }
+                          },
+                          "additionalProperties": false
                         }
-                      }
+                      ]
                     }
                   },
                   "in_reply_to": {
@@ -6956,6 +7008,71 @@
                   "draft_id": {
                     "type": "string",
                     "description": "Existing draft id to replace"
+                  },
+                  "attachments": {
+                    "type": "array",
+                    "maxItems": 20,
+                    "description": "Base64 file bytes or an existing attachment_id from the same authorized mailbox. Omit to preserve attachments from source_draft_id (send) or draft_id (save/schedule); [] clears; an array replaces the complete set. Storage limits: 20 files, 10 MiB each, 25 MiB decoded total. Encoded message limits include overhead: about 5 MiB for hosted addresses and about 40 MB for custom-domain addresses. Local paths and URLs are not accepted.",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "content",
+                            "filename",
+                            "type",
+                            "disposition"
+                          ],
+                          "properties": {
+                            "content": {
+                              "type": "string",
+                              "contentEncoding": "base64",
+                              "description": "Base64 encoded file bytes, without a data URL prefix."
+                            },
+                            "filename": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 255
+                            },
+                            "type": {
+                              "type": "string",
+                              "description": "MIME type, e.g. application/pdf."
+                            },
+                            "disposition": {
+                              "type": "string",
+                              "enum": [
+                                "attachment",
+                                "inline"
+                              ]
+                            },
+                            "contentId": {
+                              "type": "string",
+                              "description": "Unique bare Content-ID required for inline PNG/JPEG/GIF/WebP; use matching HTML src=cid:contentId."
+                            },
+                            "encryption": {
+                              "type": "string",
+                              "enum": [
+                                "worker-aes-v1"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "attachment_id"
+                          ],
+                          "properties": {
+                            "attachment_id": {
+                              "type": "string",
+                              "description": "Authorized same-mailbox attachment ID; metadata and bytes are resolved server-side."
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
                   }
                 }
               },
@@ -7371,6 +7488,71 @@
                   },
                   "draft_id": {
                     "type": "string"
+                  },
+                  "attachments": {
+                    "type": "array",
+                    "maxItems": 20,
+                    "description": "Base64 file bytes or an existing attachment_id from the same authorized mailbox. Omit to preserve attachments from source_draft_id (send) or draft_id (save/schedule); [] clears; an array replaces the complete set. Storage limits: 20 files, 10 MiB each, 25 MiB decoded total. Encoded message limits include overhead: about 5 MiB for hosted addresses and about 40 MB for custom-domain addresses. Local paths and URLs are not accepted.",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "content",
+                            "filename",
+                            "type",
+                            "disposition"
+                          ],
+                          "properties": {
+                            "content": {
+                              "type": "string",
+                              "contentEncoding": "base64",
+                              "description": "Base64 encoded file bytes, without a data URL prefix."
+                            },
+                            "filename": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 255
+                            },
+                            "type": {
+                              "type": "string",
+                              "description": "MIME type, e.g. application/pdf."
+                            },
+                            "disposition": {
+                              "type": "string",
+                              "enum": [
+                                "attachment",
+                                "inline"
+                              ]
+                            },
+                            "contentId": {
+                              "type": "string",
+                              "description": "Unique bare Content-ID required for inline PNG/JPEG/GIF/WebP; use matching HTML src=cid:contentId."
+                            },
+                            "encryption": {
+                              "type": "string",
+                              "enum": [
+                                "worker-aes-v1"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "attachment_id"
+                          ],
+                          "properties": {
+                            "attachment_id": {
+                              "type": "string",
+                              "description": "Authorized same-mailbox attachment ID; metadata and bytes are resolved server-side."
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
                   },
                   "scheduled_send_at": {
                     "type": "string",
@@ -15901,11 +16083,11 @@
           },
           "inbound_provider": {
             "type": "string",
-            "description": "Provider configured for inbound delivery"
+            "description": "Opaque Email-module identifier for the inbound path"
           },
           "outbound_provider": {
             "type": "string",
-            "description": "Provider configured for outbound delivery"
+            "description": "Opaque Email-module identifier for the outbound path"
           },
           "provider_metadata": {
             "type": "object",
@@ -16210,12 +16392,7 @@
                   "string",
                   "null"
                 ],
-                "enum": [
-                  "cloudflare_routing",
-                  "resend",
-                  null
-                ],
-                "description": "Trusted transport source recorded by Mermail; this is not itself a sender verdict."
+                "description": "Opaque Email-module inbound identifier; this is not itself a sender verdict."
               },
               "reason": {
                 "type": "string",
@@ -16393,7 +16570,7 @@
           },
           "provider": {
             "type": "string",
-            "example": "resend"
+            "description": "Opaque Email-module identifier"
           },
           "status": {
             "type": "string",

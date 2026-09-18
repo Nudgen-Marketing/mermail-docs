@@ -6,7 +6,7 @@ icon: "globe"
 
 Custom domains let you create Mermail mailboxes on a domain your organization controls. Use them when an agent needs an address that matches your product, team, or company identity.
 
-Mermail provisions custom domains through Resend and returns the DNS records you need to publish. After the domain is verified, you can create mailboxes such as `support@mail.example.com`.
+Mermail provisions custom domains through the Email module and returns the DNS records you need to publish. After the domain is verified, you can create mailboxes such as `support@mail.example.com`.
 
 ## Before you begin
 
@@ -33,7 +33,7 @@ You need:
   <Step title="Add the domain to your workspace">
     Open the Mermail console, select the workspace, and go to its custom-domain settings. Add the complete subdomain, including the parent domain.
 
-    Mermail creates the provider domain and displays the DNS records required for verification.
+    Mermail creates the Email-module domain and displays the DNS records required for verification.
   </Step>
 
   <Step title="Publish DNS records">
@@ -46,7 +46,7 @@ You need:
     | Value | Value, content, target, or mail server | Copy the returned record value |
     | Priority | Priority | For an MX record, copy the returned priority when one is provided |
 
-    DNS providers format record names differently. Some expect the complete name, such as `resend._domainkey.mail.example.com`. Others expect only the part relative to the parent zone. Follow your provider's convention and confirm that it does not append the parent domain twice.
+    DNS providers format record names differently. Some expect the complete name, such as `selector._domainkey.mail.example.com`. Others expect only the part relative to the parent zone. Follow your provider's convention and confirm that it does not append the parent domain twice.
 
     <Info>
       Keep any existing DNS records that are not replaced by the records Mermail returns. Do not add guessed SPF, DKIM, MX, or DMARC values.
@@ -58,9 +58,9 @@ You need:
   </Step>
 
   <Step title="Verify the domain">
-    Return to the domain in Mermail and click **Verify**. Mermail asks Resend to check the current DNS records.
+    Return to the domain in Mermail and click **Verify**. Mermail checks the current DNS records through the Email module.
 
-    If the domain remains `pending`, wait for propagation, compare each record with the values shown in Mermail, and verify again. Review `last_error` when Mermail displays a provider error.
+    If the domain remains `pending`, wait for propagation, compare each record with the values shown in Mermail, and verify again. Review `last_error` when Mermail displays a verification error.
   </Step>
 
   <Step title="Create a mailbox">
@@ -80,7 +80,7 @@ You need:
 | `verified` | The DNS records are confirmed and the domain can be used for mailboxes |
 | `deleting` | Domain removal is in progress |
 | `deleted` | The domain has been removed |
-| `last_error` | The most recent provider or verification error, when available |
+| `last_error` | The most recent verification error, when available |
 | `verified_at` | The time Mermail recorded successful verification |
 
 ## Manage an existing domain
@@ -90,11 +90,11 @@ You can list, verify, and delete custom domains from the workspace. Verification
 Before deleting a domain, remove every mailbox that uses it. Mermail rejects deletion while a mailbox is still attached to the domain.
 
 <Warning>
-  Deleting a domain removes its Mermail and provider configuration. Confirm that no active mailbox or integration depends on it before you proceed.
+  Deleting a domain removes its Mermail and Email-module configuration. Confirm that no active mailbox or integration depends on it before you proceed.
 </Warning>
 
-<Card title="Domains API reference" icon="square-terminal" href="/api-reference/overview">
-  Open the Domains group in the API Reference to list, add, verify, or delete domains programmatically.
+<Card title="Email module" icon="envelope" href="/concepts/email">
+  Review send, receive, DNS verification, and attachment limits.
 </Card>
 
 ## Domain requirements
