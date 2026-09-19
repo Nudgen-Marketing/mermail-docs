@@ -15,12 +15,12 @@ exactly-once business execution.
 
 ## Address types
 
-| Address type | Typical use | Provider path |
+| Address type | Typical use | Email module path |
 | --- | --- | --- |
-| Hosted `@mermail.app` address | Fast setup and agent-owned inboxes | Cloudflare Email Routing for inbound mail |
-| Custom domain address | Team or product inboxes on your domain | Domain verification and provider routing |
+| Hosted `@mermail.app` address | Fast setup and agent-owned inboxes | Mermail receives and sends on the hosted domain |
+| Custom domain address | Team or product inboxes on your domain | You verify a dedicated domain, then workspace mailboxes move to it |
 
-Mermail recommends a dedicated subdomain such as `mail.example.com` for custom-domain mailboxes. A domain that already has MX records is not accepted, so your existing company email is not affected. When a workspace connects a custom domain, all of its mailboxes move to that domain. See [Custom domains](/guides/custom-domains).
+Mermail recommends a dedicated subdomain such as `mail.example.com` for custom-domain mailboxes. A domain that already has MX records is not accepted, so your existing company email is not affected. When a workspace connects a custom domain, all of its mailboxes move to that domain. See [Custom domains](/guides/custom-domains) for setup and the [Email module](/concepts/email) for send, receive, attachments, and delivery status.
 
 ## Hosted mailbox rules
 
@@ -51,8 +51,8 @@ Mailbox API responses can include:
 | Field | Meaning |
 | --- | --- |
 | `public_id` | Stable identifier preferred for API and MCP path arguments |
-| `inbound_provider` | Provider configured to receive mail |
-| `outbound_provider` | Provider configured to send mail |
+| `inbound_provider` | Opaque Email-module identifier for the inbound path |
+| `outbound_provider` | Opaque Email-module identifier for the outbound path |
 | `can_receive` | Current boolean derived from lifecycle, inbound provider, and custom-domain Receiving MX verification |
 | `receiving_status` | Current normalized readiness state: `ready`, `disabled`, or `unavailable` |
 | `disabled_at` | Non-null when the mailbox is disabled and should not be reused |
@@ -91,6 +91,11 @@ existing standard behavior.
 
 ## Related guides
 
-<Card title="Create a mailbox" icon="plus" href="/guides/create-mailbox">
-  Create a hosted mailbox or a mailbox under a verified custom subdomain.
-</Card>
+<CardGroup cols={2}>
+  <Card title="Email module" icon="envelope" href="/concepts/email">
+    Send, receive, custom domains, attachments, and delivery status.
+  </Card>
+  <Card title="Create a mailbox" icon="plus" href="/guides/create-mailbox">
+    Create a hosted mailbox or a mailbox under a verified custom subdomain.
+  </Card>
+</CardGroup>

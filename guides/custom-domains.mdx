@@ -4,7 +4,7 @@ description: "Connect your own domain or subdomain so workspace mailboxes send a
 icon: "globe"
 ---
 
-Custom domains let your workspace mailboxes use an address on a domain your organization controls, such as `support@mail.example.com`. Mermail generates the DNS records you need to publish and checks them for you.
+Custom domains let your workspace mailboxes use an address on a domain your organization controls, such as `support@mail.example.com`. Mermail provisions the domain through the [Email module](/concepts/email), generates the DNS records you need to publish, and checks them for you.
 
 When the domain is fully connected, every mailbox in the workspace moves to it. A mailbox keeps its username, so `support@mermail.app` becomes `support@mail.example.com`. Existing mail stays in place.
 
@@ -51,7 +51,7 @@ On the Free plan, the page shows **Upgrade to Developer** instead of the domain 
     | Value | Value, content, target, or mail server | The record value shown |
     | Priority | Priority | For an MX record, the priority shown |
 
-    DNS providers format names differently. Some expect the full name, such as `send.mail.example.com`. Others expect only the part before your zone. Follow your provider's convention and check that it does not add the domain twice.
+    DNS providers format names differently. Some expect the full name, such as `selector._domainkey.mail.example.com`. Others expect only the part before your zone. Follow your provider's convention and check that it does not add the domain twice.
 
     <Warning>
       Set every `CNAME` record to **DNS only**. If your DNS provider offers a proxy (for example, the orange cloud in Cloudflare), turn it off for these records. A proxied CNAME returns IP addresses instead of the target and never verifies.
@@ -124,8 +124,8 @@ Under **3. Verify connection**, click **Remove**, type the domain name to confir
 
 Only one custom domain is supported per workspace. To use a different domain, remove the current one first.
 
-<Card title="Domains API reference" icon="square-terminal" href="/api-reference/overview">
-  Open the Domains group in the API Reference to list, add, verify, or delete domains programmatically.
+<Card title="Email module" icon="envelope" href="/concepts/email">
+  Review send, receive, DNS verification, and attachment limits.
 </Card>
 
 ## Troubleshooting

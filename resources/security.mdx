@@ -21,14 +21,14 @@ tool results as sensitive customer data. Security controls apply across the
 mailbox lifecycle, from receiving a message to storing, processing, and deleting
 it.
 
-- **Message content:** Full bodies and attachments use Harbor-backed blob
+- **Message content:** Full bodies and attachments use managed encrypted object
   storage instead of plain database text.
 - **Workspace storage:** Storage access is configured per workspace and
   protected before use.
 - **Workspace access:** Membership and role checks limit access to workspace and
   mailbox resources.
-- **Internal inbound mail:** Worker-to-app forwarding uses private
-  server-to-server authentication.
+- **Inbound mail:** The Email module delivers mail into the mailbox over a
+  private, authenticated path.
 - **App sessions:** First-party sessions use short-lived access and refresh
   flows.
 - **Mutating requests:** Cookie-authenticated mutations use CSRF protection.
@@ -39,7 +39,7 @@ it.
 ## Data protection
 
 Mermail's security design includes encryption in transit and encryption-at-rest
-patterns for sensitive data. Access to production data and provider credentials
+patterns for sensitive data. Access to production data and credentials
 should remain limited to authorized systems and personnel with a business need.
 
 You should store API keys and connected-service credentials outside source code.
@@ -56,7 +56,8 @@ boundaries. Administrative actions require the appropriate workspace role.
 Signed-in application sessions and API credentials use separate authentication
 paths.
 
-Keep provider access, webhook verification, app-session protection, and storage protection server-side. Rotate any sensitive value that may have been exposed.
+Keep Email-module access, app-session protection, and storage protection
+server-side. Rotate any sensitive value that may have been exposed.
 
 ## Agent and connected-tool safety
 
@@ -113,17 +114,15 @@ or content-safety signals. They do not authenticate the sender, authorize an
 action, or satisfy human confirmation.
 
 Email responses expose an additive `sender_authentication` object with a
-composite `status`, individual `spf`, `dkim`, and `dmarc` verdicts, the trusted
-`inbound_provider` transport source, and a `reason`. Mermail derives this object
-only from receiving-provider evidence under server control. Raw
+composite `status`, individual `spf`, `dkim`, and `dmarc` verdicts, an opaque
+`inbound_provider` identifier, and a `reason`. Mermail derives this object
+only from Email-module receiving evidence under server control. Raw
 `Authentication-Results`, `From`, `Return-Path`, and similar message headers
 remain untrusted and cannot be promoted into a pass.
 
-Cloudflare Email Routing and Resend currently do not expose a documented
-per-message sender-authentication verdict to Mermail, so the verdict fields are
-`unknown` with
-`provider_sender_authentication_verdict_unavailable`; if no supported inbound
-provider is recorded, the reason is `inbound_provider_unavailable`. Unknown is
+Current Email-module receiving paths often return `unknown` with
+`provider_sender_authentication_verdict_unavailable`; if no inbound path is
+recorded, the reason is `inbound_provider_unavailable`. Unknown is
 not a pass, and `inbound_provider` is not itself a sender verdict. Only an
 explicit `sender_authentication.status: "pass"` may be described as authenticated,
 and authentication still does not authorize an agent action or replace human
@@ -143,9 +142,7 @@ them in logs, or pass them to another tool.
 
 Use layered controls for any automation that processes inbound email:
 
-- Verify the email-provider webhook signature against the raw request body and
-  reject invalid signatures before parsing the event.
-- Deduplicate provider event and message identifiers to make webhook replay
+- Deduplicate event and message identifiers so replayed delivery events are
   harmless.
 - Apply separate per-sender and per-mailbox automation limits. Store accepted
   mail when appropriate, but queue or skip expensive agent work when a limit is
@@ -163,25 +160,19 @@ Use layered controls for any automation that processes inbound email:
 - Disable connected tools and automatic draft/send behavior for a
   verification-only mailbox unless the workflow explicitly needs them.
 
-Mermail keeps provider-triggered scanning and model automation on separate
+Mermail keeps inbound scanning and model automation on separate
 one-hour budgets:
 
-| Work | Per reported sender and mailbox | Per mailbox | Operator variables |
-| --- | ---: | ---: | --- |
-| Content scanning | 120/hour | 2,000/hour | `INBOUND_SCAN_PER_SENDER_PER_HOUR`, `INBOUND_SCAN_PER_MAILBOX_PER_HOUR` |
-| Model-backed automation | 60/hour | 1,000/hour | `INBOUND_AUTOMATION_PER_SENDER_PER_HOUR`, `INBOUND_AUTOMATION_PER_MAILBOX_PER_HOUR` |
+| Work | Per reported sender and mailbox | Per mailbox |
+| --- | ---: | ---: |
+| Content scanning | 120/hour | 2,000/hour |
+| Model-backed automation | 60/hour | 1,000/hour |
 
-These variables can lower or raise the positive integer defaults. Reaching an
-automation limit does not discard the accepted message; it skips the expensive
-agent run. An exhausted or unavailable scan budget keeps the message but records
-the scan as `skipped`.
-
-Redis errors and timeouts fail closed for provider-triggered scan and automation
-work. With `NO_CACHE=true`, production also fails closed by default, while local
-and test environments retain the legacy fail-open convenience. Operators that
-need the legacy production `NO_CACHE` behavior must set
-`INBOUND_SECURITY_FAIL_CLOSED=false` explicitly; setting it to `true` enforces
-fail-closed behavior in every environment.
+Reaching an automation limit does not discard the accepted message; it skips the
+expensive agent run. An exhausted or unavailable scan budget keeps the message
+but records the scan as `skipped`. When scanning or its limits are unavailable,
+Mermail fails closed for scan-dependent model work while preserving the
+delivered email.
 
 Verification-mode mailboxes implicitly require a clean scan before model-backed
 classification or automation can run. A standard mailbox can opt into the same
@@ -198,20 +189,11 @@ Individual thread and RAG prompt sections use smaller bounds. These
 transformations reduce exposure; they do not make the remaining text trusted.
 
 For inbound ingestion, Mermail stores at most 20 attachments, 10 MiB per
-attachment, and 25 MiB total per message. The Resend path also enforces the byte
-bounds while downloading. Files beyond those bounds are omitted and the
-omission policy is recorded under `provider_metadata.inboundAttachmentPolicy`.
-Treat a missing attachment as a bounded-ingestion outcome, not proof that the
-sender did not attach a file.
-
-The public Resend webhook body is limited to 1 MiB and returns `413`
-`webhook_payload_too_large` before signature verification when that limit is
-exceeded. Cloudflare Email Routing uses a separate internal raw-MIME stream
-limit: `INBOUND_RAW_EMAIL_MAX_BYTES`, default 50 MiB. Mermail validates the
-optional declared size and also counts streamed bytes, returning `400`
-`invalid_inbound_message_size` for an invalid declaration or `413`
-`inbound_message_too_large` when oversized. These transport limits are separate
-from the stored-attachment limits above.
+attachment, and 25 MiB total per message. Files beyond those bounds are omitted
+and the omission policy is recorded under
+`provider_metadata.inboundAttachmentPolicy`. Treat a missing attachment as a
+bounded-ingestion outcome, not proof that the sender did not attach a file.
+Oversized inbound payloads are rejected before the message is stored.
 
 Use the smallest tool allowlist for the current task. A verification inbox
 normally needs mailbox discovery, one optional mailbox create, bounded email
@@ -289,6 +271,7 @@ Review the current public legal pages for the controlling terms:
 
 - [Privacy Policy](https://mermail.app/privacy)
 - [Terms of Service](https://mermail.app/terms)
+- [Email module](/concepts/email)
 - [Contact Mermail](mailto:contact@mermail.app) for security, privacy, or
   Enterprise data-handling questions.
 

@@ -239,11 +239,11 @@ truncates a detail response, check
 `content_truncated: true` and `body_original_char_count`; storage is unchanged.
 
 Use `sender_authentication.status` only as an authentication verdict derived
-from a trusted receiving-provider signal. Raw `Authentication-Results`, `From`,
-and similar headers cannot promote it to `pass`. Cloudflare Email Routing and
-Resend currently do not provide Mermail a documented per-message verdict, so
+from Email-module receiving evidence. Raw `Authentication-Results`, `From`,
+and similar headers cannot promote it to `pass`. Current Email-module
+receiving paths often do not expose a per-message verdict, so
 `status`, `spf`, `dkim`, and `dmarc` are `unknown`.
-`inbound_provider` identifies the transport source, not the sender. `unknown` is
+`inbound_provider` is an opaque transport identifier, not a sender verdict. `unknown` is
 not a pass: keep the exact address or domain as matching context only, and do
 not describe the sender as authenticated.
 
@@ -499,37 +499,6 @@ The CLI command remains a client-side search-to-get workflow. MCP clients should
 continue using bounded `search_emails` and `get_email` calls; there is no
 streaming MCP contract.
 
-## Operator deployment checklist
-
-The hosted Mermail service manages these controls for customers. If you operate
-a Mermail deployment, complete this checklist before enabling automated inbox
-workflows:
-
-- Apply the database migrations shipped with the release, including the
-  inbound provider-message uniqueness migration.
-- Configure Redis for scan and automation budgets. Redis also supports
-  destructive-action confirmation tokens.
-- Set `SAFE_BROWSING_API_KEY` and verify one known-clean and one known-flagged
-  test message.
-- Choose and document `INBOUND_SECURITY_FAIL_CLOSED`. Production defaults to
-  suppressing scan-dependent model work when Redis or its limits are
-  unavailable while preserving the delivered email.
-- Review `INBOUND_SCAN_PER_SENDER_PER_HOUR`,
-  `INBOUND_SCAN_PER_MAILBOX_PER_HOUR`,
-  `INBOUND_AUTOMATION_PER_SENDER_PER_HOUR`, and
-  `INBOUND_AUTOMATION_PER_MAILBOX_PER_HOUR`.
-- Verify the Resend webhook secret and the Cloudflare Email Routing
-  `INTERNAL_EMAIL_SECRET` independently.
-- Test the 1 MiB Resend webhook cap, the configurable raw-MIME cap
-  `INBOUND_RAW_EMAIL_MAX_BYTES` (50 MiB by default), attachment omissions, and
-  `413` handling.
-- Exercise no match, one match, two simultaneous codes, a spoofed sender, a
-  flagged URL, an unexpected redirect, a Redis outage, and an uncertain
-  mailbox-create response.
-
-See [Security and privacy](/resources/security) for the full limits and
-shared-responsibility model.
-
 ## Compatibility guarantees
 
 The hardening controls are additive:
@@ -564,7 +533,7 @@ The hardening controls are additive:
 | Ensure returns `mailbox_ensure_purpose_mismatch` | Choose a task-specific alias, or explicitly manage the existing mailbox settings before running verification-mode ensure again |
 | Mailbox creation returns `409` or the response is lost | List again and resolve the normalized address before considering one more create |
 | A candidate has `scan_status: "flagged"` | Do not expose its body, follow links, or download attachments |
-| An expected attachment is absent | Inspect `provider_metadata.inboundAttachmentPolicy`; Resend ingestion omits files beyond count or byte limits |
+| An expected attachment is absent | Inspect `provider_metadata.inboundAttachmentPolicy`; the Email module omits files beyond count or byte limits |
 | The sender or link domain is unexpected | Stop and report the mismatch without exploring the content |
 | The server returns `401`, `402`, or `403` | Stop and ask the user to restore authentication, credits, or access |
 | The server returns `429` | Stop and surface `Retry-After`; the caller can start a new bounded wait later |
@@ -585,6 +554,9 @@ triager hold, a lost create response, and every terminal API status above.
   </Card>
   <Card title="CLI" icon="terminal" href="/ai/cli">
     Use the same operations from deterministic scripts.
+  </Card>
+  <Card title="Email module" icon="envelope" href="/concepts/email">
+    Review send, receive, attachments, and sender authentication.
   </Card>
   <Card title="Security and privacy" icon="shield-check" href="/resources/security">
     Review Mermail's trust boundaries and shared responsibility model.

@@ -24,7 +24,7 @@ The original `/mcp` URL is unchanged and continues to expose the full catalog.
 
 ### OAuth (browser-parity)
 
-MCP clients that support OAuth discover Mermail via Protected Resource Metadata, open the console authorize page, and receive a Bearer access token after the user signs in with Enoki (same as the web app) and picks a workspace. The consent UI shows a friendly client name (for example ChatGPT or Cursor), not the opaque `mcp_client_…` id.
+MCP clients that support OAuth discover Mermail via Protected Resource Metadata, open the console authorize page, and receive a Bearer access token after the user signs in with their Mermail account (same as the web app) and picks a workspace. The consent UI shows a friendly client name (for example ChatGPT or Cursor), not the opaque `mcp_client_…` id.
 
 | Item | Value |
 | --- | --- |
@@ -308,7 +308,44 @@ send-ready but receive-pending domain remains unavailable for an inbox workflow.
 
 Validation failures return `code: "validation_failed"` with a `details` array of field paths (for example `body: Either 'html' or 'text' must be provided`) so agents can self-correct. Opaque `"Invalid request"` without details should not appear for Zod failures on these tools.
 
-Server instructions: prefer read-only tools before writes. Responses are JSON text plus object-shaped `structuredContent`. JSON arrays are exposed as `{ "items": [...] }` so the result conforms to the MCP schema. Binary payloads (for example attachments) are capped at **1 MiB**. A skill using MCP should report that limit instead of inventing a storage URL; use the authenticated REST attachment endpoint only as a separate, explicitly authorized client workflow.
+### Files and inline images
+
+The five email write tools in the table above accept `attachments`. Each item is either base64 file bytes or an existing attachment reference from the same authorized mailbox. The server checks mailbox access and resolves reference metadata and content; a missing, deleted, or foreign reference fails the request.
+
+```json
+{
+  "mailboxId": "mailbox-public-id",
+  "body": {
+    "to": "reader@example.com",
+    "from": "you@mermail.app",
+    "subject": "Research report",
+    "text": "The report is attached.",
+    "attachments": [
+      {
+        "content": "JVBERi0xLjcK",
+        "filename": "report.pdf",
+        "type": "application/pdf",
+        "disposition": "attachment"
+      },
+      { "attachment_id": "existing-attachment-id" }
+    ]
+  }
+}
+```
+
+Replace the example `content` with the base64 encoding of the complete file. A local path, URL, or `data:` URL is not file content. MCP tools cannot open a path on your computer. Existing flat arguments remain supported, but use the discoverable nested `body` schema for new integrations.
+
+When you select an existing draft with `source_draft_id` for send/reply/forward or `draft_id` for save/schedule, omitting `attachments` preserves its files. An explicit array replaces the complete set; `[]` removes all attachments. Include `{ "attachment_id": "..." }` entries for any existing files you want to keep when adding or removing others.
+
+For an inline image, use `disposition: "inline"`, a unique bare `contentId` such as `chart-1`, and HTML containing `<img src="cid:chart-1" alt="Chart" />`. Inline PNG, JPEG, GIF, and WebP bytes must match their MIME type. Other file types can be ordinary attachments subject to provider restrictions. Drafts use the same HTML in their string `body` with `body_format: "html"`.
+
+Storage limits are **20 files**, **10 MiB per file**, and **25 MiB decoded total**. Delivery also checks the encoded message, its bodies, and overhead: hosted `@mermail.app` addresses use about **5 MiB**, while custom-domain addresses allow about **40 MB**. The server reserves overhead conservatively, so a file below its storage limit can still be too large to send. See [Email module limits](/concepts/email#attachments-and-message-size).
+
+MCP request bodies have a **40 MiB streamed ceiling**, including JSON and base64 encoding. Oversized requests return HTTP `413` with `request_payload_too_large`. File and metadata validation returns field details; provider message-size rejection uses `outbound_message_too_large`.
+
+Report a successful draft save as **drafted**, a schedule as **scheduled**, and a queued send as **queued**. Report **sent** only after an authoritative send result confirms it; this does not prove recipient delivery. If the outcome is uncertain, inspect the existing message's status before retrying to avoid duplicate emails.
+
+Server instructions: prefer read-only tools before writes. Responses are JSON text plus object-shaped `structuredContent`. JSON arrays are exposed as `{ "items": [...] }` so the result conforms to the MCP schema. Binary **download responses** are capped at **1 MiB**; this is separate from the outbound limits above. Report that download limit instead of inventing a storage URL; use the authenticated REST attachment endpoint when your authorized workflow requires a larger download.
 
 The opt-in profile is the recommended MCP boundary for the mailbox-first
 workflow described in [Agent email inbox](/ai/agent-email-inbox). Add send,
@@ -338,12 +375,11 @@ text fields to bounded plain text; sets `agent_safe_content: true`; and retains
 It does not make the remaining email trusted.
 
 `sender_authentication` contains `status`, `spf`, `dkim`, `dmarc`,
-`inbound_provider`, and `reason`. Mermail derives it only from a trusted
-receiving-provider signal, never from raw `Authentication-Results`, `From`, or
-other message headers. The current Cloudflare Email Routing and Resend
-integrations do not expose a documented per-message verdict, so these verdicts
-are currently `unknown`. `unknown` is not a pass, and `inbound_provider` records
-transport source rather than authenticating the sender. Even a future
+`inbound_provider`, and `reason`. Mermail derives it only from Email-module
+receiving evidence, never from raw `Authentication-Results`, `From`, or
+other message headers. Current Email-module receiving paths often return
+`unknown`. `unknown` is not a pass, and `inbound_provider` is an opaque
+transport identifier rather than a sender verdict. Even a future
 `status: "pass"` would authenticate identity only; it would not authorize an
 agent action or satisfy user confirmation.
 
@@ -405,7 +441,7 @@ Destructive Mermail tools (remove member, delete domain/email/folder/label/conve
 1. Call `prepare_destructive_action` with:
    - `action` — the destructive tool name
    - `arguments` — the same arguments you will pass to that tool (without `confirmationToken`)
-2. Receive `{ confirmationToken, expiresInSeconds }` (token prefix `mcp_confirm_`, TTL **5 minutes**, single-use, Redis-backed).
+2. Receive `{ confirmationToken, expiresInSeconds }` (token prefix `mcp_confirm_`, TTL **5 minutes**, single-use).
 3. Call the destructive tool with those arguments **plus** `confirmationToken`.
 
 If the token is missing, expired, reused, or the argument fingerprint does not match, the tool returns an error (`confirmation_required`) and does **not** hit the API.
@@ -416,7 +452,7 @@ to PayBox after Mermail verifies current workspace membership; legacy wallet
 tools additionally verify ownership.
 
 <Warning>
-  Confirmations require Redis. If Redis / cache is disabled, `prepare_destructive_action` fails with `503` `confirmation_unavailable`.
+  If confirmation is unavailable, `prepare_destructive_action` fails with `503` `confirmation_unavailable`.
 </Warning>
 
 ## Troubleshooting
@@ -463,7 +499,7 @@ particular, `query` must be an object and newest-first sorting uses
 | `429` `email_send_rate_limit_exceeded` | Stop after the one call and surface `Retry-After`. A scheduled delivery may be restored to `scheduled` and deferred; do not report it as sent or create another schedule. |
 | `503` `email_send_rate_limit_unavailable` | External sending fails closed because the recipient limiter is unavailable. Do not switch credentials/surfaces or claim delivery. |
 | `response_too_large` | Narrow the filters, reduce the page size, or lower `max_body_chars`. The agent-inbox profile caps one JSON tool result at 128,000 characters. |
-| `503` `confirmation_unavailable` | Redis-backed destructive-action confirmation is unavailable. Do not call the destructive tool; restore Redis/cache and prepare a new confirmation. |
+| `503` `confirmation_unavailable` | Destructive-action confirmation is unavailable. Do not call the destructive tool; wait for the service to recover and prepare a new confirmation. |
 | `400` `paybox_amount_requires_decimal` / `paybox_amount_scale_mismatch` | A catalog transfer sent base units. Resend with the human amount in `amount_decimal` and no `amount`. See [catalog token transfers](/agent-wallet/catalog-transfers). |
 | `400` `paybox_amount_below_dust_floor` | Mermail has a trusted unit price and the transfer implies under about $0.01. Ask the user for an amount worth at least $0.01, then retry with that `amount_decimal`. See [errors and recovery](/agent-wallet/errors-and-recovery). |
 | `400` `paybox_amount_value_mismatch` | The implied USD value disagrees with `value_cents`. Restate the amount or correct `value_cents`. |

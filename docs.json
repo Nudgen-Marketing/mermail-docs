@@ -21,6 +21,8 @@
           {
             "group": "Core concepts",
             "pages": [
+              "concepts/platform",
+              "concepts/email",
               "concepts/mailboxes",
               "concepts/workspaces",
               "concepts/ai-agent",

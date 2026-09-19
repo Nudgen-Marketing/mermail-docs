@@ -74,6 +74,18 @@ Enterprise shares the same endpoint list as Developer — higher quotas, not ext
 
 ## Core API catalog (all plans)
 
+### Send files and inline images
+
+Send, reply, forward, save-draft, and schedule requests accept an `attachments` array in the JSON request body. Each item contains base64 file bytes (`content`, `filename`, `type`, `disposition`, and optional `contentId`) or `{ "attachment_id": "existing-id" }` to reuse a file in the same authorized mailbox. Pass complete file bytes, not a local path, URL, or `data:` URL.
+
+When replacing or sending an existing draft, omitting `attachments` preserves its files; `[]` clears them; an explicit array replaces the entire set. Use `draft_id` for save/schedule and `source_draft_id` for sends. Include references for existing files you want to retain alongside new bytes.
+
+For inline PNG, JPEG, GIF, or WebP, set `disposition: "inline"`, assign a unique `contentId`, and include a matching HTML image such as `<img src="cid:chart-1" alt="Chart" />`. Drafts and schedules carry HTML in `body` with `body_format: "html"`; sends use `html`.
+
+Storage allows 20 files, 10 MiB per file, and 25 MiB decoded total. The Email module also checks the encoded message, its bodies, and overhead: about **5 MiB** for hosted `@mermail.app` addresses and about **40 MB** for custom-domain addresses. A file that fits storage can exceed the message limit. See the [Email module](/concepts/email#attachments-and-message-size) and [attachment examples](/ai/mcp#files-and-inline-images). MCP wraps the REST payload in a tool's `body` object; REST sends the payload directly.
+
+Treat saved drafts, queued requests, and scheduled emails according to the returned status. Only report **sent** after an authoritative send result; recipient delivery is a separate outcome.
+
 Auth: `x-api-key`. Metered with credits + RPM. Open each group in the sidebar for full schemas and Try it.
 
 ### Catalog by area
