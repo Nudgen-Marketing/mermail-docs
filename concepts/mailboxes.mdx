@@ -18,9 +18,9 @@ exactly-once business execution.
 | Address type | Typical use | Provider path |
 | --- | --- | --- |
 | Hosted `@mermail.app` address | Fast setup and agent-owned inboxes | Cloudflare Email Routing for inbound mail |
-| Custom subdomain address | Team or product inboxes on your domain | Resend domain verification and provider routing |
+| Custom domain address | Team or product inboxes on your domain | Domain verification and provider routing |
 
-Mermail prefers custom subdomains such as `support.mail.example.com` for custom-domain mailboxes. This avoids changing MX records for a root domain that may already run company email.
+Mermail recommends a dedicated subdomain such as `mail.example.com` for custom-domain mailboxes. A domain that already has MX records is not accepted, so your existing company email is not affected. When a workspace connects a custom domain, all of its mailboxes move to that domain. See [Custom domains](/guides/custom-domains).
 
 ## Hosted mailbox rules
 
