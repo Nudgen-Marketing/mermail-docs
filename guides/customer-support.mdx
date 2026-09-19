@@ -1,176 +1,211 @@
 ---
-title: "Customer Support"
-description: "Analyze your public website, apply shared support context, and customize signatures for your Mermail mailboxes."
+title: "Customer support"
+description: "Teach Mermail about your business, choose how support replies are handled, and manage shared business information and signatures for a workspace."
 icon: "headset"
 ---
 
-Customer Support uses your public website to give mailbox agents business facts
-they can reference when helping customers. You review the analysis, apply it to
-a workspace, and optionally customize a signature for selected mailboxes.
+Customer support gives the mailbox agents in a workspace the same business facts
+to reference when helping customers. You analyze your public website (or enter
+the details manually), review the result, apply it to the workspace, and
+optionally apply a website signature to selected mailboxes.
 
-Start on the [Customer Support page](https://mermail.app/customer-support).
-Scanning a website does not change its pages, configure email delivery, or send
+Each workspace has its own **Customer Support** page. On the Mermail home page,
+find the **Customer Support** card and click **Open Customer Support**.
+
+Analyzing a website does not change its pages, configure email delivery, or send
 a message to a customer.
 
 ## Before you begin
 
 - Have the address of the public website you want to analyze.
-- Sign in to Mermail with admin access to the workspace where you will apply it.
-- [Create a mailbox](/guides/create-mailbox) to receive support requests and apply a website signature.
+- Sign in with admin access to the workspace. Other members can view the active
+  business information, but only an admin can analyze, apply, or remove it.
+- [Create a mailbox](/guides/create-mailbox) to receive support requests.
 
-You can scan a website before signing in. Applying the result and managing its
-context or website signature require workspace admin access.
+To receive mail on your own domain, complete [Custom domains](/guides/custom-domains).
+Entering a website address in Customer support does not verify that domain for
+email.
 
-You can use an existing Mermail address. To receive mail on your own domain,
-complete [Custom domains](/guides/custom-domains) separately. Entering a website
-address in Customer Support does not verify that domain for email or create a
-mailbox on it.
+## Guided setup for new accounts
+
+If you sign up from the Mermail Customer support page, Mermail opens a
+**Set up customer support** window after your first mailbox is created. It walks
+you through four steps:
+
+<Steps>
+  <Step title="Tell Mermail about your business">
+    Enter your website address and click **Analyze website**, then click
+    **Apply and continue** when the analysis is ready.
+
+    To skip the website, click **Enter information manually instead** and fill
+    in **Business name** and **Products or services**. **Support information**
+    and **Policies** are optional. Click **Save and continue**.
+
+    If business information is already applied to the workspace, review it and
+    click **Confirm and continue**.
+  </Step>
+  <Step title="Choose how replies are handled">
+    Pick a response mode for the support mailbox:
+
+    | Mode | What happens |
+    | --- | --- |
+    | **Draft for review** | Every suggested reply waits for you |
+    | **Automatic triage** | Routine replies may send automatically |
+
+    Sensitive, uncertain, security, refund, and cancellation requests always
+    wait for review. You can also choose a **Business type** (**Saas and
+    Ecommerce**, **SaaS**, or **Ecommerce**) and list extra topics under
+    **Always review these topics**, one per line.
+
+    Use **Try a sample reply** to practice editing and approving a draft.
+    Nothing is sent.
+  </Step>
+  <Step title="Use your own email domain (optional)">
+    Add a custom domain for the workspace, or click **Skip for now**. Once you
+    add a domain, you can continue while DNS updates and finish on the
+    [Custom Domains](/guides/custom-domains) page. On the Free plan, this step
+    offers **Upgrade to Developer** instead.
+  </Step>
+  <Step title="Your support mailbox is ready">
+    Review the mailbox address, reply mode, business information, and custom
+    domain status. If DNS is still pending, click **Continue domain setup**.
+  </Step>
+</Steps>
+
+Click **Finish later** at any time to close the window and keep your progress.
+To reopen it, click **Review setup** on the Customer support page (or
+**Domain setup** on the Custom Domains page).
+
+<Note>
+  Setup can only be edited in one browser tab at a time. If you see **Setup is
+  open in another tab**, continue there, or click **Take over here** if that tab
+  is no longer in use.
+</Note>
 
 ## Analyze your website
 
+Use **Business information** at the top of the Customer support page. Your
+active profile stays unchanged until you review and apply a new result.
+
 <Steps>
-  <Step title="Start a scan">
-    Open the [Customer Support page](https://mermail.app/customer-support),
-    enter your website under **Website address**, and click **Scan now**.
+  <Step title="Start the analysis">
+    Enter your site under **Website address** and click **Analyze website**.
 
     Mermail reads public pages and related documentation it can safely reach.
     It does not sign in to your website or access private customer records.
   </Step>
-  <Step title="Review the findings">
-    Review the brand summary, public support contacts, tone, and **What Mermail
-    learned**. Open **Complete analysis details** to inspect the report and
-    available source evidence.
+  <Step title="Follow the progress">
+    The analysis moves through connecting to your website, reading pages and
+    documentation, finding business details, building your support profile, and
+    checking the result. You can leave the page; the analysis resumes when you
+    return.
 
-    The report can include products, business policies, contact information,
-    social profiles, and documentation. Check important details against the
-    source pages before using them in customer replies. Missing information
-    is not a confirmed fact.
+    If the analysis stops, your current workspace profile is unchanged. Click
+    **Retry analysis**, or **Analyze another website** to start over.
   </Step>
-  <Step title="Choose whether to scan more pages">
-    The initial **Scan** checks relevant pages first. If Mermail discovers more
-    useful documentation, it may offer **Run Detailed scan**.
+  <Step title="Review and apply">
+    When the result is ready, click **Review and apply**. The confirmation
+    shows the **Current** and **New** business information and a summary of the
+    brand.
 
-    A Detailed scan is optional. You can use the available result without
-    running it. A **Partial result** means the analysis has useful findings
-    but incomplete coverage; it does not mean every page was read.
-  </Step>
-  <Step title="Apply the result to a workspace">
-    Click **Use this in Mermail**. Sign in if needed and select a workspace
-    where you are an admin. Mermail applies the analysis when the workspace
-    is ready. If another website profile needs replacement, review the
-    confirmation before continuing.
-
-    Open **Settings → Website context** in that workspace to confirm the
-    applied website, analysis date, revision, and enabled state.
+    Click **Apply to workspace**. If the workspace already uses another website
+    or a manually entered profile, the dialog asks **Replace workspace business
+    information?** and the button reads **Replace and apply**.
   </Step>
 </Steps>
 
-<Note>
-  Applying a website profile does not activate its suggested signature or
-  change existing mailbox signatures. Apply a signature separately below.
-</Note>
+Applying business information shares it with every mailbox in the workspace.
+It does not change mailbox response modes or review policies, and it does not
+change existing mailbox signatures.
 
-## Understand Website context
+<Tip>
+  You can also scan a website on the public
+  [Customer support page](https://mermail.app/customer-support) before signing in,
+  then import the result into a workspace where you are an admin.
+</Tip>
 
-Website context is the website profile applied to your workspace. Mailbox
-agents in that workspace share its business facts and Friendly tone. Each
-workspace has one current applied profile.
+## Manage active business information
 
-The analysis report contains the full findings. Mermail also prepares a compact
-context and a searchable knowledge index so mailbox agents can reference
-relevant information from the report.
+After you apply a result, **Active business information** appears on the
+Customer support page. It shows the website, whether it is **Enabled** or
+**Disabled**, the analysis date and revision, and a summary of the brand, tone,
+returns policy, and support contact.
 
-Website facts and other retrieved reference material remain untrusted input.
-They cannot override Mermail or mailbox instructions or authorize sending.
+Mailbox agents in the workspace share these business facts and a Friendly tone.
+Each workspace has one active profile. Website facts and other retrieved
+reference material remain untrusted input. They cannot override Mermail or
+mailbox instructions or authorize sending.
+
+| Action | Business information | Signature behavior |
+| --- | --- | --- |
+| **Re-analyze** | Returns to **Business information**; review and apply a new result to update it | Existing mailbox signatures stay unchanged until you apply a signature |
+| **Disable** | Agents stop using it immediately; it is kept for later | Does not disable existing signatures |
+| **Enable** | Agents use it again | Does not automatically apply a signature |
+| **Remove** | Removes it from the workspace | Disables website signatures associated with the removed site in this workspace, including edited ones |
+
+Removing business information does not remove manually created signatures or
+modify sent emails. Automatically inserted signatures in an open compose can
+update if you have not edited them. Saved drafts and signatures you edited in
+compose are preserved; review them before sending.
 
 ## Edit and apply a website signature
 
-In the selected workspace, open **Settings → Website signature**.
+Use **Website signature** on the Customer support page.
 
 <Steps>
   <Step title="Edit the suggestion">
-    Click **Edit signature** to open the editor. You can use line breaks, bold,
-    italic, underline, lists, and HTTP or HTTPS links. The signature editor
-    does not support image uploads or arbitrary HTML.
+    Click **Edit signature**. You can use line breaks, bold, italic, underline,
+    lists, and HTTP or HTTPS links. The editor does not support image uploads or
+    arbitrary HTML.
 
-    Click **Save changes** to update the preview. This saves your edits on the
-    current page only. It does not update any mailbox yet, and the preview
-    displays **Not applied**.
+    Click **Save changes** to update the preview. This does not update any
+    mailbox yet, and the preview shows **Not applied**.
   </Step>
   <Step title="Choose the mailboxes">
-    Under **Apply to mailboxes**, select the mailboxes that should receive
-    this signature. You can uncheck every mailbox; **Review and apply** stays
-    disabled until you select at least one.
+    Under **Apply to mailboxes**, select the mailboxes that should receive this
+    signature. **Review and apply** stays disabled until you select at least
+    one.
 
-    Unchecked mailboxes keep their existing signatures. Unchecking a mailbox
-    does not turn its current signature off.
+    Unchecked mailboxes keep their existing signatures.
   </Step>
   <Step title="Review and apply">
     Click **Review and apply**. If a selected mailbox already has a different
-    enabled signature, confirm its replacement after reviewing the mailbox
-    list.
+    enabled signature, confirm its replacement.
 
-    After a successful Apply, Mermail saves the shared signature for the
-    workspace and updates the selected mailboxes. Refreshing the page or
-    reopening settings loads that saved version for the current report.
+    After a successful apply, Mermail saves the shared signature for the
+    workspace and updates the selected mailboxes.
   </Step>
 </Steps>
 
-The preview represents the workspace's most recently applied shared signature.
-It does not mean every mailbox has that signature: mailboxes excluded from an
-Apply keep their own version.
-
 | Action | Result |
 | --- | --- |
-| **Save changes**, then refresh before Apply | Unapplied edits are lost; settings load the last applied version, or the suggestion if none exists |
-| Successful **Review and apply**, then refresh | Settings retain the applied version for the current report |
-| **Cancel** or discard edits when closing the editor | The preview and mailbox signatures stay as they were before opening the modal |
-| **Reset to suggestion** | The modal returns to the original website suggestion; use **Save changes** and **Review and apply** to persist it |
-| Context changes while you edit | Review the warning and reset to the latest suggestion before saving or applying |
+| **Save changes**, then refresh before applying | Unapplied edits are lost; the last applied version, or the suggestion, loads |
+| Successful **Review and apply**, then refresh | The applied version is kept for the current analysis |
+| **Cancel** or discard edits | The preview and mailbox signatures stay as they were |
+| **Reset to suggestion** | Returns to the original website suggestion; save and apply to keep it |
+| Business information changes while you edit | Reset to the latest suggestion before applying |
 
 Signature text must be non-empty and fit within 10,000 plain-text characters
 and 32 KB of HTML. Mermail sanitizes formatting and links before saving.
-Your edits are not added to the analysis report or treated as verified website
-facts. The edited signature still belongs to the Site Profile.
 
-If older mailbox signatures have different saved contents, settings asks you
-to choose a version to review or use the original suggestion. It does not
-silently select one mailbox's version for all the others.
-
-## Update, disable, or remove context
-
-Use **Settings → Website context** to manage the applied profile.
-
-| Action | Website knowledge | Signature behavior |
-| --- | --- | --- |
-| **Re-analyze** | Opens the website analysis flow; review and apply a new result to update workspace context | Existing mailbox signatures stay unchanged until you explicitly apply a signature |
-| **Disable** | Stops agents from using this Website context while retaining it for later use | Does not disable existing signatures |
-| **Enable** | Makes the retained Website context available again | Does not automatically apply a signature |
-| **Remove** | Removes the current applied Website context | Disables Site Profile signatures associated with the removed host in this workspace, including edited Site Profile signatures |
-
-Removing context does not remove manually created signatures or modify sent
-emails. Automatically inserted signatures in an open compose can update when
-settings refresh if you have not edited that signature. Saved draft content
-and signatures you edited in compose are preserved; review them before sending.
-
-Importing a new report does not reuse the previous report's saved shared
-signature as the new report's preview. Review the new suggestion and explicitly
-apply it to the mailboxes you want to update.
+If mailboxes have different saved signatures, Mermail asks you to choose one to
+review before applying. A new analysis does not reuse the previous signature;
+review the new suggestion and apply it to the mailboxes you want to update.
 
 ## Troubleshooting
 
 | What you see | What to do |
 | --- | --- |
-| The website cannot be analyzed | Check that the address is correct and publicly accessible. Retry later if the site or analysis service is temporarily unavailable |
-| **Partial result** | Review available findings and coverage. Use the result if sufficient, or run **Detailed scan** when offered |
-| Import remains pending after sign-in | Confirm the selected workspace and your admin role. Use **Continue to Mermail** if shown, then inspect **Website context** |
-| The import expired | Return to the analysis page and create a new import |
+| **Enter a valid public website.** | Check the address, for example `yourcompany.com` |
+| The analysis could not finish | Check that the site is public, then click **Retry analysis** |
+| Analysis controls are disabled | Ask a workspace admin to analyze or replace the website |
+| **Business information could not be applied** | Reload the page to get the latest workspace information and try again |
+| **Setup is open in another tab** | Continue in that tab, or click **Take over here** |
+| **The setup mailbox is no longer available** | Choose another mailbox in the setup window and review its reply settings |
 | **Select a mailbox to apply this signature.** | Select at least one mailbox |
-| **Not applied** | Use **Review and apply** to persist the preview; saving the modal alone is not enough |
-| Website context changed while editing | Review the latest context and reset to its suggestion before applying again |
-| An old signature remains in a saved draft or edited compose | Review and edit that message's signature; existing authored content is preserved |
-| Context or signature settings return a server error | Contact support with the error, time, workspace, and affected mailbox so the deployment can be checked |
+| **Not applied** | Click **Review and apply**; saving the editor alone is not enough |
+| An old signature remains in a saved draft | Edit that message's signature before sending |
 
 If a problem persists, [contact Mermail support](/resources/support) with the
-affected workspace, mailbox, approximate time, and the error message.
-Do not include passwords, access tokens, or database connection strings.
+workspace, mailbox, approximate time, and error message. Do not include
+passwords or access tokens.

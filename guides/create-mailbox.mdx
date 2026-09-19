@@ -31,14 +31,16 @@ exact normalized address before deciding whether to retry.
 
 ## Create a custom-domain mailbox
 
-Before creating the mailbox, [add and verify the custom domain](/guides/custom-domains). The domain must have a `verified` status.
+First, [connect a custom domain](/guides/custom-domains) to the workspace and wait until it shows **Sending ready** and **Receiving ready**.
+
+Once the domain is ready, every mailbox in the workspace moves to it automatically and keeps its username. New mailboxes are created on the custom domain.
 
 <Steps>
   <Step title="Open the workspace">
-    In the console, select the workspace that owns the verified domain.
+    In the console, select the workspace that owns the connected domain.
   </Step>
   <Step title="Start mailbox creation">
-    Click **New mailbox** and select the verified custom domain.
+    Click **New mailbox**. The address uses the workspace's custom domain.
   </Step>
   <Step title="Choose the address">
     Enter the username that should appear before `@`.
@@ -49,7 +51,7 @@ Before creating the mailbox, [add and verify the custom domain](/guides/custom-d
 </Steps>
 
 <Info>
-  Custom domains require a paid plan. The Developer plan includes up to 5 custom domains.
+  Custom domains require a paid plan, such as Developer. Each workspace supports one custom domain.
 </Info>
 
 ## Receive mail from an existing inbox
@@ -118,8 +120,8 @@ flag.
 | Problem | What to check |
 | --- | --- |
 | Username is rejected | Check length, separators, characters, and reserved terms |
-| Custom domain is rejected | Use a subdomain with at least three labels |
-| Domain cannot be verified | Check DNS records and wait for propagation |
+| Custom domain is rejected | Use a domain without existing email (MX) records, such as a dedicated subdomain like `mail.example.com` |
+| Domain cannot be verified | Click **Check connection** on the Custom Domains page and follow the message shown for each record |
 | Mailbox limit reached | Check the workspace plan limits |
 | `welcome_onboarding_status` remains `pending` | This is the welcome/demo-message status, not inbound readiness; check `can_receive` and `receiving_status` |
 | A custom-domain mailbox can send but cannot receive | Re-check the domain's current Receiving MX records; send verification alone is not enough for `can_receive: true` |
