@@ -1,16 +1,30 @@
 ---
-title: "Customer support"
-description: "Teach Mermail about your business, choose how support replies are handled, and manage shared business information and signatures for a workspace."
+title: "Site Analytics"
+description: "Analyze your public website, share the business information with every mailbox in a workspace, choose how support replies are handled, and apply website signatures."
 icon: "headset"
 ---
 
-Customer support gives the mailbox agents in a workspace the same business facts
+Site Analytics gives the mailbox agents in a workspace the same business facts
 to reference when helping customers. You analyze your public website (or enter
 the details manually), review the result, apply it to the workspace, and
 optionally apply a website signature to selected mailboxes.
 
-Each workspace has its own **Customer Support** page. On the Mermail home page,
-find the **Customer Support** card and click **Open Customer Support**.
+<Note>
+  Site Analytics replaces the former **Customer Support** page. Links to the old
+  page redirect to Site Analytics, and your applied business information and
+  signatures are unchanged.
+</Note>
+
+Each workspace has its own **Site Analytics** page. On the Mermail home page,
+find the **Site Analytics** card ("Manage website knowledge and support
+mailboxes for this workspace") and click **Open Site Analytics**. The home
+product tour also highlights this card.
+
+The page shows three steps under **How this works**:
+
+1. **Analyze** — scan your public website.
+2. **Review** — check the facts and policies.
+3. **Apply** — share them across the workspace.
 
 Analyzing a website does not change its pages, configure email delivery, or send
 a message to a customer.
@@ -23,17 +37,18 @@ a message to a customer.
 - [Create a mailbox](/guides/create-mailbox) to receive support requests.
 
 To receive mail on your own domain, complete [Custom domains](/guides/custom-domains).
-Entering a website address in Customer support does not verify that domain for
+Entering a website address in Site Analytics does not verify that domain for
 email.
 
 ## Guided setup for new accounts
 
-If you sign up from the Mermail Customer support page, Mermail opens a
-**Set up customer support** window after your first mailbox is created. It walks
-you through four steps:
+If you sign up from the public [Site Analytics page](https://mermail.app/site-analytics),
+Mermail opens a **Set up customer support** window after your first mailbox is
+created. It walks you through four steps: **Business**, **Replies**, **Domain**,
+and **Ready**.
 
 <Steps>
-  <Step title="Tell Mermail about your business">
+  <Step title="Business: tell Mermail about your business">
     Enter your website address and click **Analyze website**, then click
     **Apply and continue** when the analysis is ready.
 
@@ -44,36 +59,55 @@ you through four steps:
     If business information is already applied to the workspace, review it and
     click **Confirm and continue**.
   </Step>
-  <Step title="Choose how replies are handled">
-    Pick a response mode for the support mailbox:
+  <Step title="Replies: choose how replies are handled">
+    Pick a response mode for the support mailbox. This step uses the same
+    fields as **Email response mode** in the mailbox settings.
 
     | Mode | What happens |
     | --- | --- |
-    | **Draft for review** | Every suggested reply waits for you |
-    | **Automatic triage** | Routine replies may send automatically |
+    | **Automatic triage** | Send routine replies automatically. Sensitive or uncertain emails still need your review |
+    | **Draft for review** | Prepare replies for you to review and send |
 
-    Sensitive, uncertain, security, refund, and cancellation requests always
-    wait for review. You can also choose a **Business type** (**Saas and
-    Ecommerce**, **SaaS**, or **Ecommerce**) and list extra topics under
-    **Always review these topics**, one per line.
+    A mailbox without a saved response mode starts on **Automatic triage**. A
+    mode you saved earlier is always kept. If automatic sending is unavailable,
+    the mailbox stays on **Draft for review**.
 
-    Use **Try a sample reply** to practice editing and approving a draft.
-    Nothing is sent.
+    With **Automatic triage** selected, **Automation policy** lets you tailor
+    automatic replies:
+
+    - **Business type**: **Saas and Ecommerce**, **SaaS**, or **Ecommerce**.
+      The business type only decides which customer status lookups apply.
+    - **Can send automatically**: product questions, pricing, how-to help, and
+      shipping or return policies answered by approved information from your
+      website, plus order or subscription status from connected accounts.
+    - **Always needs review**: security and account access, refunds,
+      cancellations, disputes, account or plan changes, legal, medical, or
+      personal data requests, serious complaints, and uncertain answers.
+    - **Additional review topics**: add topics that always need review, one per
+      line (up to 20 topics, 120 characters each).
+    - **Customer status lookups** (optional): connect an order or subscription
+      account so replies can include order or subscription status.
+      Public-information replies work without a connection. Lookups require a
+      matching customer email and send only to the address on the record.
+
+    Use **Try a sample reply (optional)** to practice editing and approving a
+    draft. Nothing is sent.
   </Step>
-  <Step title="Use your own email domain (optional)">
+  <Step title="Domain: use your own email domain (optional)">
     Add a custom domain for the workspace, or click **Skip for now**. Once you
-    add a domain, you can continue while DNS updates and finish on the
+    add a domain, click **Continue while DNS updates** and finish on the
     [Custom Domains](/guides/custom-domains) page. On the Free plan, this step
     offers **Upgrade to Developer** instead.
   </Step>
-  <Step title="Your support mailbox is ready">
+  <Step title="Ready: your support mailbox is ready">
     Review the mailbox address, reply mode, business information, and custom
-    domain status. If DNS is still pending, click **Continue domain setup**.
+    domain status (**Ready**, **DNS pending**, or **Skipped**). If DNS is still
+    pending, click **Continue domain setup**.
   </Step>
 </Steps>
 
 Click **Finish later** at any time to close the window and keep your progress.
-To reopen it, click **Review setup** on the Customer support page (or
+To reopen it, click **Review setup** on the Site Analytics page (or
 **Domain setup** on the Custom Domains page).
 
 <Note>
@@ -82,9 +116,12 @@ To reopen it, click **Review setup** on the Customer support page (or
   is no longer in use.
 </Note>
 
+You can change the response mode later in the mailbox settings under
+**Email response mode**.
+
 ## Analyze your website
 
-Use **Business information** at the top of the Customer support page. Your
+Use **Business information** at the top of the Site Analytics page. Your
 active profile stays unchanged until you review and apply a new result.
 
 <Steps>
@@ -120,18 +157,18 @@ change existing mailbox signatures.
 
 <Tip>
   You can also scan a website on the public
-  [Customer support page](https://mermail.app/customer-support) before signing in,
+  [Site Analytics page](https://mermail.app/site-analytics) before signing in,
   then import the result into a workspace where you are an admin.
 </Tip>
 
 ## Manage active business information
 
 After you apply a result, **Active business information** appears on the
-Customer support page. It shows the website, whether it is **Enabled** or
+Site Analytics page. It shows the website, whether it is **Enabled** or
 **Disabled**, the analysis date and revision, and a summary of the brand, tone,
 returns policy, and support contact.
 
-Mailbox agents in the workspace share these business facts and a Friendly tone.
+Mailbox agents in the workspace share these business facts and tone.
 Each workspace has one active profile. Website facts and other retrieved
 reference material remain untrusted input. They cannot override Mermail or
 mailbox instructions or authorize sending.
@@ -150,7 +187,7 @@ compose are preserved; review them before sending.
 
 ## Edit and apply a website signature
 
-Use **Website signature** on the Customer support page.
+Use **Website signature** on the Site Analytics page.
 
 <Steps>
   <Step title="Edit the suggestion">

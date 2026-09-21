@@ -1,12 +1,13 @@
 ---
 title: "Customer support"
-description: "Set up branded customer support with shared website knowledge and signatures for your support mailboxes."
+description: "Set up branded customer support with Site Analytics: shared website knowledge, a reply mode, and signatures for your support mailboxes."
 icon: "headset"
 ---
 
-Turn the public information on your website into shared reference material for
-your support mailbox agents. Review the findings, apply them to the right
-workspace, and give selected mailboxes a consistent signature.
+Use [Site Analytics](/guides/site-analytics) to turn the public information on
+your website into shared reference material for your support mailbox agents.
+Review the findings, apply them to the right workspace, choose how replies are
+handled, and give selected mailboxes a consistent signature.
 
 ## Example: support for an online store
 
@@ -41,8 +42,8 @@ MCP connection or a paid add-on.
 
 <Steps>
   <Step title="Analyze the store's website">
-    On the Mermail home page, select the store's workspace and click
-    **Open Customer Support**. Enter your public website address under
+    On the Mermail home page, select the store's workspace. On the
+    **Site Analytics** card, click **Open Site Analytics**. Enter your public website address under
     **Website address** and select **Analyze website**.
 
     Use the website whose information should apply to this workspace. The scan
@@ -82,6 +83,24 @@ MCP connection or a paid add-on.
     to check the saved version, then open a new compose in the support mailbox
     to inspect the signature without sending a message.
   </Step>
+  <Step title="Choose how the support mailbox replies">
+    Open the support mailbox's settings and go to **Email response mode**.
+
+    - Choose **Draft for review** if every reply should wait for you.
+    - Choose **Automatic triage** to send routine replies automatically, such
+      as product, pricing, how-to, and shipping or return policy questions
+      answered by the business information you applied.
+
+    With **Automatic triage**, set **Business type** to **Ecommerce** for the
+    store. Security, account access, refunds, cancellations, disputes, serious
+    complaints, and uncertain answers always wait for review. Under
+    **Additional review topics**, add store-specific topics such as
+    `Custom shipping requests`, one per line.
+
+    Optionally, under **Customer status lookups**, connect the store's order
+    account so replies can include order status. Replies based on public
+    information work without a connection. Save your changes.
+  </Step>
   <Step title="Check the support knowledge before using it">
     In the support mailbox's assistant, ask a factual question based on a policy
     you reviewed. For example:
@@ -106,6 +125,8 @@ MCP connection or a paid add-on.
   the correct workspace.
 - Important business facts match the public source pages you reviewed.
 - The support mailbox uses the applied signature in a new compose.
+- The support mailbox shows the intended **Email response mode**, and topics
+  you want to approve yourself are listed for review.
 - Reloading the page retains the successfully applied signature.
 - The unchecked partnerships mailbox keeps its own signature, while its agent
   still shares the workspace's business information.
@@ -127,10 +148,12 @@ the profile and disable its associated website signatures, including edited
 ones. Manually created signatures and sent emails are not
 removed.
 
-New accounts that sign up from the Customer support page also get a guided
-setup that covers business information, reply mode, and an optional custom
-domain in one window.
+New accounts that sign up from the public
+[Site Analytics page](https://mermail.app/site-analytics) also get a guided
+**Set up customer support** window that covers business information, reply
+mode (starting on **Automatic triage**), and an optional custom domain in one
+place.
 
 For detailed editor behavior, guided setup, and troubleshooting,
-see the [Customer support setup guide](/guides/customer-support). To choose a
+see the [Site Analytics guide](/guides/site-analytics). To choose a
 different workflow, return to [Usecases overview](/usecases/overview).
