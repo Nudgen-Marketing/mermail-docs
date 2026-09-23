@@ -97,6 +97,7 @@
             "pages": [
               "ai/overview",
               "ai/agent-email-inbox",
+              "ai/agent-marketplace",
               "ai/mcp",
               "ai/skills",
               "ai/cli"

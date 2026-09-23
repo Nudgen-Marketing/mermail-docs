@@ -16,7 +16,7 @@ x-api-key: sk-proj-YOUR_KEY
 
 Create a key in the Mermail app under **Settings → API Keys**, then paste it into Try it or your client. See [Authentication](/api-reference/authentication).
 
-Every sold-API credential call debits **API credits** and counts toward workspace **RPM**. When credits run out you get `402`; when you exceed RPM you get `429`.
+Every sold-API credential call debits **API credits** and counts toward workspace **RPM**. When credits run out you get `402` with `credits_exhausted`; when you exceed RPM you get `429`. The keyless [Agent Marketplace](/ai/agent-marketplace) API uses a different `402`: x402 or MPP payment (including `$0` identity handshakes), not API credits.
 
 <Note>
   Each API key is bound to **one workspace**. Required path `workspaceId`

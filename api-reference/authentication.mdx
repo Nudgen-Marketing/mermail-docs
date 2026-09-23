@@ -57,6 +57,13 @@ the exact normalized address before deciding whether another create is needed.
 | --- | --- |
 | `401` | Missing, invalid, expired, or revoked key — or calling without `x-api-key` outside the console |
 | `403` | Wrong workspace for this key (`workspace_scope_denied`), missing role, or Developer-gated path on Free |
-| `402` | API credits exhausted (`credits_exhausted`) |
+| `402` | Sold API: API credits exhausted (`credits_exhausted`). Keyless `/api/agent/v1` and `GET /api`: x402 payment, MPP payment on paid writes, or `$0` identity handshake required |
 | `413` | An authenticated request with `Idempotency-Key` exceeded the 50 MiB fingerprint limit (`idempotency_payload_too_large`) |
 | `429` | Workspace RPM exceeded |
+
+## Keyless agent marketplace
+
+The wallet-bound inbox API at `/api/agent/v1` does not accept API keys. Unpaid
+calls return `402` even when the price is `$0`. Paid writes also accept MPP.
+See [Agent Marketplace](/ai/agent-marketplace).
+

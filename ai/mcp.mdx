@@ -129,6 +129,8 @@ Use the interactive guide at [mermail.app/agents](https://mermail.app/agents) fo
 | OpenClaw | **OAuth** — `openclaw mcp add mermail --url https://console.mermail.app/mcp --transport streamable-http --auth oauth`, then `openclaw mcp login mermail` |
 | ChatGPT / Codex **Plugins Directory** (when published) | **OAuth Apps Connected** + Skills (Linear-style) |
 | Hermes Agent | **OAuth** — add `url` + `auth: oauth` under `mcp_servers` in `~/.hermes/config.yaml`, then `hermes mcp login mermail` from a fresh terminal. On a remote/headless host, open the printed URL locally and paste the final redirect URL back into the login prompt |
+| Muse Code | **OAuth** — landing setup at [mermail.app/integrations/muse](https://mermail.app/integrations/muse). Add `https://console.mermail.app/mcp` as `streamable_http` in `~/.config/muse/settings.json` (`schema_version` must be `1`), then `muse mcp login mermail` |
+| Meta Muse | **API key in Secrets** — alternate path on the Muse landing page. Muse writes a connector from the HTTP API. PayBox is unavailable |
 | CLI, headless jobs, and package/plugin fallbacks | **API key** — Streamable HTTP + `x-api-key`; PayBox is unavailable |
 
 **API-key** example:

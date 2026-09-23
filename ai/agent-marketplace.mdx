@@ -1,0 +1,105 @@
+---
+title: "Agent Marketplace"
+description: "Use the keyless, wallet-bound inbox HTTP API. Payment is the credential."
+icon: "store"
+---
+
+Use this API when an agent should buy hosted inbox access with USDC over x402
+or MPP instead of a Mermail API key. Payment binds the wallet. There is no
+separate login. Solana USDC 402 is the same credential on the published
+catalog URL: the paying wallet still owns the hosted inboxes.
+
+**Base URL:** `https://console.mermail.app/api/agent/v1`
+
+This surface is listed for Circle Agent Marketplace. It is not the sold API at
+`/api/v1`. Do not send `x-api-key` here.
+
+## How payment becomes identity
+
+Unpaid calls return `402` with x402 `accepts[]`, including **`$0` reads**. A
+zero-amount challenge is an identity handshake: no USDC is charged, but the
+signed payment still binds the payer address. The live `402` also includes
+request and response JSON Schema in `extensions.bazaar`, so you can call the
+endpoint without reading docs first.
+
+Paid creates and sends also accept **MPP**. When MPP is enabled, the unpaid
+`402` includes `WWW-Authenticate: Payment`. Retry with either
+`PAYMENT-SIGNATURE` (x402) or `Payment-Authorization` (MPP). Do not send both.
+
+That address maps to a synthetic workspace that can hold up to **50 hosted
+inboxes**. Custom-domain addresses are not available on this surface.
+
+<Note>
+  A sold-API `402` with code `credits_exhausted` means the workspace API credit
+  pool is empty. An agent-marketplace `402` means the payment (or `$0`
+  handshake) is missing. Retry the marketplace call with `PAYMENT-SIGNATURE` or
+  `Payment-Authorization`, not with an API key.
+</Note>
+
+Start at public `GET /api` on the console host. That call is also a `$0`
+handshake and returns `agent_api_base_url`.
+
+## Prices
+
+The live `402` `accepts[]` is the quote. Default listing prices:
+
+| Operation | Method | Path | Price |
+| --------- | ------ | ---- | ----: |
+| Create hosted inbox | `POST` | `/mailboxes` | `$2.00` |
+| Send | `POST` | `/mailboxes/{id}/emails` | `$0.01` |
+| Reply | `POST` | `/mailboxes/{id}/emails/{emailId}/reply` | `$0.01` |
+| Forward | `POST` | `/mailboxes/{id}/emails/{emailId}/forward` | `$0.01` |
+| Save draft | `POST` | `/mailboxes/{id}/drafts` | `$0.01` |
+| List or get inboxes | `GET` | `/mailboxes`, `/mailboxes/{id}` | `$0` |
+| List or get messages | `GET` | `/mailboxes/{id}/emails`, `/emails/{emailId}` | `$0` |
+| Safe context | `GET` | `/mailboxes/{id}/emails/{emailId}/context` | `$0` |
+| Search | `GET` | `/mailboxes/{id}/search` | `$0` |
+| Thread | `GET` | `/mailboxes/{id}/threads/{threadId}` | `$0` |
+| Attachment | `GET` | `/mailboxes/{id}/attachments/{attachmentId}` | `$0` |
+| Folders | `GET` | `/mailboxes/{id}/folders` | `$0` |
+| Custom labels | `GET` | `/mailboxes/{id}/custom-labels` | `$0` |
+
+Each distinct `POST /mailboxes` creates a **new** hosted inbox. Replay the same
+`Idempotency-Key` and body after an uncertain settlement. A new body is a new
+inbox.
+
+Created inboxes use **verification** agent-inbox mode with automations off.
+Get, context, and attachment stay scan-gated: require `scan_status=clean`
+before using body or file bytes. Non-clean inbound content returns metadata
+with `content_omitted`.
+
+## Create an inbox
+
+```bash
+curl -X POST https://console.mermail.app/api/agent/v1/mailboxes \
+  -H "Content-Type: application/json" \
+  -H "PAYMENT-SIGNATURE: <x402-payment>" \
+  -H "Idempotency-Key: create-inbox-1" \
+  -d '{"name":"Support agent"}'
+```
+
+MPP clients retry the same unpaid `402` with `Payment-Authorization` instead of
+`PAYMENT-SIGNATURE`.
+
+Omit `email` to receive a generated hosted address. If you send `email`, it
+must be a hosted Mermail address.
+
+## Read and send
+
+List inboxes for the paying wallet, then reuse `public_id` as `{id}`. Search
+with a narrow sender, recipient, subject, or time window. Read one message only
+after an unambiguous match.
+
+Send, reply, and forward use the Email-module JSON contract (`html` and/or
+`text`, plus `from` where required). See the [API overview](/api-reference/overview)
+for attachments and inline images.
+
+## What this API does not include
+
+Workspace admin, custom domains, folder or label writes, mark-read, move,
+scheduled send, webhooks, usage metrics, empty trash, bulk delete, mailbox
+chat, task triage, Composio, Agent Wallet, and MCP are not listed here. Use the
+[sold API](/api-reference/overview) or [MCP](/ai/mcp) for those product
+surfaces.
+
+OpenAPI for every listed operation: `https://console.mermail.app/openapi.json`.
