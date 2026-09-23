@@ -33,7 +33,7 @@
             "group": "Guides",
             "pages": [
               "guides/create-mailbox",
-              "guides/customer-support",
+              "guides/site-analytics",
               "guides/custom-domains",
               "guides/task-triager",
               "guides/urgent-email-detection",
@@ -278,6 +278,10 @@
     "options": []
   },
   "redirects": [
+    {
+      "source": "/guides/customer-support",
+      "destination": "/guides/site-analytics"
+    },
     {
       "source": "/concepts/agent-wallet",
       "destination": "/agent-wallet/overview"
