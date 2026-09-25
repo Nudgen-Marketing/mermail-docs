@@ -6,6 +6,8 @@ icon: "plug"
 
 Mermail exposes a [Model Context Protocol](https://modelcontextprotocol.io) server that wraps the sold HTTP API. Assistants call the same workspace-scoped endpoints as authenticated clients — including usage, workspaces, mailboxes, email, agent conversations, and task triage.
 
+Workspace admins can also [manage email webhooks](/api-reference/webhooks#manage-webhooks-with-mcp) from the full catalog. Webhook writes require confirmation, and these tools are excluded from the restricted `agent-inbox` profile.
+
 ## Endpoint
 
 | Item | Value |

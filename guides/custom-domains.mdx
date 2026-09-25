@@ -6,7 +6,7 @@ icon: "globe"
 
 Custom domains let your workspace mailboxes use an address on a domain your organization controls, such as `support@mail.example.com`. Mermail provisions the domain through the [Email module](/concepts/email), generates the DNS records you need to publish, and checks them for you.
 
-When the domain is fully connected, every mailbox in the workspace moves to it. A mailbox keeps its username, so `support@mermail.app` becomes `support@mail.example.com`. Existing mail stays in place.
+When the domain is fully connected, every mailbox in the workspace moves to it. A mailbox keeps its username, so `support@mermail.app` becomes `support@mail.example.com`. Existing mail stays in place. Review all workspace mailbox addresses before connecting the domain; this change is not limited to your support mailbox.
 
 ## Before you begin
 
@@ -106,13 +106,26 @@ Each DNS record also has its own status:
 - **If an address is already taken** on the domain, Mermail cannot move the workspace and shows a conflict message. Resolve the duplicate addresses, then check the connection again.
 - **If the workspace moves to the Free plan**, the domain is paused. Mailboxes return to a Mermail-hosted address until you upgrade again.
 
+## Test your new address
+
+Once both capabilities are ready:
+
+1. Open the mailbox you plan to use and confirm its custom-domain address.
+2. Send one test message to an external inbox you control. Check the sender, signature, and where the message arrives.
+3. Reply from that inbox and confirm the reply appears in Mermail.
+4. Update website contact links and other places that display the old address.
+
+If either test fails, check the domain's sending and receiving status before
+sending customer messages. Do not assume that delivery to one test inbox proves
+delivery to every recipient.
+
 ## Improve deliverability
 
 Step 2 also shows a deliverability checklist:
 
 - **SPF and DKIM**: Mermail signs every message once the records above are verified.
 - **DMARC**: Mermail does not create this record. Add a TXT record at `_dmarc.<your domain>`. Start with a relaxed policy, such as `v=DMARC1; p=none; rua=mailto:dmarc@<your domain>`, then tighten it to `p=quarantine` and later `p=reject`.
-- **Warm up**: a new domain has no sending reputation. Send about 150 emails on the first day and roughly double each day while keeping bounce and complaint rates low.
+- **Build sending history gradually**: start with a small number of relevant messages to recipients who expect them. Increase volume only when delivery remains healthy. Pause and investigate bounces or complaints instead of following a fixed daily growth target.
 
 ## Remove a domain
 

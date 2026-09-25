@@ -119,6 +119,10 @@
       "description": "Send, list, search, folders"
     },
     {
+      "name": "Webhooks",
+      "description": "Email event subscriptions and delivery history"
+    },
+    {
       "name": "AI agent",
       "description": "Mailbox agent chat"
     },
@@ -15856,6 +15860,867 @@
           }
         }
       }
+    },
+    "/api/v1/workspaces/{workspaceId}/webhooks": {
+      "get": {
+        "operationId": "listWebhooks",
+        "summary": "List webhooks",
+        "tags": [
+          "Webhooks"
+        ],
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nWorkspace admins only. Normal management request limits and accounting apply; no webhook delivery fee. Destinations receive selected email content. URLs and Authorization values are write-only. Signing secrets are returned only by create and rotate. Deliveries are at least once, unordered, with a stable event ID. Failed transient requests retry for approximately 24 hours. History is retained for 7 days.",
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation result. Delivery history includes status, event, timestamps, attempt count, HTTP status and a safe failure explanation; no response bodies.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or unsafe destination"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Workspace admin access required"
+          },
+          "404": {
+            "description": "Webhook or delivery not found in this workspace"
+          },
+          "409": {
+            "description": "Idempotency conflict or incompatible delivery state"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        },
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans",
+            "title": "List webhooks",
+            "sidebarTitle": "List webhooks"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createWebhook",
+        "summary": "Create webhook",
+        "tags": [
+          "Webhooks"
+        ],
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nWorkspace admins only. Normal management request limits and accounting apply; no webhook delivery fee. Destinations receive selected email content. URLs and Authorization values are write-only. Signing secrets are returned only by create and rotate. Deliveries are at least once, unordered, with a stable event ID. Failed transient requests retry for approximately 24 hours. History is retained for 7 days.",
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9._:-]+$"
+            },
+            "description": "Reuse only for the identical request after an uncertain response."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Result including signingSecret once. Save it securely; list/get never return it.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookWithSecret"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or unsafe destination"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Workspace admin access required"
+          },
+          "404": {
+            "description": "Webhook or delivery not found in this workspace"
+          },
+          "409": {
+            "description": "Idempotency conflict or incompatible delivery state"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        },
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans",
+            "title": "Create webhook",
+            "sidebarTitle": "Create webhook"
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceId}/webhooks/{webhookId}": {
+      "get": {
+        "operationId": "getWebhook",
+        "summary": "Get webhook",
+        "tags": [
+          "Webhooks"
+        ],
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nWorkspace admins only. Normal management request limits and accounting apply; no webhook delivery fee. Destinations receive selected email content. URLs and Authorization values are write-only. Signing secrets are returned only by create and rotate. Deliveries are at least once, unordered, with a stable event ID. Failed transient requests retry for approximately 24 hours. History is retained for 7 days.",
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation result. Delivery history includes status, event, timestamps, attempt count, HTTP status and a safe failure explanation; no response bodies.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Webhook"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or unsafe destination"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Workspace admin access required"
+          },
+          "404": {
+            "description": "Webhook or delivery not found in this workspace"
+          },
+          "409": {
+            "description": "Idempotency conflict or incompatible delivery state"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        },
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans",
+            "title": "Get webhook",
+            "sidebarTitle": "Get webhook"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateWebhook",
+        "summary": "Update or pause webhook",
+        "tags": [
+          "Webhooks"
+        ],
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nWorkspace admins only. Normal management request limits and accounting apply; no webhook delivery fee. Destinations receive selected email content. URLs and Authorization values are write-only. Signing secrets are returned only by create and rotate. Deliveries are at least once, unordered, with a stable event ID. Failed transient requests retry for approximately 24 hours. History is retained for 7 days.",
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operation result. Delivery history includes status, event, timestamps, attempt count, HTTP status and a safe failure explanation; no response bodies.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Webhook"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or unsafe destination"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Workspace admin access required"
+          },
+          "404": {
+            "description": "Webhook or delivery not found in this workspace"
+          },
+          "409": {
+            "description": "Idempotency conflict or incompatible delivery state"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        },
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans",
+            "title": "Update or pause webhook",
+            "sidebarTitle": "Update or pause webhook"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteWebhook",
+        "summary": "Delete webhook",
+        "tags": [
+          "Webhooks"
+        ],
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nWorkspace admins only. Normal management request limits and accounting apply; no webhook delivery fee. Destinations receive selected email content. URLs and Authorization values are write-only. Signing secrets are returned only by create and rotate. Deliveries are at least once, unordered, with a stable event ID. Failed transient requests retry for approximately 24 hours. History is retained for 7 days.",
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation result. Delivery history includes status, event, timestamps, attempt count, HTTP status and a safe failure explanation; no response bodies.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookDeleted"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or unsafe destination"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Workspace admin access required"
+          },
+          "404": {
+            "description": "Webhook or delivery not found in this workspace"
+          },
+          "409": {
+            "description": "Idempotency conflict or incompatible delivery state"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        },
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans",
+            "title": "Delete webhook",
+            "sidebarTitle": "Delete webhook"
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceId}/webhooks/{webhookId}/deliveries": {
+      "get": {
+        "operationId": "listWebhookDeliveries",
+        "summary": "List delivery history",
+        "tags": [
+          "Webhooks"
+        ],
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nWorkspace admins only. Normal management request limits and accounting apply; no webhook delivery fee. Destinations receive selected email content. URLs and Authorization values are write-only. Signing secrets are returned only by create and rotate. Deliveries are at least once, unordered, with a stable event ID. Failed transient requests retry for approximately 24 hours. History is retained for 7 days.",
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation result. Delivery history includes status, event, timestamps, attempt count, HTTP status and a safe failure explanation; no response bodies.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookDeliveryPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or unsafe destination"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Workspace admin access required"
+          },
+          "404": {
+            "description": "Webhook or delivery not found in this workspace"
+          },
+          "409": {
+            "description": "Idempotency conflict or incompatible delivery state"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        },
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans",
+            "title": "List delivery history",
+            "sidebarTitle": "List delivery history"
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceId}/webhooks/{webhookId}/test": {
+      "post": {
+        "operationId": "testWebhook",
+        "summary": "Send synthetic test event",
+        "tags": [
+          "Webhooks"
+        ],
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nWorkspace admins only. Normal management request limits and accounting apply; no webhook delivery fee. Destinations receive selected email content. URLs and Authorization values are write-only. Signing secrets are returned only by create and rotate. Deliveries are at least once, unordered, with a stable event ID. Failed transient requests retry for approximately 24 hours. History is retained for 7 days.",
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9._:-]+$"
+            },
+            "description": "Reuse only for the identical request after an uncertain response."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation result. Delivery history includes status, event, timestamps, attempt count, HTTP status and a safe failure explanation; no response bodies.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookDeliveryQueued"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or unsafe destination"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Workspace admin access required"
+          },
+          "404": {
+            "description": "Webhook or delivery not found in this workspace"
+          },
+          "409": {
+            "description": "Idempotency conflict or incompatible delivery state"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        },
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans",
+            "title": "Send synthetic test event",
+            "sidebarTitle": "Send synthetic test event"
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceId}/webhooks/{webhookId}/deliveries/{deliveryId}/retry": {
+      "post": {
+        "operationId": "retryWebhookDelivery",
+        "summary": "Retry failed delivery with original event and payload",
+        "tags": [
+          "Webhooks"
+        ],
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nWorkspace admins only. Normal management request limits and accounting apply; no webhook delivery fee. Destinations receive selected email content. URLs and Authorization values are write-only. Signing secrets are returned only by create and rotate. Deliveries are at least once, unordered, with a stable event ID. Failed transient requests retry for approximately 24 hours. History is retained for 7 days.",
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "deliveryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9._:-]+$"
+            },
+            "description": "Reuse only for the identical request after an uncertain response."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation result. Delivery history includes status, event, timestamps, attempt count, HTTP status and a safe failure explanation; no response bodies.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookDeliveryQueued"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or unsafe destination"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Workspace admin access required"
+          },
+          "404": {
+            "description": "Webhook or delivery not found in this workspace"
+          },
+          "409": {
+            "description": "Idempotency conflict or incompatible delivery state"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        },
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans",
+            "title": "Retry failed delivery with original event and payload",
+            "sidebarTitle": "Retry failed delivery with original event and payload"
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceId}/webhooks/{webhookId}/rotate-secret": {
+      "post": {
+        "operationId": "rotateWebhookSecret",
+        "summary": "Rotate signing secret",
+        "tags": [
+          "Webhooks"
+        ],
+        "description": "**Plans:** `Free` · `Developer` · `Enterprise`\n\nWorkspace admins only. Normal management request limits and accounting apply; no webhook delivery fee. Destinations receive selected email content. URLs and Authorization values are write-only. Signing secrets are returned only by create and rotate. Deliveries are at least once, unordered, with a stable event ID. Failed transient requests retry for approximately 24 hours. History is retained for 7 days.",
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Result including signingSecret once. Save it securely; list/get never return it.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookWithSecret"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or unsafe destination"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Workspace admin access required"
+          },
+          "404": {
+            "description": "Webhook or delivery not found in this workspace"
+          },
+          "409": {
+            "description": "Idempotency conflict or incompatible delivery state"
+          },
+          "429": {
+            "description": "Rate limit reached"
+          }
+        },
+        "x-badges": [
+          {
+            "name": "Free",
+            "color": "green"
+          },
+          {
+            "name": "Developer",
+            "color": "blue"
+          },
+          {
+            "name": "Enterprise",
+            "color": "purple"
+          }
+        ],
+        "x-plan-access": [
+          "free",
+          "developer",
+          "enterprise"
+        ],
+        "x-mint": {
+          "metadata": {
+            "tag": "All plans",
+            "title": "Rotate signing secret",
+            "sidebarTitle": "Rotate signing secret"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -16638,6 +17503,622 @@
                 "distance": {
                   "type": "number"
                 }
+              }
+            }
+          }
+        }
+      },
+      "WebhookCreate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "url",
+          "eventTypes",
+          "allInboxes",
+          "mailboxIds"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 4096,
+            "description": "Public HTTPS destination. Credentials, fragments, private addresses and redirects are rejected. Write-only."
+          },
+          "eventTypes": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "message.received",
+                "message.sent",
+                "message.delivered",
+                "message.bounced",
+                "message.complained"
+              ]
+            }
+          },
+          "allInboxes": {
+            "type": "boolean",
+            "description": "Includes future inboxes. When false select mailboxIds explicitly."
+          },
+          "mailboxIds": {
+            "type": "array",
+            "maxItems": 500,
+            "items": {
+              "type": "string"
+            }
+          },
+          "authorization": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4096,
+            "writeOnly": true,
+            "description": "Optional Authorization header; null clears it. Never returned."
+          }
+        }
+      },
+      "WebhookUpdate": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 4096,
+            "description": "Public HTTPS destination. Credentials, fragments, private addresses and redirects are rejected. Write-only."
+          },
+          "eventTypes": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "message.received",
+                "message.sent",
+                "message.delivered",
+                "message.bounced",
+                "message.complained"
+              ]
+            }
+          },
+          "allInboxes": {
+            "type": "boolean",
+            "description": "Includes future inboxes. When false select mailboxIds explicitly."
+          },
+          "mailboxIds": {
+            "type": "array",
+            "maxItems": 500,
+            "items": {
+              "type": "string"
+            }
+          },
+          "authorization": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4096,
+            "writeOnly": true,
+            "description": "Optional Authorization header; null clears it. Never returned."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "paused"
+            ]
+          }
+        }
+      },
+      "Webhook": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "urlHost",
+          "eventTypes",
+          "allInboxes",
+          "mailboxIds",
+          "status",
+          "hasAuthorization",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "urlHost": {
+            "type": "string"
+          },
+          "eventTypes": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "message.received",
+                "message.sent",
+                "message.delivered",
+                "message.bounced",
+                "message.complained"
+              ]
+            }
+          },
+          "allInboxes": {
+            "type": "boolean",
+            "description": "Includes future inboxes. When false select mailboxIds explicitly."
+          },
+          "mailboxIds": {
+            "type": "array",
+            "maxItems": 500,
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "paused",
+              "disabled",
+              "deleted"
+            ]
+          },
+          "hasAuthorization": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "WebhookWithSecret": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "urlHost",
+          "eventTypes",
+          "allInboxes",
+          "mailboxIds",
+          "status",
+          "hasAuthorization",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "urlHost": {
+            "type": "string"
+          },
+          "eventTypes": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "message.received",
+                "message.sent",
+                "message.delivered",
+                "message.bounced",
+                "message.complained"
+              ]
+            }
+          },
+          "allInboxes": {
+            "type": "boolean",
+            "description": "Includes future inboxes. When false select mailboxIds explicitly."
+          },
+          "mailboxIds": {
+            "type": "array",
+            "maxItems": 500,
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "paused",
+              "disabled",
+              "deleted"
+            ]
+          },
+          "hasAuthorization": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "signingSecret": {
+            "type": "string",
+            "pattern": "^whsec_",
+            "description": "Returned once on initial creation or rotation. Omitted on idempotent creation replay. Save securely."
+          }
+        }
+      },
+      "WebhookList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Webhook"
+        }
+      },
+      "WebhookDeleted": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "deleted"
+        ],
+        "properties": {
+          "deleted": {
+            "type": "boolean",
+            "const": true
+          }
+        }
+      },
+      "WebhookDeliveryQueued": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "deliveryId"
+        ],
+        "properties": {
+          "deliveryId": {
+            "type": "string"
+          }
+        }
+      },
+      "WebhookAttempt": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "attemptNumber",
+          "statusCode",
+          "error",
+          "createdAt"
+        ],
+        "properties": {
+          "attemptNumber": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "statusCode": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 100,
+            "maximum": 599
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Safe failure code; never the destination response body."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "WebhookDelivery": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "eventId",
+          "eventType",
+          "status",
+          "attemptCount",
+          "lastStatusCode",
+          "lastError",
+          "createdAt",
+          "nextAttemptAt",
+          "attempts"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "eventId": {
+            "type": "string"
+          },
+          "eventType": {
+            "type": "string",
+            "enum": [
+              "message.received",
+              "message.sent",
+              "message.delivered",
+              "message.bounced",
+              "message.complained"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processing",
+              "succeeded",
+              "failed",
+              "cancelled"
+            ]
+          },
+          "attemptCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "lastStatusCode": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 100,
+            "maximum": 599
+          },
+          "lastError": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Safe failure code; never the destination response body."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "nextAttemptAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "attempts": {
+            "type": "array",
+            "maxItems": 25,
+            "description": "Most recent attempts first.",
+            "items": {
+              "$ref": "#/components/schemas/WebhookAttempt"
+            }
+          }
+        }
+      },
+      "WebhookDeliveryPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "deliveries",
+          "nextCursor"
+        ],
+        "properties": {
+          "deliveries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookDelivery"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "WebhookAttachment": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "filename": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mimetype": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "size": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "content_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "disposition": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "WebhookEvent": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "event_id",
+          "event_type",
+          "occurred_at",
+          "schema_version",
+          "workspace_id",
+          "inbox_id",
+          "data"
+        ],
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "description": "Stable across attempts and manual retries. Deduplicate on this ID."
+          },
+          "event_type": {
+            "type": "string",
+            "enum": [
+              "message.received",
+              "message.sent",
+              "message.delivered",
+              "message.bounced",
+              "message.complained"
+            ]
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "test": {
+            "type": "boolean",
+            "description": "True for synthetic test deliveries."
+          },
+          "schema_version": {
+            "type": "string",
+            "const": "1"
+          },
+          "workspace_id": {
+            "type": "string"
+          },
+          "inbox_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Public inbox ID; synthetic tests may use null."
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Available message fields. Content may be omitted for safety or size. Metadata can be truncated to keep the event within 1 MiB.",
+            "properties": {
+              "message_id": {
+                "type": "string"
+              },
+              "thread_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "from": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Normalized addresses; may include display names, for example Sender <sender@example.com>."
+              },
+              "to": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Normalized addresses; may include display names, for example Sender <sender@example.com>."
+              },
+              "cc": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Normalized addresses; may include display names, for example Sender <sender@example.com>."
+              },
+              "bcc": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Normalized addresses; may include display names, for example Sender <sender@example.com>."
+              },
+              "subject": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "text": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "html": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "scan_status": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "recipient": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "outcome": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "bounce_type": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "synthetic": {
+                "type": "boolean"
+              },
+              "attachments": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/WebhookAttachment"
+                }
+              },
+              "content_omitted_reason": {
+                "type": "string",
+                "description": "Reason that bodies were omitted, for example content_safety, payload_limit or body_unavailable."
+              },
+              "metadata_truncated": {
+                "type": "boolean",
+                "description": "Metadata was bounded to keep the event within the size limit."
               }
             }
           }

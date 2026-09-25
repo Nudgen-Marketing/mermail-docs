@@ -1,38 +1,40 @@
 ---
-title: "Sale Outreach"
-description: "Find prospects with Apify and prepare personalized outreach from a Mermail mailbox."
+title: "Sales outreach"
+description: "Research relevant prospects, review personalized drafts, and approve outreach from a Mermail mailbox."
 icon: "paper-plane"
 ---
 
 Find businesses that match your target audience, review their public contact
 details, and introduce your product from a Mermail mailbox.
 
-This guide follows the workflow shown in
-[Apify Sales Outreach Usecase @ Mermail](https://www.youtube.com/watch?v=RsQPHgKApHw):
-the user selects a mailbox, asks for Shopify prospects in Australia, completes
-an Apify prepaid-access signing step, and checks outreach in Mermail. The demo
-includes the **Sent** view and the assistant's summary of three outreach emails.
-
-The prompts below adapt that workflow into separate research, review, and send
-steps so you can check the results before contacting prospects.
+Start with contacts you already have permission to approach, or research a small
+number of relevant businesses. Keep research, draft preparation, and send
+approval as separate steps. A paid Mermail plan does not purchase prospect data
+or authorize outreach automatically.
 
 ## Before you begin
 
-- [Create a Mermail mailbox](/guides/create-mailbox) and confirm which workspace
+- [Create a Mermail mailbox](/guides/create-mailbox) and confirm the workspace
   and sender address you want to use.
-- [Connect your assistant to Mermail MCP](/ai/mcp) using the full OAuth profile
-  for wallet-enabled work. An API-key connection or agent-inbox profile does
-  not unlock Agent Wallet.
-- [Connect Agent Wallet](/agent-wallet/get-started) and make sure the delegated
-  wallet has sufficient funds if Apify access needs a purchase. The workspace
-  owner must complete the initial PayBox connection.
-- Prepare your product description, target audience, and spending limit.
+- If you use a branded address, complete [custom domain setup](/guides/custom-domains)
+  and test both sending and receiving first.
+- [Connect your assistant to Mermail MCP](/ai/mcp) if you want to use the prompts
+  below. You can also review and send drafts in the Mermail web app.
+- Prepare your product description, target audience, and a small contact list
+  or clear research criteria. Exclude people who have opted out.
 
-<Note>
-  The demo uses a paid Apify research workflow. Available tools, prices, and
-  signing requirements can differ. Ask the assistant to check current service
-  access and the current quote rather than assuming the demo's amount applies.
-</Note>
+### Optional paid research
+
+The [Apify outreach demo](https://www.youtube.com/watch?v=RsQPHgKApHw) shows a
+paid research option. It is not required when you already have suitable contacts.
+For wallet-enabled research, use the full OAuth MCP profile and
+[connect Agent Wallet](/agent-wallet/get-started). The workspace owner completes
+the initial PayBox connection; an API-key connection or agent-inbox profile does
+not unlock Agent Wallet.
+
+Check available research tools, current prices, and your spending limit before
+approving a purchase. A Mermail subscription does not include third-party
+research charges.
 
 ## Run the workflow
 
@@ -49,8 +51,12 @@ steps so you can check the results before contacting prospects.
     consistently for research context, saved emails, and any later send.
   </Step>
   <Step title="Define your prospect search">
-    The video asks for three Shopify prospects in Australia. Make the selection
-    criteria explicit instead of relying on an undefined ranking such as “top.”
+    If you already have contacts, give the assistant your approved list and its
+    source, then skip paid service access. Ask it to review the list without
+    purchasing research or sending emails.
+
+    For optional Apify research, make the selection criteria explicit instead
+    of relying on an undefined ranking such as “top”:
 
     ```text
     Use the mailbox I selected for this outreach workflow.
@@ -71,7 +77,7 @@ steps so you can check the results before contacting prospects.
     explanation rather than filling missing results with invented details.
   </Step>
   <Step title="Complete service access if required">
-    Review the proposed Apify purchase and set an explicit spending limit
+    Skip this step if you are using your own contacts. Otherwise, review the proposed Apify purchase and set an explicit spending limit
     before authorizing it. If signing is required, follow the console signing
     link returned by the assistant and complete the approval in the app.
 
@@ -104,8 +110,10 @@ steps so you can check the results before contacting prospects.
     ```
 
     Open the saved emails in Mermail. Check the sender, recipient, subject,
-    personalization, links, and signature. Research stays in Apify; email
-    preparation and sending stay in Mermail.
+    personalization, links, and signature. Include a clear way to decline
+    further contact, and honor those requests before preparing follow-ups.
+    Public contact details alone do not establish permission to send.
+    Email preparation and sending stay in Mermail.
   </Step>
   <Step title="Approve sending and verify the result">
     Once the content is ready, explicitly identify the reviewed drafts you want
@@ -128,7 +136,7 @@ steps so you can check the results before contacting prospects.
 
 - The sender belongs to the intended workspace and mailbox.
 - Every used contact has a source; missing contact details were not guessed.
-- The research cost stayed within your approved limit.
+- Any paid research stayed within your approved limit; existing contacts required no research purchase.
 - Only the emails you approved were sent; unapproved drafts remain untouched.
 - You can distinguish failed, saved, and sent results for each recipient.
 

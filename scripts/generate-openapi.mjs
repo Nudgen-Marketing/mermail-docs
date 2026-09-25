@@ -4,6 +4,7 @@
  * Run: node scripts/generate-openapi.mjs
  */
 import fs from "node:fs";
+import { webhookPaths, webhookSchemas } from "./webhook-openapi.mjs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -3295,6 +3296,8 @@ add(
 	}),
 );
 
+Object.assign(paths, webhookPaths);
+
 const spec = {
 	openapi: "3.1.0",
 	"x-mermail-tool-profiles": {
@@ -3364,6 +3367,7 @@ Credits are workspace API-usage units, not currency amounts.
 		{ name: "Domains", description: "Custom email domains (Developer+)" },
 		{ name: "Mailboxes", description: "Agent inboxes" },
 		{ name: "Emails", description: "Send, list, search, folders" },
+		{ name: "Webhooks", description: "Email event subscriptions and delivery history" },
 		{ name: "AI agent", description: "Mailbox agent chat" },
 		{ name: "Task triage", description: "Task triagers (all plans)" },
 		{ name: "RAG", description: "Knowledge documents and recall" },
@@ -3827,6 +3831,7 @@ Credits are workspace API-usage units, not currency amounts.
 // Fix: slimOp/op merge — ops that set xCredits already append credit line via op();
 // but slimOp passes xCredits to op which duplicates description append. OK.
 
+spec.components.schemas = { ...spec.components.schemas, ...webhookSchemas };
 applyPlanBadgesToPaths(paths);
 
 const agentInboxProfileKeys = new Set(

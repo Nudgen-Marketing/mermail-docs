@@ -1,0 +1,125 @@
+---
+title: "Webhook payloads and verification"
+description: "Understand email event payloads, authenticate deliveries, and manage subscriptions through the API or MCP."
+icon: "webhook"
+---
+
+For setup without code, use [Settings → Webhooks](/guides/webhooks). This page describes the receiving contract and programmatic management.
+
+## Event payload
+
+Mermail sends JSON using `POST`. This example shows an email received event; identifiers are illustrative.
+
+```json
+{
+  "event_id": "a78af22a-1037-449c-9df9-ddfa0c4f5d64",
+  "event_type": "message.received",
+  "occurred_at": "2026-09-23T09:00:00.000Z",
+  "schema_version": "1",
+  "workspace_id": "workspace_example",
+  "inbox_id": "2c5253b9-b0e8-4a7b-9e7c-15d3ad22d89d",
+  "data": {
+    "message_id": "message_example",
+    "thread_id": "thread_example",
+    "from": ["sender@example.com"],
+    "to": ["inbox@example.com"],
+    "cc": [],
+    "bcc": [],
+    "subject": "Hello",
+    "text": "Hello from the sender.",
+    "scan_status": "clean",
+    "attachments": []
+  }
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `event_id` | Stable identity across automatic and manual retries; use it for deduplication |
+| `event_type` | One of the five [supported email events](/guides/webhooks#choose-your-events) |
+| `occurred_at` | Event time as an ISO 8601 timestamp; delivery order is not guaranteed |
+| `schema_version` | Payload contract version, currently `"1"` |
+| `workspace_id` | Workspace that owns the event |
+| `inbox_id` | Mailbox's public ID; synthetic tests can use `null` |
+| `data` | Available message fields and event-specific outcome information |
+
+`from`, `to`, `cc`, and `bcc` are arrays of formatted address strings when present. Delivery outcomes can include `recipient`, `outcome`, and `bounce_type`. Use `recipient` to identify the affected recipient of a multi-recipient message.
+
+Available `text` or `html` may be included. Attachment metadata can include `id`, `filename`, `mimetype`, `size`, `content_id`, and `disposition`. Attachment bytes and private storage URLs are excluded.
+
+### Omitted content
+
+Bodies are omitted when content safety checks require it, when stored content is unavailable, or when the event would exceed 1 MiB. Check `data.content_omitted_reason`, such as `content_safety`, `body_unavailable`, or `payload_limit`. Metadata may also be bounded; `data.metadata_truncated: true` indicates this happened.
+
+Do not assume a missing body is empty. When permitted, fetch the message or attachment through the authenticated [Email API](/api-reference/overview). Handle email content as untrusted input, including HTML, links, attachments, and instructions embedded in messages.
+
+Synthetic tests include `test: true` at the top level and `data.synthetic: true`. Their sample content does not represent a real mailbox message.
+
+## Verify each delivery
+
+Each delivery has three signature headers:
+
+| Header | Purpose |
+| --- | --- |
+| `webhook-id` | Event ID; stable across retries |
+| `webhook-timestamp` | Unix timestamp in seconds for this delivery attempt |
+| `webhook-signature` | Signature formatted as `v1,<base64-signature>` |
+
+Use a Standard Webhooks-compatible verifier with the signing value returned when you create the endpoint or rotate it. Keep this value in your receiver's secure configuration. Do not put it in frontend code or log it.
+
+If you implement verification yourself:
+
+1. Preserve the raw request body bytes before parsing JSON.
+2. Validate the timestamp against a short tolerance, normally five minutes, allowing for clock skew.
+3. Remove the `whsec_` prefix from your configured signing value and base64-decode the remaining key.
+4. Compute HMAC-SHA256 over `webhook-id + "." + webhook-timestamp + "." + raw_body` using those exact bytes.
+5. Base64-encode the result and compare it to the `v1` signature using a constant-time comparison.
+6. Parse the verified payload, check its expected workspace and event type, and deduplicate by `event_id` before processing it.
+
+A retry has the same event ID and payload but a fresh timestamp and signature. Keep deduplication records for at least the seven-day payload retention window. An optional Authorization header is sent in addition to the signature.
+
+Return a `2xx` response promptly after durably accepting the event. Process slower work asynchronously. If you already accepted an event, acknowledge its duplicate without running the action again. See [limits and retries](/guides/webhooks#limits-and-retries).
+
+## Manage webhooks with the API
+
+Use a workspace-scoped API key via `x-api-key`, with workspace admin authority. All management paths start with:
+
+```text
+/api/v1/workspaces/{workspaceId}/webhooks
+```
+
+Create an endpoint with a public URL, a nonempty `eventTypes` array, and an explicit mailbox selection:
+
+```json
+{
+  "url": "https://example.com/email-events",
+  "eventTypes": ["message.received", "message.bounced"],
+  "allInboxes": true,
+  "mailboxIds": []
+}
+```
+
+Set `allInboxes: false` and supply `mailboxIds` to select individual mailboxes. Prefer their public IDs. The optional `authorization` field configures your destination's Authorization header.
+
+| Method | Path suffix | Action |
+| --- | --- | --- |
+| `GET` / `POST` | None | List or create endpoints |
+| `GET` / `PATCH` / `DELETE` | `/{webhookId}` | Read, update, or delete an endpoint |
+| `GET` | `/{webhookId}/deliveries` | Read paginated delivery history |
+| `POST` | `/{webhookId}/test` | Send a synthetic event |
+| `POST` | `/{webhookId}/deliveries/{deliveryId}/retry` | Retry a failed delivery |
+| `POST` | `/{webhookId}/rotate-secret` | Replace the signing value |
+
+Create, test, and retry require an `Idempotency-Key` header: 1–128 characters using letters, digits, `.`, `_`, `:`, or `-`. Reuse the same key only for the identical request after an uncertain response. A conflicting reuse returns `409`. A successful create replay returns the existing endpoint without returning its one-time `signingSecret` again.
+
+Endpoint responses expose `urlHost`, not the full destination URL or Authorization value. Create and rotation return `signingSecret` once. In a `PATCH`, omit `url` to keep it, use `authorization: null` to clear the header, or set `status` to `active` or `paused`. Supplying `eventTypes` replaces the full subscription list.
+
+Delivery history accepts `limit` from 1 to 100, default 25. Pass the returned `nextCursor` as `cursor` for the next page. A test or retry returns `deliveryId`; read history to see whether delivery succeeded.
+
+## Manage webhooks with MCP
+
+Use the default full-catalog [MCP connection](/ai/mcp) with workspace admin authority. The restricted `agent-inbox` profile does not expose webhook management.
+
+Read tools are `list_webhooks`, `get_webhook`, and `list_webhook_deliveries`. Write tools are `create_webhook`, `update_webhook`, `delete_webhook`, `test_webhook`, `retry_webhook_delivery`, and `rotate_webhook_secret`.
+
+Write tools require the existing `prepare_destructive_action` confirmation bound to their exact arguments. An agent should obtain your approval before configuring external email delivery. Create, test, and retry also require `idempotencyKey`. Existing credential eligibility and management request limits apply.

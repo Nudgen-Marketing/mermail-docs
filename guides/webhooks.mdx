@@ -1,0 +1,104 @@
+---
+title: "Email webhooks"
+description: "Receive email events at your own URL with a simple setup in Mermail."
+icon: "webhook"
+---
+
+Webhooks let the [Email module](/concepts/email) notify your application or workflow when mail arrives or its delivery status changes. Paste your receiving URL, choose events, and select mailboxes. You do not need code to configure a webhook in Mermail.
+
+## Before you begin
+
+You need workspace admin access and a public HTTPS URL that accepts JSON `POST` requests. Your application or a workflow tool can provide this URL. Mermail does not create the receiving workflow for you.
+
+Webhooks are available to all workspaces. Existing API-key and MCP access rules apply when you manage them programmatically. There is no additional webhook delivery fee.
+
+<Warning>
+  Your destination receives email content from the mailboxes you select, including available message bodies, addresses, and attachment metadata. Use a destination you control and are authorized to share this mail with.
+</Warning>
+
+## Create a webhook
+
+<Steps>
+  <Step title="Open Webhooks">
+    Select your workspace, open **Settings → Webhooks**, and click **Add webhook**.
+  </Step>
+  <Step title="Enter the receiving URL">
+    Paste your destination into **Webhook URL**. Use a public HTTPS address without embedded login credentials or a URL fragment. Local and private network addresses are not supported. Use the final receiving URL; Mermail does not follow redirects.
+  </Step>
+  <Step title="Choose events and mailboxes">
+    **Email received** is selected by default. Choose at least one event from the table below.
+
+    Select individual mailboxes or **All workspace inboxes, including future inboxes**. All inboxes also includes mailboxes created later in this workspace. New subscriptions receive future events; they do not replay earlier mail.
+  </Step>
+  <Step title="Save and test">
+    If your destination needs an Authorization header, enter it under **Advanced**. Click **Save webhook**.
+
+    Save the signing value shown after creation in your destination's secure configuration. It is shown once. Then click **Send test** and open **Delivery history** to check the result.
+  </Step>
+</Steps>
+
+<Note>
+  A test uses synthetic data and does not send a real email. Allow approximately 30 seconds for dispatch, plus time for the history to refresh. A successful delivery means your URL accepted the request; check your receiving workflow separately to confirm its actions completed.
+</Note>
+
+## Choose your events
+
+| Event in Mermail | Event type | When it occurs |
+| --- | --- | --- |
+| Email received | `message.received` | A new inbound message is saved in a selected mailbox |
+| Email sent | `message.sent` | The Email module accepts a message for sending; this does not confirm delivery |
+| Email delivered | `message.delivered` | The recipient's mail server confirms delivery |
+| Email bounced | `message.bounced` | An email bounce is reported |
+| Spam complaint | `message.complained` | A recipient spam complaint is reported |
+
+Creating a draft or scheduling a message does not emit **Email sent**. Delivery outcomes are reported when confirmation is available and can apply to an individual recipient. Mermail account and billing notifications are excluded.
+
+## Manage deliveries
+
+Open **Delivery history** for an endpoint to see the event, status, timestamp, attempt count, HTTP status, and a safe failure explanation. The history does not expose your destination's response body.
+
+- **Edit:** Change the URL, events, mailboxes, or optional Authorization header. The existing URL is represented by its host; leave the replacement URL blank to keep it.
+- **Pause:** Stop future delivery and cancel pending attempts. A request already in progress may finish.
+- **Resume:** Receive future events again. Paused events are not replayed.
+- **Retry:** Retry a failed, unexpired delivery for the current endpoint settings. It uses the original event ID and payload.
+- **Delete:** Remove the endpoint and cancel pending attempts. A request already in progress may finish.
+
+Saving changed settings cancels pending attempts under the previous configuration. You cannot manually retry a delivery from an older configuration. Delivery history is retained for seven days.
+
+## Secure your destination
+
+Mermail signs every delivery. Configure your receiver to verify the signature before trusting the event, reject stale timestamps, and deduplicate event IDs. See [Webhook payloads and verification](/api-reference/webhooks) for the public contract.
+
+If you use an Authorization header, its value is write-only. Replace it under **Advanced**, or select **Remove existing Authorization header** when editing.
+
+To replace the signing value, open the endpoint's **Advanced** section and choose **Rotate signing secret**. Save the replacement immediately and update your receiver. Rotation cancels pending attempts under the previous configuration. Requests already in progress may still use the previous signature.
+
+## Limits and retries
+
+| Limit | Value |
+| --- | --- |
+| Endpoints per workspace | 10 |
+| Delivery attempts per workspace | 60 per minute |
+| Test and manual retry requests per endpoint | 5 combined per minute |
+| Request timeout | 10 seconds |
+| Automatic retry window | Approximately 24 hours |
+| Event payload | Up to 1 MiB |
+| Payload and delivery history retention | 7 days |
+
+Any `2xx` response acknowledges delivery. Connection failures, timeouts, `408`, `429`, and `5xx` responses retry with increasing delays and jitter. Other responses, including redirects, fail without automatic retry. Rate-limited deliveries wait for capacity within their retry window.
+
+Events can arrive more than once or out of order. Use `event_id` to deduplicate and `occurred_at` to understand when the event happened.
+
+## Troubleshoot
+
+| What you see | What to check |
+| --- | --- |
+| Invalid destination | Use a public HTTPS URL without embedded credentials or a fragment |
+| Redirect response | Enter the final receiving URL |
+| `401` or `403` | Check your destination's Authorization header and signature verification |
+| Timeout or repeated `5xx` | Accept the event promptly, then process it asynchronously at your destination |
+| No new deliveries | Check the selected workspace, mailboxes, events, and endpoint status |
+| Retry unavailable | Check whether the delivery expired or the endpoint settings changed |
+| Disabled endpoint | Ask a current workspace admin to check access; the endpoint's creator must retain the required authority |
+
+For developer setup and agent management, see [Webhook payloads and verification](/api-reference/webhooks) and [MCP](/ai/mcp).

@@ -33,6 +33,7 @@
             "group": "Guides",
             "pages": [
               "guides/create-mailbox",
+              "guides/webhooks",
               "guides/site-analytics",
               "guides/custom-domains",
               "guides/task-triager",
@@ -212,6 +213,22 @@
               "POST /api/v1/mailboxes/{mailboxId}/custom-labels",
               "PUT /api/v1/mailboxes/{mailboxId}/custom-labels/{labelId}",
               "DELETE /api/v1/mailboxes/{mailboxId}/custom-labels/{labelId}"
+            ]
+          },
+          {
+            "group": "Webhooks",
+            "openapi": "openapi/openapi.json",
+            "pages": [
+              "api-reference/webhooks",
+              "GET /api/v1/workspaces/{workspaceId}/webhooks",
+              "POST /api/v1/workspaces/{workspaceId}/webhooks",
+              "GET /api/v1/workspaces/{workspaceId}/webhooks/{webhookId}",
+              "PATCH /api/v1/workspaces/{workspaceId}/webhooks/{webhookId}",
+              "DELETE /api/v1/workspaces/{workspaceId}/webhooks/{webhookId}",
+              "GET /api/v1/workspaces/{workspaceId}/webhooks/{webhookId}/deliveries",
+              "POST /api/v1/workspaces/{workspaceId}/webhooks/{webhookId}/test",
+              "POST /api/v1/workspaces/{workspaceId}/webhooks/{webhookId}/deliveries/{deliveryId}/retry",
+              "POST /api/v1/workspaces/{workspaceId}/webhooks/{webhookId}/rotate-secret"
             ]
           },
           {
