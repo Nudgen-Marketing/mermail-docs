@@ -58,6 +58,7 @@
             "group": "Usecases",
             "pages": [
               "usecases/overview",
+              "usecases/buy-xstocks",
               "usecases/sale-outreach",
               "usecases/customer-support"
             ]
