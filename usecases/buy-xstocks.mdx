@@ -1,0 +1,238 @@
+---
+title: "Buy xStocks with your AI"
+description: "Install the xStocks skill, connect Mermail and PayBox, and complete one reviewed USDC-to-xStock purchase on Solana."
+icon: "chart-line"
+---
+
+Use the `mermail-xstocks-desk` skill to find an evidence-backed xStock and
+prepare one reviewed purchase through Mermail Agent Wallet. The skill uses the
+published xStocks catalog to identify the product and its Solana token. PayBox
+then provides the current quote, approval, signing, and request status.
+
+An xStock is a tokenized tracker certificate linked to an underlying stock or
+fund. It is not a share held directly in a brokerage account. Product identity
+verification also does not guarantee liquidity, eligibility, price, or
+execution.
+
+Start with a direct request such as:
+
+```text
+Buy NVIDIA xStock with 10 USDC on Solana.
+```
+
+`10 USDC` is an example. PayBox may apply a different minimum order, fee, or
+eligibility requirement when it prepares the live quote.
+
+## Before you begin
+
+You need:
+
+- A Mermail workspace and mailbox.
+- An AI client that supports Agent Skills and MCP OAuth.
+- The `mermail-xstocks-desk` skill installed in that client.
+- The default full Mermail MCP connection at
+  `https://console.mermail.app/mcp`, authenticated with OAuth.
+- An active PayBox connection for the workspace.
+- An eligible Solana wallet with enough USDC and SOL for any network fee.
+
+<Warning>
+  USDC balances are network-specific. USDC on Base is not USDC on Solana. The
+  Mermail Funding checkout currently funds an eligible Base wallet, so it does
+  not by itself prepare a Solana wallet for this xStocks workflow.
+</Warning>
+
+## Set up the skill and wallet
+
+<Steps>
+  <Step title="Install the xStocks skill">
+    Run the Skills CLI in the environment used by your AI client:
+
+    ```bash
+    npx --yes skills add Nudgen-Marketing/mermail-skills \
+      --skill mermail-xstocks-desk
+    ```
+
+    Restart or open a new AI session after installation. See
+    [Skills](/ai/skills) for client-specific setup.
+  </Step>
+  <Step title="Connect the full Mermail MCP profile">
+    Add `https://console.mermail.app/mcp` to your AI client, choose OAuth, sign
+    in to Mermail, and select the workspace that owns the mailbox and wallet.
+
+    API-key connections and the `agent-inbox` profile cannot expose Agent
+    Wallet tools. If you previously connected one of those profiles, add the
+    default `/mcp` OAuth connection and start a new chat after authentication.
+  </Step>
+  <Step title="Connect PayBox">
+    The workspace owner opens a mailbox in
+    [Mermail Console](https://console.mermail.app), selects **Agent Wallet**,
+    and connects PayBox. Confirm that **PayBox connection** shows **ACTIVE**.
+
+    Current workspace members can use the live PayBox tools through the
+    owner's active connection. If the connection needs repair, the owner must
+    reconnect it in Mermail.
+  </Step>
+  <Step title="Check the Solana wallet">
+    In **Agent Wallet**, verify the intended Solana wallet and its USDC balance.
+    Keep a small SOL balance available for network fees when the provider
+    requires it.
+
+    If more than one eligible Solana wallet exists and no saved default is
+    returned, the assistant asks which wallet to use. Selecting a wallet does
+    not submit a purchase.
+  </Step>
+</Steps>
+
+## Buy one xStock
+
+<Steps>
+  <Step title="Name the product and amount">
+    Give the assistant one exact product and a USDC amount:
+
+    ```text
+    Buy NVIDIA xStock with 10 USDC on Solana.
+    ```
+
+    The skill resolves the exact product through the published catalog and
+    checks its current Solana identity. If a name matches multiple products,
+    select one from the returned choices before continuing.
+  </Step>
+  <Step title="Choose a wallet when asked">
+    The assistant uses a provider-declared default wallet or the only eligible
+    Solana wallet. When several eligible wallets remain, reply with the exact
+    wallet shown in the list.
+
+    Check that the selected wallet holds USDC on Solana. A balance shown for
+    another network cannot fund this purchase.
+  </Step>
+  <Step title="Review the PayBox terms">
+    PayBox prepares the live swap. Review the xStock name, USDC amount, Solana
+    wallet, fees, expected output, and minimum received in the PayBox interface.
+
+    If the quote expires or its terms change, review the refreshed terms before
+    approving them. Catalog verification identifies the token; the live PayBox
+    response determines whether the transaction can proceed.
+  </Step>
+  <Step title="Approve and sign when required">
+    Complete the approval, passkey, or signing step shown by PayBox. If your AI
+    client cannot render the PayBox interface, open the single authenticated
+    Mermail signing handoff returned for that request.
+
+    Keep the conversation open. Do not ask the assistant to create another
+    purchase while the original request is waiting for a signature or provider
+    result.
+  </Step>
+  <Step title="Check the original request">
+    After signing, use this prompt:
+
+    ```text
+    I finished signing. Check the original purchase request.
+    ```
+
+    The assistant checks the existing provider request. Treat **pending** as
+    still processing and **uncertain** as a request whose authoritative result
+    is unavailable. The purchase is complete only when PayBox returns a
+    confirmed terminal result.
+  </Step>
+</Steps>
+
+## Explore products before buying
+
+You can ask for a short list without opening the wallet or creating a swap.
+
+### Browse a category
+
+```text
+Recommend xStocks in the technology category.
+```
+
+The assistant matches your wording to categories returned by the live catalog
+and shows products whose category assignment has evidence. If the category is
+ambiguous, choose one of the catalog categories it offers. A category with no
+verified assignments can return no products.
+
+### Browse familiar names
+
+```text
+Recommend a few xStocks.
+```
+
+The assistant returns up to five familiar-name products that it can match
+uniquely in the live catalog. This is a discovery list, not a market ranking or
+investment recommendation.
+
+Neither prompt creates a transaction. After reviewing the list, name one exact
+product and an exact USDC amount when you want to continue.
+
+## Understand the status
+
+| Status | What it means | What to do |
+| --- | --- | --- |
+| `recommendations_ready` | A discovery list is ready. No wallet request exists. | Select one product and provide an amount if you want to buy. |
+| `selection_required` | More than one product or wallet remains possible. | Choose one exact option from the returned list. |
+| `review_required` | PayBox has terms for you to review. | Check the amount, wallet, fees, and minimum received. |
+| `blocked` | Verification or a required provider capability stopped the flow before an execution request was created. | Follow the returned reason; do not replace the token or provider. |
+| `pending` | The request is waiting for review, signing, or provider processing. | Finish the shown handoff, then check the same request. |
+| `uncertain` | A request may exist, but its authoritative status is unavailable. | Reconcile the original request later; do not submit another purchase. |
+| `confirmed` | PayBox confirmed the terminal result. | Check the Solana wallet and transaction details. |
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="My AI cannot see wallet tools">
+    Confirm that the client uses `https://console.mermail.app/mcp` with OAuth.
+    API keys and the `agent-inbox` profile do not expose PayBox. Reconnect the
+    full profile, complete workspace consent, and open a new chat so the client
+    refreshes its tool catalog.
+  </Accordion>
+  <Accordion title="PayBox is not connected">
+    Open the returned Mermail handoff. The workspace owner connects or
+    reauthorizes PayBox from **Agent Wallet**. Return to the same conversation
+    after the connection shows **ACTIVE**.
+  </Accordion>
+  <Accordion title="The wallet has USDC, but the assistant reports insufficient funds">
+    Check the network shown next to the balance. This workflow requires USDC on
+    Solana. USDC on Base or another network is a separate asset balance. After
+    the intended Solana wallet is funded, ask the assistant to refresh the
+    portfolio once and continue the same product and amount.
+  </Accordion>
+  <Accordion title="The assistant asks me to choose a wallet">
+    More than one eligible Solana wallet exists and PayBox did not identify a
+    saved default. Reply with one exact wallet from the list. Wallet autonomous
+    permission does not make that wallet the default.
+  </Accordion>
+  <Accordion title="Product verification is blocked">
+    Read the reason returned by the assistant. A halted product, identity
+    conflict, unsupported provider requirement, or unavailable dependency can
+    stop the flow. Do not substitute a similarly named token or send USDC to a
+    token mint.
+  </Accordion>
+  <Accordion title="No signing control appears">
+    Use a returned invocation-specific Mermail signing handoff when available.
+    A blank or waiting PayBox frame is not confirmation that the transaction
+    was signed. Keep the original request and do not create a replacement.
+  </Accordion>
+  <Accordion title="The request is pending or timed out">
+    Ask the assistant to check the original request. A timeout can happen after
+    submission, so retrying the purchase could create a duplicate. Wait for an
+    authoritative provider result before deciding whether to start a new
+    purchase.
+  </Accordion>
+</AccordionGroup>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Install Mermail Skills" icon="puzzle-piece" href="/ai/skills">
+    Install the xStocks workflow for your AI client.
+  </Card>
+  <Card title="Set up Agent Wallet" icon="wallet" href="/agent-wallet/get-started">
+    Connect PayBox and inspect delegated wallets.
+  </Card>
+  <Card title="Connect Mermail MCP" icon="plug" href="/ai/mcp">
+    Authenticate the full MCP profile with OAuth.
+  </Card>
+  <Card title="Swaps and recovery" icon="arrows-rotate" href="/agent-wallet/swaps-and-x402">
+    Review the shared PayBox swap and request-status flow.
+  </Card>
+</CardGroup>
