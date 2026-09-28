@@ -36,6 +36,23 @@ MCP clients that support OAuth discover Mermail via Protected Resource Metadata,
 
 Unauthenticated calls return `401` with a `WWW-Authenticate` challenge pointing at the PRM document.
 
+#### Connection lifetime
+
+Access tokens last **one hour**. Clients registered for refresh-token access can
+renew them automatically without opening the sign-in page again. Refresh access
+expires after **180 days without a successful refresh**. Each successful refresh
+starts a new 180-day window; ordinary tool calls and failed refresh attempts do
+not extend it.
+
+Existing connections that have not expired adopt this window on their next
+successful refresh. Expired or revoked connections require you to sign in again.
+Clients registered without refresh-token access retain their existing grant
+lifetime and must obtain new access tokens through sign-in.
+
+Mermail rotates refresh tokens after each successful refresh. Your MCP client
+must securely save the replacement and coordinate refresh requests so the same
+token is not used twice. Reusing a consumed refresh token revokes the connection.
+
 ### Agent Wallet access
 
 PayBox tools appear only on the default full-profile **OAuth** session. API-key
@@ -460,6 +477,17 @@ tools additionally verify ownership.
 </Warning>
 
 ## Troubleshooting
+
+### Connection expired or refresh failed
+
+If your client reports `invalid_grant`, sign in again. The connection may have
+expired after inactivity, been revoked, or reused an old refresh token. Avoid
+repeatedly retrying a rejected refresh token.
+
+For a temporary server or network failure, let your MCP client handle bounded
+retries. A lost refresh response can leave the client holding an already-used
+token; if a retry returns `invalid_grant`, reconnect. Routine access-token
+expiration should be handled automatically by a client that supports refresh.
 
 ### Tool not found or `Finding tools`
 

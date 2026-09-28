@@ -1,5 +1,5 @@
 ---
-title: "Buy xStocks with your AI"
+title: "24/7 Stock Investing"
 description: "Install the xStocks skill, connect Mermail and PayBox, and complete one reviewed USDC-to-xStock purchase on Solana."
 icon: "chart-line"
 ---
@@ -45,15 +45,26 @@ You need:
 
 <Steps>
   <Step title="Install the xStocks skill">
-    Run the Skills CLI in the environment used by your AI client:
+    If you use Codex, run this in your terminal to install the skill for your
+    user account:
+
+    ```bash
+    npx --yes skills add Nudgen-Marketing/mermail-skills \
+      --agent codex --skill mermail-xstocks-desk --global --yes
+    ```
+
+    For another Agent Skills-compatible client, run the Skills CLI in the
+    environment used by that client:
 
     ```bash
     npx --yes skills add Nudgen-Marketing/mermail-skills \
       --skill mermail-xstocks-desk
     ```
 
-    Restart or open a new AI session after installation. See
-    [Skills](/ai/skills) for client-specific setup.
+    Start a new AI session after installation. In Codex, ask it to use
+    `mermail-xstocks-desk` for your xStock purchase. If Codex cannot find the
+    skill, check that the command completed and start a new session. See
+    [Skills](/ai/skills) for other client-specific setup.
   </Step>
   <Step title="Connect the full Mermail MCP profile">
     Add `https://console.mermail.app/mcp` to your AI client, choose OAuth, sign

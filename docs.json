@@ -58,7 +58,7 @@
             "group": "Usecases",
             "pages": [
               "usecases/overview",
-              "usecases/buy-xstocks",
+              "usecases/stock-investing",
               "usecases/sale-outreach",
               "usecases/customer-support"
             ]
@@ -296,6 +296,10 @@
     "options": []
   },
   "redirects": [
+    {
+      "source": "/usecases/buy-xstocks",
+      "destination": "/usecases/stock-investing"
+    },
     {
       "source": "/guides/customer-support",
       "destination": "/guides/site-analytics"
