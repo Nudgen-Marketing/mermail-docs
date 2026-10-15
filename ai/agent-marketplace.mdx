@@ -16,11 +16,11 @@ This surface is listed for Circle Agent Marketplace. It is not the sold API at
 
 ## How payment becomes identity
 
-Unpaid calls return `402` with x402 `accepts[]`, including **`$0` reads**. A
-zero-amount challenge is an identity handshake: no USDC is charged, but the
-signed payment still binds the payer address. The live `402` also includes
-request and response JSON Schema in `extensions.bazaar`, so you can call the
-endpoint without reading docs first.
+Unpaid calls return `402` with x402 `accepts[]`, including **`$0` reads and
+drafts**. A zero-amount challenge is an identity handshake: no USDC is charged,
+but the signed payment still binds the payer address. The live `402` also
+includes request and response JSON Schema in `extensions.bazaar`, so you can
+call the endpoint without reading docs first.
 
 Paid creates and sends also accept **MPP**. When MPP is enabled, the unpaid
 `402` includes `WWW-Authenticate: Payment`. Retry with either
@@ -49,7 +49,7 @@ The live `402` `accepts[]` is the quote. Default listing prices:
 | Send | `POST` | `/mailboxes/{id}/emails` | `$0.01` |
 | Reply | `POST` | `/mailboxes/{id}/emails/{emailId}/reply` | `$0.01` |
 | Forward | `POST` | `/mailboxes/{id}/emails/{emailId}/forward` | `$0.01` |
-| Save draft | `POST` | `/mailboxes/{id}/drafts` | `$0.01` |
+| Save draft | `POST` | `/mailboxes/{id}/drafts` | `$0` |
 | List or get inboxes | `GET` | `/mailboxes`, `/mailboxes/{id}` | `$0` |
 | List or get messages | `GET` | `/mailboxes/{id}/emails`, `/emails/{emailId}` | `$0` |
 | Safe context | `GET` | `/mailboxes/{id}/emails/{emailId}/context` | `$0` |

@@ -7077,6 +7077,12 @@
                         }
                       ]
                     }
+                  },
+                  "from": {
+                    "type": "string",
+                    "format": "email",
+                    "maxLength": 254,
+                    "description": "Optional sender: current mailbox address or valid unblocked hosted plus alias. Omit to retain an existing draft sender, use a verified reply alias, or default to the primary address for a new message. Checked again before sending."
                   }
                 }
               },
@@ -7563,6 +7569,12 @@
                     "format": "date-time",
                     "description": "Must be in the future (ISO-8601)",
                     "example": "2026-07-16T15:00:00.000Z"
+                  },
+                  "from": {
+                    "type": "string",
+                    "format": "email",
+                    "maxLength": 254,
+                    "description": "Optional sender: current mailbox address or valid unblocked hosted plus alias. Omit to retain an existing draft sender, use a verified reply alias, or default to the primary address for a new message. Checked again before sending."
                   }
                 }
               },
@@ -16721,6 +16733,262 @@
           }
         }
       }
+    },
+    "/api/v1/mailboxes/{mailboxId}/aliases": {
+      "get": {
+        "operationId": "listMailboxAliases",
+        "summary": "List saved and blocked plus aliases",
+        "description": "Requires mailbox read access. Hosted mailboxes only. Valid unsaved aliases work automatically. Returns enabled=false when aliases are unavailable.",
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "mailboxId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Alias availability and records",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "address": {
+                      "type": "string"
+                    },
+                    "aliases": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MailboxPlusAlias"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid alias or unsupported mailbox"
+          },
+          "403": {
+            "description": "Insufficient mailbox permissions"
+          },
+          "404": {
+            "description": "Mailbox or alias not found, or feature unavailable"
+          }
+        }
+      },
+      "post": {
+        "operationId": "saveMailboxAlias",
+        "summary": "Save a plus alias shortcut",
+        "description": "Requires mailbox settings administration permission. Saving is optional for delivery; aliases share the parent mailbox's permissions and limits.",
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "mailboxId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "tag"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "tag": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 32,
+                    "pattern": "^[a-zA-Z0-9](?:[a-zA-Z0-9._-]{0,30}[a-zA-Z0-9])?$",
+                    "description": "Plus tag, normalized to lowercase."
+                  },
+                  "label": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 80
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Saved alias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailboxPlusAlias"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid alias or unsupported mailbox"
+          },
+          "403": {
+            "description": "Insufficient mailbox permissions"
+          },
+          "404": {
+            "description": "Mailbox or alias not found, or feature unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/mailboxes/{mailboxId}/aliases/{tag}": {
+      "put": {
+        "operationId": "updateMailboxAlias",
+        "summary": "Update, block, or unblock a plus alias",
+        "description": "Requires mailbox settings administration permission. Blocking discards future incoming mail and prevents sends, including pending scheduled sends; existing mail and routines remain. For an unrecorded tag, set saved=true or blocked=true to create its record.",
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "mailboxId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32,
+              "pattern": "^[a-zA-Z0-9](?:[a-zA-Z0-9._-]{0,30}[a-zA-Z0-9])?$",
+              "description": "Plus tag, normalized to lowercase."
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "label": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 80
+                  },
+                  "saved": {
+                    "type": "boolean"
+                  },
+                  "blocked": {
+                    "type": "boolean",
+                    "description": "Block future incoming deliveries and outgoing sends. Existing mail remains."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated alias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailboxPlusAlias"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid alias or unsupported mailbox"
+          },
+          "403": {
+            "description": "Insufficient mailbox permissions"
+          },
+          "404": {
+            "description": "Mailbox or alias not found, or feature unavailable"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "removeMailboxAlias",
+        "summary": "Remove a saved alias shortcut",
+        "description": "Requires mailbox settings administration permission. Delivery continues. Any existing block remains; use update to unblock explicitly.",
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "mailboxId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32,
+              "pattern": "^[a-zA-Z0-9](?:[a-zA-Z0-9._-]{0,30}[a-zA-Z0-9])?$",
+              "description": "Plus tag, normalized to lowercase."
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Shortcut removed; any block remains"
+          },
+          "400": {
+            "description": "Invalid alias or unsupported mailbox"
+          },
+          "403": {
+            "description": "Insufficient mailbox permissions"
+          },
+          "404": {
+            "description": "Mailbox or alias not found, or feature unavailable"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -17329,6 +17597,13 @@
             "type": "integer",
             "minimum": 0,
             "description": "Attachment count retained when `agent_safe_content=true` omits attachment metadata"
+          },
+          "delivery_address": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Verified envelope delivery address, independent of visible To/Cc headers; null when unavailable."
           }
         }
       },
@@ -18119,8 +18394,51 @@
               "metadata_truncated": {
                 "type": "boolean",
                 "description": "Metadata was bounded to keep the event within the size limit."
+              },
+              "delivery_address": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Verified envelope delivery address, independent of visible To/Cc headers."
               }
             }
+          }
+        }
+      },
+      "MailboxPlusAlias": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "tag": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "pattern": "^[a-zA-Z0-9](?:[a-zA-Z0-9._-]{0,30}[a-zA-Z0-9])?$",
+            "description": "Plus tag, normalized to lowercase."
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 80
+          },
+          "saved": {
+            "type": "boolean"
+          },
+          "blockedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "address": {
+            "type": "string",
+            "format": "email"
           }
         }
       }

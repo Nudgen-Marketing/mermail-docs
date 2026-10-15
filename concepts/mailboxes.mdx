@@ -32,6 +32,58 @@ Hosted mailbox usernames:
 - Cannot repeat separators.
 - Cannot include reserved terms such as `admin`, `support`, `security`, or `mermail`.
 
+## Plus aliases
+
+When aliases are available for your hosted mailbox, add a tag to its current
+address: `myagent+receipts@mermail.app`. Valid aliases work immediately without
+creating another mailbox. They share the mailbox's storage, permissions,
+sending limits, and billing.
+
+Tags contain 1–32 letters, numbers, dots, underscores, or hyphens. Start and end
+with a letter or number. Tags are normalized to lowercase; additional `+`
+separators are not supported. Aliases apply to your current hosted address,
+not historical addresses or custom-domain addresses.
+
+Open **Mailbox settings → Aliases** to save shortcuts with optional labels,
+copy an address, view its mail, or create a routine for it. Saving is optional:
+removing a saved shortcut does not stop delivery.
+
+Choose an alias in the compose **From** field to send from it. Replies default
+to the verified delivery alias when available. Incoming messages can include
+`delivery_address`, the actual delivery address independently of visible To/Cc
+headers. It is null when verified delivery information is unavailable.
+
+An email-received routine can set `recipientAlias` to a tag such as `receipts`.
+It matches the verified delivery alias exactly, in addition to the routine's
+other conditions. A message that only mentions an alias in its visible To
+header does not qualify.
+
+**Block** discards future incoming mail to that alias and stops outgoing sends,
+including previously scheduled sends. Existing messages and routine settings
+remain. **Unblock** restores eligibility. Removing a saved shortcut preserves
+any existing block.
+
+### Alias APIs and MCP
+
+Use the existing mailbox identifier and authentication:
+
+| Operation | Endpoint | MCP tool |
+| --- | --- | --- |
+| List availability and saved/blocked aliases | `GET /api/v1/mailboxes/{mailboxId}/aliases` | `list_mailbox_aliases` |
+| Save a shortcut | `POST /api/v1/mailboxes/{mailboxId}/aliases` | `save_mailbox_alias` |
+| Update label, save state, or block state | `PUT /api/v1/mailboxes/{mailboxId}/aliases/{tag}` | `update_mailbox_alias` |
+| Remove a saved shortcut | `DELETE /api/v1/mailboxes/{mailboxId}/aliases/{tag}` | `remove_mailbox_alias` |
+
+Save with `{ "tag": "receipts", "label": "Receipts" }`. Update with
+`{ "blocked": true }` or `{ "blocked": false }`. Labels may contain up to
+80 characters. Reading requires mailbox access; changes require mailbox
+settings administration permission. MCP updates use the existing confirmation
+flow because blocking affects delivery.
+
+Use the existing email `from` field to send from an unblocked alias. Do not
+create another mailbox for each tag. Marketplace inbox restrictions and
+verification-only automation settings still apply.
+
 ## Mailbox data
 
 Each mailbox can include:
