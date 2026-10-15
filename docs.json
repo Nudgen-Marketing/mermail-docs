@@ -33,6 +33,7 @@
             "group": "Guides",
             "pages": [
               "guides/create-mailbox",
+              "guides/plus-aliases",
               "guides/webhooks",
               "guides/site-analytics",
               "guides/custom-domains",
@@ -179,7 +180,11 @@
               "POST /api/v1/mailboxes",
               "GET /api/v1/mailboxes/{mailboxId}",
               "PUT /api/v1/mailboxes/{mailboxId}",
-              "GET /api/v1/mailboxes/{mailboxId}/storage"
+              "GET /api/v1/mailboxes/{mailboxId}/storage",
+              "GET /api/v1/mailboxes/{mailboxId}/aliases",
+              "POST /api/v1/mailboxes/{mailboxId}/aliases",
+              "PUT /api/v1/mailboxes/{mailboxId}/aliases/{tag}",
+              "DELETE /api/v1/mailboxes/{mailboxId}/aliases/{tag}"
             ]
           },
           {

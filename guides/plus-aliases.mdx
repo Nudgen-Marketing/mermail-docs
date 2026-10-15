@@ -1,0 +1,102 @@
+---
+title: "Use plus aliases"
+description: "Organize hosted inbox mail, send from aliases, and create alias-specific routines."
+icon: "at"
+---
+
+Add `+receipts`, `+newsletters`, or `+travel` to your hosted address to organize
+mail without creating another inbox. For example, mail to
+`myagent+receipts@mermail.app` arrives in the `myagent@mermail.app` mailbox.
+
+<Note>
+  Plus aliases are available when enabled for your hosted mailbox. They do not
+  extend to custom-domain or connected inboxes. Aliases use your current hosted
+  address; changing the mailbox address does not keep an old address active.
+</Note>
+
+Valid aliases work without setup. They share the parent mailbox's storage,
+permissions, sending limits, and billing. Saving an alias only creates a shortcut.
+
+## Save and share an alias
+
+1. Open your mailbox's **Settings**, then find **Aliases**.
+2. Enter a tag such as `receipts` in **Alias tag**. Check the full-address preview.
+3. Optionally enter a **Label**, then click **Save alias**.
+4. Click **Copy address** and use that address with the service sending you mail.
+
+Tags accept 1–32 letters, numbers, dots, underscores, or hyphens. Start and end
+with a letter or number. Tags are normalized to lowercase. Do not include another
+`+` separator. The complete address must also fit email address length limits.
+
+## Find mail for an alias
+
+Click **View mail** beside an alias to open its inbox filter. Incoming messages
+with verified alias delivery information show an alias badge. You can also save
+an observed alias from message details.
+
+Filtering uses the actual delivery address, independently of visible **To** and
+**Cc** headers. This supports Bcc delivery and avoids treating a spoofed To header
+as proof that a message arrived through an alias. Older messages without verified
+delivery information do not match an alias filter.
+
+## Send and reply
+
+New messages default to your primary address. In **From**, choose a saved alias
+or enter another valid full alias address belonging to the same mailbox.
+
+Replies default to the original delivery alias when verified information is
+available, including AI-generated replies. Reply-all excludes your mailbox's own
+alias addresses. Drafts and scheduled sends retain the selected sender.
+
+If an alias is blocked before submission, sending stops with an error. Unblock
+the alias or edit the sender before retrying; Mermail does not silently substitute
+the primary address.
+
+## Create an alias-specific routine
+
+Click **Create routine** beside the alias. The editor opens with its recipient
+alias constraint filled in. Complete the routine's instructions and other
+conditions, then save it through the normal editor flow.
+
+The `recipientAlias` constraint matches the normalized tag exactly against
+verified delivery information. It must match even when other content conditions
+use OR logic. Existing routines without this constraint continue to match as
+before. Marketplace inboxes retain their automation restrictions.
+
+## Block or unblock an alias
+
+Click **Block** beside the alias and review the confirmation. Blocking:
+
+- Discards future incoming mail to that alias.
+- Stops sending from that alias, including pending scheduled sends.
+- Keeps existing messages and routine settings.
+
+Click **Unblock** to restore delivery and sending eligibility. Configured routines
+can match future eligible deliveries again. Discarded mail is not restored.
+
+**Remove shortcut** only removes the saved shortcut. It does not stop delivery or
+remove an existing block. Use **Block** when you want mail to stop.
+
+## Use the API or MCP
+
+Use the [alias endpoints and MCP tools](/concepts/mailboxes#alias-apis-and-mcp)
+to list, save, update, or remove shortcuts. Listing requires mailbox read access;
+changes require mailbox settings administration permission.
+
+For example, save a shortcut with the following request body:
+
+```json
+{
+  "tag": "receipts",
+  "label": "Receipts"
+}
+```
+
+Keep using the existing email `from` field for sending. Set it to the full address,
+such as `myagent+receipts@mermail.app`. Saving the alias first is optional.
+
+Authorized message responses can include `delivery_address`. Treat a null value
+as unavailable delivery information; do not reconstruct it from To/Cc headers.
+
+See [Mailboxes](/concepts/mailboxes#plus-aliases) for the API operations and
+[Email module](/concepts/email) for delivery status and sending limits.
